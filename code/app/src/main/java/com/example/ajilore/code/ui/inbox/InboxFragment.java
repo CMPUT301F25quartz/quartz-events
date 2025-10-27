@@ -1,4 +1,6 @@
 package com.example.ajilore.code.ui.inbox;
 
-public class InboxFragment {
+import androidx.fragment.app.Fragment;
+
+public class InboxFragment extends Fragment {
 }

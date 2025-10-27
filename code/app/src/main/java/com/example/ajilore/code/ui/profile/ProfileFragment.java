@@ -1,4 +1,6 @@
 package com.example.ajilore.code.ui.profile;
 
-public class ProfileFragment {
+import androidx.fragment.app.Fragment;
+
+public class ProfileFragment extends Fragment {
 }
