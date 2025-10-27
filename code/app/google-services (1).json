@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "592697632189",
+    "project_id": "events-51ed9",
+    "storage_bucket": "events-51ed9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592697632189:android:8aac8363d3c079e0099ed4",
+        "android_client_info": {
+          "package_name": "com.example.ajilore.code"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9T4MMhGA140Xxl7VKOxKkAZlTKFYS2yo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
