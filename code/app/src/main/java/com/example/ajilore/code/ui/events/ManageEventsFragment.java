@@ -1,5 +1,7 @@
 package com.example.ajilore.code.ui.events;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,16 +18,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.R;
-//will include the import statement once we can authenticate
-//import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ManageEventsFragment extends Fragment {
 
@@ -53,12 +49,8 @@ public class ManageEventsFragment extends Fragment {
     private Button btnNotifyTop;
     private EditText etMessage;
     private TextView tvCounter, tvTitle;
-    private CheckBox cbAddLink, cbAddPoster;
-    private Button btnSend;
 
-    // ---- data ----
     private String eventId, eventTitle;
-    private FirebaseFirestore db;
 
     @Nullable
     @Override
@@ -71,9 +63,6 @@ public class ManageEventsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
-
-        // Firestore
-        db = FirebaseFirestore.getInstance();
 
         // args
         Bundle args = getArguments();
@@ -99,14 +88,14 @@ public class ManageEventsFragment extends Fragment {
         tgNotSelected= v.findViewById(R.id.tgNotSelected);
 
         // notify card
-        cardNotify   = v.findViewById(R.id.cardNotify);
-        etMessage    = v.findViewById(R.id.etMessage);
-        tvCounter    = v.findViewById(R.id.tvCounter);
-        cbAddLink    = v.findViewById(R.id.cbAddLink);
-        cbAddPoster  = v.findViewById(R.id.cbAddPoster);
-        btnSend      = v.findViewById(R.id.btnSend);
+        cardNotify = v.findViewById(R.id.cardNotify); // in XML this container starts as GONE
+        etMessage  = v.findViewById(R.id.etMessage);
+        tvCounter  = v.findViewById(R.id.tvCounter);
+        CheckBox cbLink   = v.findViewById(R.id.cbAddLink);
+        CheckBox cbPoster = v.findViewById(R.id.cbAddPoster);
+        Button btnSend    = v.findViewById(R.id.btnSend);
 
-        // start state
+        // start state: nothing selected, not in notify mode
         tgWaiting.setChecked(false);
         tgSelected.setChecked(false);
         tgNotSelected.setChecked(false);
@@ -131,10 +120,13 @@ public class ManageEventsFragment extends Fragment {
         tgSelected.setOnClickListener(pillClick);
         tgNotSelected.setOnClickListener(pillClick);
 
-        // notify button enters notify mode
-        btnNotifyTop.setOnClickListener(x -> { notifyMode = true; updatePanel(); });
+        // notify button enters notify mode (show form only if a pill is picked)
+        btnNotifyTop.setOnClickListener(x -> {
+            notifyMode = true;
+            updatePanel();
+        });
 
-        // other top actions leave notify mode
+        // other top actions leave notify mode (hide form)
         View.OnClickListener exitNotify = y -> {
             notifyMode = false;
             updatePanel();
@@ -146,7 +138,7 @@ public class ManageEventsFragment extends Fragment {
         btnQR.setOnClickListener(exitNotify);
         btnEditTop.setOnClickListener(exitNotify);
 
-        // message counter
+        // counter for message
         etMessage.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int c) {
@@ -156,7 +148,7 @@ public class ManageEventsFragment extends Fragment {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // SEND -> Firestore write
+        // send (stub)
         btnSend.setOnClickListener(z -> {
             if (audience != Audience.SELECTED) {
                 Toast.makeText(requireContext(),
@@ -164,46 +156,18 @@ public class ManageEventsFragment extends Fragment {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (eventId == null || eventId.isEmpty()) {
-                Toast.makeText(requireContext(), "Missing eventId", Toast.LENGTH_LONG).show();
-                return;
-            }
             String msg = etMessage.getText() == null ? "" : etMessage.getText().toString().trim();
             if (msg.isEmpty()) { etMessage.setError("Message required"); return; }
 
-            //temporarily - will change once we decide how to authenticate
-            String uid = "unknown";
-
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("audience", "selected");
-            payload.put("message", msg);
-            payload.put("includePoster", cbAddPoster.isChecked());
-            payload.put("linkUrl", null); // add an EditText later if you want URLs
-            payload.put("createdAt", FieldValue.serverTimestamp());
-            payload.put("createdByUid", uid);
-            payload.put("eventId", eventId);
-
-            z.setEnabled(false);
-
-            db.collection("org_events")
-                    .document(eventId)
-                    .collection("broadcasts")
-                    .add(payload)
-                    .addOnSuccessListener(ref -> {
-                        Toast.makeText(requireContext(), "Notification queued ✅", Toast.LENGTH_SHORT).show();
-                        etMessage.setText("");
-                        notifyMode = false;
-                        updatePanel();
-                        z.setEnabled(true);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(requireContext(), "Failed to queue: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        z.setEnabled(true);
-                    });
+            // TODO: Firestore write for SELECTED audience
+            Toast.makeText(requireContext(),
+                    "Queued to selected entrants for " + eventTitle, Toast.LENGTH_SHORT).show();
         });
+
     }
 
     private void updatePanel() {
+        // was: boolean showForm = notifyMode && audience != Audience.NONE;
         boolean showForm = notifyMode && audience == Audience.SELECTED;
         cardNotify.setVisibility(showForm ? View.VISIBLE : View.GONE);
 
@@ -211,7 +175,8 @@ public class ManageEventsFragment extends Fragment {
         stylePill(tgSelected, tgSelected.isChecked());
         stylePill(tgNotSelected, tgNotSelected.isChecked());
 
-        int tint = notifyMode ? 0xFF17C172 : 0xFFBDBDBD;
+        int tint = notifyMode ? android.graphics.Color.parseColor("#17C172")
+                : android.graphics.Color.parseColor("#BDBDBD");
         androidx.core.view.ViewCompat.setBackgroundTintList(
                 btnNotifyTop, android.content.res.ColorStateList.valueOf(tint));
     }
