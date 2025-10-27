@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@+id/eventsFragment">
 
@@ -8,22 +9,21 @@
    <fragment
        android:id="@+id/historyFragment"
        android:name="com.example.ajilore.code.ui.history.HistoryFragment"
-       android:label ="History" />
-
-   <fragment
-       android:id="@+id/eventsFragment"
-       android:name="com.example.ajilore.code.ui.events.EventsFragment"
-       android:label ="Events" />
-
-   <fragment
-       android:id="@+id/inboxFragment"
-       android:name="com.example.ajilore.code.ui.inbox.InboxFragment"
-       android:label ="Inbox" />
-
+       android:label="fragment_history"
+       tools:layout="@layout/fragment_history" />
    <fragment
        android:id="@+id/profileFragment"
        android:name="com.example.ajilore.code.ui.profile.ProfileFragment"
-       android:label ="Profile" />
-
-
+       android:label="fragment_profile"
+       tools:layout="@layout/fragment_profile" />
+   <fragment
+       android:id="@+id/inboxFragment"
+       android:name="com.example.ajilore.code.ui.inbox.InboxFragment"
+       android:label="fragment_inbox"
+       tools:layout="@layout/fragment_inbox" />
+   <fragment
+       android:id="@+id/eventsFragment"
+       android:name="com.example.ajilore.code.ui.events.EventsFragment"
+       android:label="fragment_events"
+       tools:layout="@layout/fragment_events" />
 </navigation>
