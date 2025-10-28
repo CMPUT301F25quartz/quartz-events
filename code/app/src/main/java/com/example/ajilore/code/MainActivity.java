@@ -12,8 +12,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.events.EventsFragment;
-import com.example.ajilore.code.ui.events.ManageEventsFragment;
-import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
@@ -53,21 +51,17 @@ public class MainActivity extends AppCompatActivity {
                 if(id == R.id.historyFragment){
                     selected_fragment = new HistoryFragment();
                     //Toast.makeText(MainActivity.this, "History", Toast.LENGTH_SHORT).show();
-                } //else if(id == R.id.eventsFragment) {
-                    //selected_fragment = new EventsFragment();
+                } else if(id == R.id.eventsFragment) {
+                    selected_fragment = new EventsFragment();
                     //Toast.makeText(MainActivity.this, "Events", Toast.LENGTH_SHORT).show();
-                 else if(id == R.id.inboxFragment) {
+                } else if(id == R.id.inboxFragment) {
                     selected_fragment = new InboxFragment();
                     //Toast.makeText(MainActivity.this, "Inbox", Toast.LENGTH_SHORT).show();
-                }
-                else if(id == R.id.profileFragment) {
+                } else if(id == R.id.profileFragment) {
                     selected_fragment = new ProfileFragment();
                     //Toast.makeText(MainActivity.this, "Profile", Toast.LENGTH_SHORT).show();
-                } else if (id == R.id.eventsFragment) {
-                    //TODO: Decide how we decide how to be an organizer or an entrant
-                    // temporary: always show organizer version
-                    selected_fragment = new OrganizerEventsFragment();
                 }
+
                 if(selected_fragment != null){
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.nav_host_fragment, selected_fragment).commit();
