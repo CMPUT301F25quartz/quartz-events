@@ -1,6 +1,5 @@
 package com.example.ajilore.code.ui.events;
 
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,17 +14,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.example.ajilore.code.ui.events.ManageEventsFragment;
-
 
 public class OrganizerEventsFragment extends Fragment {
 
     private RecyclerView rv;
     private EventsAdapter adapter;
+    private final List<EventItem> data = new ArrayList<>();
+    private FirebaseFirestore db;
 
     @Nullable
     @Override
@@ -39,18 +45,11 @@ public class OrganizerEventsFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
+        db = FirebaseFirestore.getInstance();
+
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
-
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        // ---- Stub data for now; replace with Firestore later ----
-        List<EventItem> data = new ArrayList<>();
-        data.add(new EventItem("evt_001", "A virtual evening of smooth jazz", "12 NOV · SAT · 6:00 PM"));
-        data.add(new EventItem("evt_002", "International Band Music Concert", "12 DEC · TUES · 4:00 PM"));
-        data.add(new EventItem("evt_003", "Collectivity Plays the Music of Jimi", "Mon, Jan 21 · 10:00 PM"));
-        data.add(new EventItem("evt_004", "International Gala Music Festival", "10 June · 9:00 PM"));
-        // ---------------------------------------------------------
 
         adapter = new EventsAdapter(data, item -> {
             Fragment f = ManageEventsFragment.newInstance(item.eventId, item.title);
@@ -61,25 +60,65 @@ public class OrganizerEventsFragment extends Fragment {
         });
         rv.setAdapter(adapter);
 
+        btnCreate.setOnClickListener(x ->
+                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show()
+        );
 
-        btnCreate.setOnClickListener(x -> {
-            // TODO: navigate to CreateEventFragment
-            Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show();
-        });
-
-        // If you want dividers later:
-        // rv.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
+        loadEvents();
     }
 
-    // ---------- tiny model ----------
+    private void loadEvents() {
+        Query q = db.collection("org_events")
+                .orderBy("startsAt", Query.Direction.DESCENDING);
+
+        q.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override public void onEvent(@Nullable QuerySnapshot snap, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                data.clear();
+                if (snap != null) {
+                    for (DocumentSnapshot d : snap.getDocuments()) {
+                        String id = d.getId();
+                        String title = d.getString("title");
+                        Timestamp ts = d.getTimestamp("startsAt");
+                        String dateText = (ts != null)
+                                ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
+                                : "";
+                        String posterKey = d.getString("posterKey");
+
+                        data.add(new EventItem(id,
+                                title != null ? title : "(untitled)",
+                                dateText,
+                                mapPoster(posterKey)));
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    // Map posterKey -> drawable resource id
+    private int mapPoster(String key) {
+        if (key == null) return R.drawable.jazz;
+        switch (key) {
+            //they are located in the drawable folder
+            //will update/change these images if needed, placeholder for code to work for now
+            case "jazz": return R.drawable.jazz;
+            case "band": return R.drawable.jazz;
+            case "jimi": return R.drawable.jazz;
+            case "gala": return R.drawable.jazz;
+            default: return R.drawable.jazz;
+        }
+    }
+
+    // ---------- model ----------
     public static class EventItem {
-        public final String eventId;
-        public final String title;
-        public final String subtitle; // time/date/location line
-        public EventItem(String eventId, String title, String subtitle) {
-            this.eventId = eventId;
-            this.title = title;
-            this.subtitle = subtitle;
+        public final String eventId, title, dateText;
+        public final int posterRes;
+        public EventItem(String eventId, String title, String dateText, int posterRes) {
+            this.eventId = eventId; this.title = title; this.dateText = dateText; this.posterRes = posterRes;
         }
     }
 
@@ -89,48 +128,36 @@ public class OrganizerEventsFragment extends Fragment {
     public static class EventsAdapter extends RecyclerView.Adapter<EventVH> {
         private final List<EventItem> items;
         private final OnEventClick click;
-
         public EventsAdapter(List<EventItem> items, OnEventClick click) {
-            this.items = items;
-            this.click = click;
+            this.items = items; this.click = click;
         }
-
-        @NonNull @Override
-        public EventVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_organizer_event, parent, false);
+        @NonNull @Override public EventVH onCreateViewHolder(@NonNull ViewGroup p, int v) {
+            View view = LayoutInflater.from(p.getContext())
+                    .inflate(R.layout.item_organizer_event, p, false);
             return new EventVH(view);
         }
-
-        @Override
-        public void onBindViewHolder(@NonNull EventVH holder, int position) {
-            holder.bind(items.get(position), click);
-        }
-
-        @Override
-        public int getItemCount() {
-            return items.size();
-        }
+        @Override public void onBindViewHolder(@NonNull EventVH h, int pos) { h.bind(items.get(pos), click); }
+        @Override public int getItemCount() { return items.size(); }
     }
 
     // ---------- view holder ----------
     public static class EventVH extends RecyclerView.ViewHolder {
-        private final android.widget.TextView tvTitle;
-        private final android.widget.TextView tvSubtitle;
-        private final android.widget.ImageView ivEdit;
+        private final android.widget.TextView tvTitle, tvDate;
+        private final android.widget.ImageView ivEdit, ivPoster;
 
         public EventVH(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvSubtitle = itemView.findViewById(R.id.tvSubtitle);
-            ivEdit  = itemView.findViewById(R.id.ivEdit); // small pencil icon
+            tvDate  = itemView.findViewById(R.id.tvDate);
+            ivEdit  = itemView.findViewById(R.id.ivEdit);
+            ivPoster= itemView.findViewById(R.id.ivPoster);
         }
-
-        void bind(EventItem item, OnEventClick click) {
-            tvTitle.setText(item.title);
-            tvSubtitle.setText(item.subtitle);
-            itemView.setOnClickListener(v -> click.onClick(item));
-            ivEdit.setOnClickListener(v -> click.onClick(item)); // same action for now
+        void bind(EventItem e, OnEventClick click) {
+            tvTitle.setText(e.title);
+            tvDate.setText(e.dateText);
+            ivPoster.setImageResource(e.posterRes);
+            itemView.setOnClickListener(v -> click.onClick(e));
+            ivEdit.setOnClickListener(v -> click.onClick(e));
         }
     }
 }
