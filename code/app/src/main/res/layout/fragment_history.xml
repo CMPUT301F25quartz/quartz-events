@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.profile.ProfileFragment"
-    android:background="#C227F5">
+    tools:context=".ui.history.HistoryFragment"
+    android:background="#F5278B">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView

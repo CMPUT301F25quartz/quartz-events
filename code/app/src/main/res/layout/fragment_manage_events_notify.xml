@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Top bar -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="@android:color/transparent"
+                android:contentDescription="Back"
+                android:layout_width="32dp"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:text="Manage Event"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginStart="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Subtext (event title) -->
+        <TextView
+            android:id="@+id/tvEventTitle"
+            android:text="A Virtual Evening of Smooth Jazz"
+            android:textColor="#666666"
+            android:layout_marginTop="2dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Action rows (2 rows) -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Row 1 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/btnWaitingList"
+                    android:text="Waiting List"
+                    android:textAllCaps="false"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:backgroundTint="#BDBDBD"
+                    android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnSelectEntrants"
+                    android:text="Select Entrants"
+                    android:textAllCaps="false"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:backgroundTint="#BDBDBD"
+                    android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnQR"
+                    android:text="QR"
+                    android:textAllCaps="false"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:backgroundTint="#BDBDBD"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
+
+            <!-- Row 2 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/btnNotifyEntrants"
+                    android:text="Notify Entrants"
+                    android:textAllCaps="false"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:backgroundTint="#BDBDBD"
+                    android:textColor="@android:color/white" />
+
+
+                <Button
+                    android:id="@+id/btnEditEvent"
+                    android:text="Edit Event"
+                    android:textAllCaps="false"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:backgroundTint="#BDBDBD"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Type pills (always visible) -->
+        <TextView
+            android:text="Type"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ToggleButton
+                android:id="@+id/tgWaiting"
+                android:textOn="Waiting List"
+                android:textOff="Waiting List"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill_grey"
+                android:textColor="#333333" />
+
+            <ToggleButton
+                android:id="@+id/tgSelected"
+                android:textOn="Selected"
+                android:textOff="Selected"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_grey"
+                android:textColor="#333333" />
+
+            <ToggleButton
+                android:id="@+id/tgNotSelected"
+                android:textOn="Not Selected"
+                android:textOff="Not Selected"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_grey"
+                android:textColor="#333333" />
+        </LinearLayout>
+
+        <!-- NOTIFY FORM (hidden until: pill chosen AND Notify pressed) -->
+        <LinearLayout
+            android:id="@+id/cardNotify"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_round"
+            android:padding="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <TextView
+                android:text="Message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/etMessage"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:hint="You've been selected! Please accept by Friday @ 5pm."
+                android:gravity="top|start"
+                android:background="@drawable/bg_textarea_round"
+                android:padding="12dp"
+                android:maxLength="240" />
+
+            <TextView
+                android:id="@+id/tvCounter"
+                android:text="0/240"
+                android:textColor="#999999"
+                android:layout_gravity="end"
+                android:layout_marginTop="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <CheckBox
+                android:id="@+id/cbAddLink"
+                android:text="Add link (opens)"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <CheckBox
+                android:id="@+id/cbAddPoster"
+                android:text="Add poster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnSend"
+                android:text="Send"
+                android:layout_marginTop="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:backgroundTint="#17C172"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
+
