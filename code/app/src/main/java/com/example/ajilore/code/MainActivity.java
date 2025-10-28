@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                     selected_fragment = new ProfileFragment();
                     //Toast.makeText(MainActivity.this, "Profile", Toast.LENGTH_SHORT).show();
                 } else if (id == R.id.eventsFragment) {
+                    //TODO: Decide how we decide how to be an organizer or an entrant
                     // temporary: always show organizer version
                     selected_fragment = new OrganizerEventsFragment();
                 }
