@@ -3,6 +3,7 @@ package com.example.ajilore.code.ui.events;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +22,12 @@ import androidx.fragment.app.Fragment;
 import com.example.ajilore.code.R;
 //will include the import statement once we can authenticate
 //import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -156,6 +161,7 @@ public class ManageEventsFragment extends Fragment {
             @Override public void afterTextChanged(Editable s) {}
         });
 
+
         // SEND -> Firestore write
         btnSend.setOnClickListener(z -> {
             if (audience != Audience.SELECTED) {
@@ -171,14 +177,13 @@ public class ManageEventsFragment extends Fragment {
             String msg = etMessage.getText() == null ? "" : etMessage.getText().toString().trim();
             if (msg.isEmpty()) { etMessage.setError("Message required"); return; }
 
-            //temporarily - will change once we decide how to authenticate
-            String uid = "unknown";
+            String uid = "unknown"; // no auth yet
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("audience", "selected");
             payload.put("message", msg);
             payload.put("includePoster", cbAddPoster.isChecked());
-            payload.put("linkUrl", null); // add an EditText later if you want URLs
+            payload.put("linkUrl", null);
             payload.put("createdAt", FieldValue.serverTimestamp());
             payload.put("createdByUid", uid);
             payload.put("eventId", eventId);
@@ -190,7 +195,9 @@ public class ManageEventsFragment extends Fragment {
                     .collection("broadcasts")
                     .add(payload)
                     .addOnSuccessListener(ref -> {
-                        Toast.makeText(requireContext(), "Notification queued ✅", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Notification sent", Toast.LENGTH_SHORT).show();
+
+
                         etMessage.setText("");
                         notifyMode = false;
                         updatePanel();
@@ -201,6 +208,8 @@ public class ManageEventsFragment extends Fragment {
                         z.setEnabled(true);
                     });
         });
+
+
     }
 
     private void updatePanel() {
@@ -220,4 +229,52 @@ public class ManageEventsFragment extends Fragment {
         pill.setBackgroundResource(selected ? R.drawable.bg_pill_deepblue : R.drawable.bg_pill_grey);
         pill.setTextColor(selected ? 0xFFFFFFFF : 0xFF333333);
     }
+
+    private void fanOutToInbox(String eventId, String message, boolean includePoster, @Nullable String linkUrl) {
+        // 1) get recipients from entrants subcollection
+        db.collection("org_events").document(eventId)
+                .collection("entrants")
+                .whereEqualTo("status", "selected")
+                .get()
+                .addOnSuccessListener((QuerySnapshot snap) -> {
+                    if (snap == null || snap.isEmpty()) {
+                        Toast.makeText(requireContext(), "No selected entrants found (demo).", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // 2) write inbox items in a single batch
+                    WriteBatch batch = db.batch();
+                    int count = 0;
+
+                    for (QueryDocumentSnapshot d : snap) {
+                        String uid = d.getId(); // entrant UID (doc id)
+                        DocumentReference inboxRef = db.collection("users").document(uid)
+                                .collection("inbox").document();
+
+                        Map<String, Object> inboxItem = new HashMap<>();
+                        inboxItem.put("type", "event_broadcast");
+                        inboxItem.put("eventId", eventId);
+                        inboxItem.put("audience", "selected");
+                        inboxItem.put("title", "Event update");
+                        inboxItem.put("message", message);
+                        inboxItem.put("includePoster", includePoster);
+                        inboxItem.put("linkUrl", linkUrl);
+                        inboxItem.put("createdAt", FieldValue.serverTimestamp());
+                        inboxItem.put("read", false);
+
+                        batch.set(inboxRef, inboxItem);
+                        count++;
+                    }
+
+                    final int finalCount = count;
+                    batch.commit()
+                            .addOnSuccessListener(v -> Toast.makeText(requireContext(),
+                                    "Delivered to " + finalCount + " inbox(es) (demo).", Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                                    "Inbox fan-out failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), "Load entrants failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+    }
+
 }
