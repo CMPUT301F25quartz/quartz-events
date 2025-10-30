@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.ajilore.code.ui.events.EntrantEventsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.ManageEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
@@ -31,6 +32,44 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+
+        // after setting up Firebase Auth set up (divine)
+//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        String userRole = "entrant"; // Default; replace with actual role fetch
+//        if (currentUser != null) {
+//            // Fetch role from Firestore (e.g., users/{userId}/role)
+//            FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid())
+//                    .get()
+//                    .addOnSuccessListener(doc -> {
+//                        userRole = doc.getString("role"); // e.g., "entrant", "organizer", "admin"
+//                        loadDefaultFragment(userRole);
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Log.e("MainActivity", "Failed to fetch user role: " + e.getMessage());
+//                        loadDefaultFragment("entrant"); // Fallback
+//                    });
+//        } else {
+//            // No user logged in; redirect to login or default to entrant
+//            loadDefaultFragment("entrant");
+//        }
+//        private void loadDefaultFragment(String role) {
+//            Fragment defaultFragment;
+//            switch (role) {
+//                case "organizer":
+//                    defaultFragment = new OrganizerEventsFragment();
+//                    break;
+//                case "admin":
+//                    defaultFragment = new ManageEventsFragment(); // Assuming you have this
+//                    break;
+//                default: // "entrant"
+//                    defaultFragment = new EntrantEventsFragment();
+//                    break;
+//            }
+//            getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.nav_host_fragment, defaultFragment)
+//                    .commit();
+//        }
         setContentView(R.layout.activity_main);
 
         // Apply window insets (should be right after setContentView)
@@ -81,6 +120,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+//    after setting up Firebase Auth set up (divine)
+//    private void setupBottomNavigation(String userRole) { // Add userRole param
+//        bottomNavigationView = findViewById(R.id.menu_bottom_nav);
+//        bottomNavigationView.setOnItemSelectedListener(item -> {
+//            Fragment selectedFragment = null;
+//            int id = item.getItemId();
+//            if (id == R.id.historyFragment) {
+//                selectedFragment = new HistoryFragment();
+//            } else if (id == R.id.eventsFragment) {
+//                // Conditionally load based on role
+//                if ("organizer".equals(userRole)) {
+//                    selectedFragment = new OrganizerEventsFragment();
+//                } else if ("entrant".equals(userRole)) {
+//                    selectedFragment = new EntrantEventsFragment();
+//                } else {
+//                    selectedFragment = new ManageEventsFragment(); // Admin
+//                }
+//            } else if (id == R.id.inboxFragment) {
+//                selectedFragment = new InboxFragment();
+//            } else if (id == R.id.profileFragment) {
+//                selectedFragment = new ProfileFragment();
+//            }
+//            if (selectedFragment != null) {
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.nav_host_fragment, selectedFragment)
+//                        .commit();
+//            }
+//            return true;
+//        });
+//    }
 
     private void testFirebaseConnection() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
