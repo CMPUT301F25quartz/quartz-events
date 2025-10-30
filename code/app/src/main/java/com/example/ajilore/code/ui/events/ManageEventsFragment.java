@@ -26,6 +26,18 @@ import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.Arrays;
 
+/**
+ * ManageEventsFragment
+ *
+ * Purpose: Lets organizers manage a single event: choose an audience
+ * (waiting/chosen/selected/cancelled), type a message, and send it.
+ * Uses {@link EventNotifier} to write a broadcast and fan out inbox items.
+ *
+ * Pattern: Fragment as controller + simple “pills” (ToggleButtons) as a filter,
+ * delegating data work to a helper class (EventNotifier).
+ *
+ */
+
 public class ManageEventsFragment extends Fragment {
 
     // ---- args ----
@@ -34,6 +46,14 @@ public class ManageEventsFragment extends Fragment {
 
     private ListenerRegistration acceptDeclineReg;
 
+
+    /**
+     * Factory method to create a ManageEventsFragment for a specific event.
+     *
+     * @param eventId   Firestore document id under /org_events
+     * @param eventTitle Title to show in the toolbar
+     * @return configured fragment instance with arguments set
+     */
 
     public static ManageEventsFragment newInstance(@NonNull String eventId, @NonNull String eventTitle) {
         ManageEventsFragment f = new ManageEventsFragment();
@@ -61,6 +81,10 @@ public class ManageEventsFragment extends Fragment {
     private String eventId, eventTitle;
     private FirebaseFirestore db;
 
+    /**
+     * Inflates the “manage event” layout.
+     */
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,6 +92,11 @@ public class ManageEventsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_manage_events_notify, container, false);
     }
+
+    /**
+     * Wires UI elements, restores args, sets up pill behavior, and hooks the Send button
+     * to call {@link EventNotifier#notifyAudience(FirebaseFirestore, String, String, String, boolean, String, String, EventNotifier.Callback)}.
+     */
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
@@ -222,6 +251,12 @@ public class ManageEventsFragment extends Fragment {
 
     }
 
+
+    /**
+     * Shows/hides the message card based on current mode and pill.
+     * Also sets a helpful hint for the message box and tints the Notify button.
+     */
+
     private void updatePanel() {
         boolean showForm = notifyMode && (
                 audience == Audience.WAITING ||
@@ -259,12 +294,26 @@ public class ManageEventsFragment extends Fragment {
     }
 
 
+
+    /**
+     * Helper function to style a pill button as selected or not.
+     *
+     * @param pill     the ToggleButton to style
+     * @param selected whether it is active
+     */
+
     private void stylePill(ToggleButton pill, boolean selected) {
         pill.setBackgroundResource(selected ? R.drawable.bg_pill_deepblue : R.drawable.bg_pill_grey);
         pill.setTextColor(selected ? 0xFFFFFFFF : 0xFF333333);
     }
 
 
+    /**
+     * Maps the current Audience enum to the status string used in Firestore.
+     *
+     * @param a enum value from the selected pill
+     * @return one of "chosen", "selected", "waiting", "cancelled", or null if NONE
+     */
     private @Nullable String statusFor(Audience a) {
         switch (a) {
             case CHOSEN:    return "chosen";

@@ -17,10 +17,32 @@ import com.google.firebase.firestore.*;
 
 import java.util.*;
 
+/**
+ * SelectEntrantsFragment
+ *
+ * Purpose: Organizer screen to (1) watch the current pool of CHOSEN entrants
+ * and their responses, and (2) run a random draw that moves N users from
+ * WAITING → CHOSEN (responded=pending).
+ *
+ * Pattern: Fragment as controller. Firestore is the single source of truth.
+ * - A snapshot listener keeps the UI list in sync with entrants in Firestore.
+ * - The "Run Draw" button reads WAITING entrants, shuffles, and writes updates in a batch.
+ *
+ */
+
+
 public class SelectEntrantsFragment extends Fragment {
 
     private static final String ARG_EVENT_ID = "eventId";
     private static final String ARG_EVENT_TITLE = "eventTitle";
+
+    /**
+     * Creates a new fragment instance scoped to a single event.
+     *
+     * @param eventId   document id in /org_events
+     * @param eventTitle title shown in the UI
+     * @return configured fragment instance with arguments set
+     */
 
     public static SelectEntrantsFragment newInstance(@NonNull String eventId,
                                                      @NonNull String eventTitle) {
@@ -46,6 +68,10 @@ public class SelectEntrantsFragment extends Fragment {
     private SelectedAdapter adapter;
     private final List<Entrant> selectedList = new ArrayList<>();
 
+    /**
+     * Inflates the Select Entrants layout.
+     */
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -53,6 +79,12 @@ public class SelectEntrantsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_select_entrants, container, false);
     }
+
+
+    /**
+     * Wires UI, restores args, attaches a snapshot listener to CHOSEN entrants,
+     * and hooks up the "Run Draw" button.
+     */
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
@@ -93,6 +125,12 @@ public class SelectEntrantsFragment extends Fragment {
         btnRunDraw.setOnClickListener(x -> runDraw());
     }
 
+
+    /**
+     * Subscribes to entrants with status == "chosen" for this event.
+     * Updates the RecyclerView whenever Firestore changes.
+     */
+
     private void listenForSelected() {
         db.collection("org_events").document(eventId)
                 .collection("entrants")
@@ -116,6 +154,12 @@ public class SelectEntrantsFragment extends Fragment {
                 });
     }
 
+    /**
+     * Runs a simple lottery:
+     * - Reads all WAITING entrants,
+     * - Shuffles them,
+     * - Promotes the first N to CHOSEN with responded=pending.
+     */
 
     private void runDraw() {
         // How many winners?
@@ -191,11 +235,23 @@ public class SelectEntrantsFragment extends Fragment {
                 });
     }
 
-    // --- tiny model
+    /**
+     * Lightweight model for a single entrant row in the list.
+     * Holds display name (UID) and their response state.
+     */
     static class Entrant {
         final String uid;
         final String nameOrUid;
         final String responded; // pending/accepted/declined/null
+
+
+        /**
+         * Builds an entrant view-model for the list.
+         *
+         * @param uid        document id under /entrants
+         * @param name       display name (may be null/empty)
+         * @param responded  pending/accepted/declined
+         */
 
         Entrant(String uid, @Nullable String name, @Nullable String responded) {
             this.uid = uid;
@@ -205,6 +261,10 @@ public class SelectEntrantsFragment extends Fragment {
     }
 
     // --- adapter
+
+    /**
+     * Simple RecyclerView adapter that shows entrants in the CHOSEN list.
+     */
     static class SelectedAdapter extends RecyclerView.Adapter<VH> {
         private final List<Entrant> items;
         SelectedAdapter(List<Entrant> items) { this.items = items; }
@@ -219,7 +279,10 @@ public class SelectEntrantsFragment extends Fragment {
 
 
 
-
+    /**
+     * ViewHolder that binds an {@link Entrant} to a simple row:
+     * name + a small symbol for response state.
+     */
     static class VH extends RecyclerView.ViewHolder {
         private final TextView tvName, tvBadge;
         private final ImageView ivAvatar;
@@ -232,7 +295,8 @@ public class SelectEntrantsFragment extends Fragment {
         }
         void bind(Entrant e) {
             tvName.setText(e.nameOrUid);
-            tvBadge.setText(cap(e.responded)); // Pending/Accepted/Declined
+            // Pending/Accepted/Declined
+            tvBadge.setText(cap(e.responded));
             // simple placeholder avatar
             ivAvatar.setImageResource(R.drawable.jazz);
         }

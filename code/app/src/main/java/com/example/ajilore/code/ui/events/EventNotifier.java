@@ -17,19 +17,62 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Centralizes organizer notifications:
- *  - writes an audit under org_events/{eventId}/broadcasts
- *  - fans out messages to entrants under org_events/{eventId}/entrants/{uid}/inbox
+ * EventNotifier
+ *
+ * Purpose: A class that sends the organizer broadcasts.
+ * It writes an audit record under /org_events/{eventId}/broadcasts and
+ * fans out inbox items under /org_events/{eventId}/entrants/{uid}/inbox.
+ *
+ * Pattern: Stateless helper with a simple callback interface.
+ *
  */
 public final class EventNotifier {
     private EventNotifier() {}
 
+    /**
+     * Callback for notification operations.
+     */
     public interface Callback {
+        /**
+         * Called when all writes complete successfully.
+         *
+         * @param deliveredCount number of inbox items written
+         * @param broadcastIdOrEmpty ID of the audit doc under broadcasts (may be empty)
+         */
         void onSuccess(int deliveredCount, @NonNull String broadcastIdOrEmpty);
+        /**
+         * Called when any write fails.
+         *
+         * @param e the error that occurred
+         */
         void onError(@NonNull Exception e);
     }
 
-    /** Broadcast to a whole audience by status (e.g., "chosen", "selected", "waiting", "cancelled"). */
+
+    /**
+     * Broadcast a message to a whole audience bucket for an event.
+     * <p>
+     * Steps:
+     * 1) Create an audit doc in /org_events/{eventId}/broadcasts.
+     * 2) Fan out an inbox message to entrants under
+     *    /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
+     * </p>
+     *
+     * Status filter rules:
+     * - "waiting":   status == waiting
+     * - "chosen":    status == chosen AND responded != accepted/declined
+     * - "selected":  (chosen + accepted) OR status == selected
+     * - "cancelled": (chosen + declined) OR status == cancelled
+     *
+     * @param db            Firestore instance to use
+     * @param eventId       Event document ID (org_events/{eventId})
+     * @param eventTitle    Title placed into inbox items
+     * @param message       Message body to send
+     * @param includePoster Whether the UI should show a poster
+     * @param linkUrl       Optional URL to include (nullable)
+     * @param targetStatus  Audience: "waiting", "chosen", "selected", or "cancelled"
+     * @param cb            Completion callback (success or error)
+     */
     public static void notifyAudience(@NonNull FirebaseFirestore db,
                                       @NonNull String eventId,
                                       @NonNull String eventTitle,
@@ -115,7 +158,27 @@ public final class EventNotifier {
     }
 
 
-    /** Send to a single entrant (used for accept/decline follow-ups). */
+
+
+    /**
+     * Send a broadcast and a single inbox message to one entrant.
+     * <p>
+     * Useful for follow-ups like per-user accept/decline messaging.
+     * Writes an audit under broadcasts and one inbox doc under
+     * /org_events/{eventId}/entrants/{uid}/inbox.
+     * </p>
+     *
+     * @param db            Firestore instance to use
+     * @param eventId       Event document ID
+     * @param eventTitle    Title placed into the inbox item
+     * @param uid           Entrant user ID (entrants doc id)
+     * @param targetStatus  Label for this message ("selected", "cancelled", etc.)
+     * @param message       Message body
+     * @param includePoster Whether the UI should show a poster
+     * @param linkUrl       Optional URL to include (nullable)
+     * @param cb            Completion callback (success or error)
+     */
+
     public static void notifySingle(@NonNull FirebaseFirestore db,
                                     @NonNull String eventId,
                                     @NonNull String eventTitle,
@@ -226,6 +289,8 @@ public final class EventNotifier {
         commitChain(batches, batchSizes, 0, 0, broadcastId, cb);
     }
 
+
+    // WriteBatch commits to compute an accurate delivered count.
     private static void commitChain(@NonNull List<WriteBatch> batches,
                                     @NonNull List<Integer> batchSizes,
                                     int index,
