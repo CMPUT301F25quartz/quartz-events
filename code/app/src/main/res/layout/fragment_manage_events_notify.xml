@@ -141,42 +141,75 @@
             android:layout_height="wrap_content" />
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginTop="8dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ToggleButton
-                android:id="@+id/tgWaiting"
-                android:textOn="Waiting List"
-                android:textOff="Waiting List"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_pill_grey"
-                android:textColor="#333333" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <ToggleButton
-                android:id="@+id/tgSelected"
-                android:textOn="Selected"
-                android:textOff="Selected"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_pill_grey"
-                android:textColor="#333333" />
+                <ToggleButton
+                    android:id="@+id/tgWaiting"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill_grey"
+                    android:textOn="Waiting List"
+                    android:textOff="Waiting List"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:textColor="#333333" />
 
-            <ToggleButton
-                android:id="@+id/tgNotSelected"
-                android:textOn="Not Selected"
-                android:textOff="Not Selected"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_pill_grey"
-                android:textColor="#333333" />
+                <ToggleButton
+                    android:id="@+id/tgChosen"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_grey"
+                    android:textOn="Chosen"
+                    android:textOff="Chosen"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:textColor="#333333" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginTop="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ToggleButton
+                    android:id="@+id/tgSelected"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill_grey"
+                    android:textOn="Selected"
+                    android:textOff="Selected"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:textColor="#333333" />
+
+                <ToggleButton
+                    android:id="@+id/tgCancelled"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_grey"
+                    android:textOn="Cancelled"
+                    android:textOff="Cancelled"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:textColor="#333333" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- NOTIFY FORM (hidden until: pill chosen AND Notify pressed) -->
