@@ -85,6 +85,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+//    after setting up Firebase Auth set up (divine)
+//    private void setupBottomNavigation(String userRole) { // Add userRole param
+//        bottomNavigationView = findViewById(R.id.menu_bottom_nav);
+//        bottomNavigationView.setOnItemSelectedListener(item -> {
+//            Fragment selectedFragment = null;
+//            int id = item.getItemId();
+//            if (id == R.id.historyFragment) {
+//                selectedFragment = new HistoryFragment();
+//            } else if (id == R.id.eventsFragment) {
+//                // Conditionally load based on role
+//                if ("organizer".equals(userRole)) {
+//                    selectedFragment = new OrganizerEventsFragment();
+//                } else if ("entrant".equals(userRole)) {
+//                    selectedFragment = new EntrantEventsFragment();
+//                } else {
+//                    selectedFragment = new ManageEventsFragment(); // Admin
+//                }
+//            } else if (id == R.id.inboxFragment) {
+//                selectedFragment = new InboxFragment();
+//            } else if (id == R.id.profileFragment) {
+//                selectedFragment = new ProfileFragment();
+//            }
+//            if (selectedFragment != null) {
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.nav_host_fragment, selectedFragment)
+//                        .commit();
+//            }
+//            return true;
+//        });
+//    }
 
     private void testFirebaseConnection() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
