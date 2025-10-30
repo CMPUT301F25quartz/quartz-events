@@ -1,7 +1,9 @@
 package com.example.ajilore.code;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -12,72 +14,101 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.events.EventsFragment;
-import com.example.ajilore.code.ui.events.ManageEventsFragment;
-import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 
 public class MainActivity extends AppCompatActivity {
-    BottomNavigationView bottomNavigationView;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // divine rocks!
-        //yes she does
-        //Hook it up to the bottom nav view
-        //NavigationUI.setupWithNavController(navView, navController);
-
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // Apply window insets (should be right after setContentView)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Setup bottom navigation
+        setupBottomNavigation();
+
+        // Load default fragment on startup
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.nav_host_fragment, new EventsFragment())
+                    .commit();
+        }
+
+        // Test Firebase connection
+        testFirebaseConnection();
+    }
+
+    private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
-                Fragment selected_fragment = null;
-
+                Fragment selectedFragment = null;
                 int id = item.getItemId();
 
-                if(id == R.id.historyFragment){
-                    selected_fragment = new HistoryFragment();
-                    //Toast.makeText(MainActivity.this, "History", Toast.LENGTH_SHORT).show();
-                } //else if(id == R.id.eventsFragment) {
-                    //selected_fragment = new EventsFragment();
-                    //Toast.makeText(MainActivity.this, "Events", Toast.LENGTH_SHORT).show();
-                 else if(id == R.id.inboxFragment) {
-                    selected_fragment = new InboxFragment();
-                    //Toast.makeText(MainActivity.this, "Inbox", Toast.LENGTH_SHORT).show();
-                }
-                else if(id == R.id.profileFragment) {
-                    selected_fragment = new ProfileFragment();
-                    //Toast.makeText(MainActivity.this, "Profile", Toast.LENGTH_SHORT).show();
+                if (id == R.id.historyFragment) {
+                    selectedFragment = new HistoryFragment();
                 } else if (id == R.id.eventsFragment) {
-                    // temporary: always show organizer version
-                    selected_fragment = new OrganizerEventsFragment();
+                    selectedFragment = new EventsFragment();
+                } else if (id == R.id.inboxFragment) {
+                    selectedFragment = new InboxFragment();
+                } else if (id == R.id.profileFragment) {
+                    selectedFragment = new ProfileFragment();
                 }
-                if(selected_fragment != null){
+
+                if (selectedFragment != null) {
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.nav_host_fragment, selected_fragment).commit();
+                            .replace(R.id.nav_host_fragment, selectedFragment)
+                            .commit();
                 }
                 return true;
             }
         });
+    }
 
+    private void testFirebaseConnection() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        db.collection("events")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int count = querySnapshot.size();
 
+                    Log.d("Firebase", "✅ SUCCESS! Connected to Firestore");
+                    Log.d("Firebase", "Found " + count + " events");
 
+                    // Log each event
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        String title = doc.getString("title");
+                        Log.d("Firebase", "Event: " + title);
+                    }
 
+                    Toast.makeText(this,
+                            "✅ Firebase connected! Found " + count + " events",
+                            Toast.LENGTH_LONG).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firebase", "❌ FAILED: " + e.getMessage());
+
+                    Toast.makeText(this,
+                            "❌ Firebase error: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
     }
 }
