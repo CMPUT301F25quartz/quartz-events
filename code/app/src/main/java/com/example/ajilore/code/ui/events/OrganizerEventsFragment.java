@@ -94,8 +94,10 @@ public class OrganizerEventsFragment extends Fragment {
         });
         rv.setAdapter(adapter);
 
-        btnCreate.setOnClickListener(x ->
-                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show()
+        btnCreate.setOnClickListener(x -> requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.nav_host_fragment, new CreateEventFragment())
+                .addToBackStack(null) .commit()
         );
 
         loadEvents();
