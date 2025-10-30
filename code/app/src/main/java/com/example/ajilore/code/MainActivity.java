@@ -13,8 +13,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.ajilore.code.ui.events.EventsFragment;
-import com.example.ajilore.code.ui.events.ManageEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
@@ -23,6 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 
 public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
@@ -48,11 +47,14 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment, new OrganizerEventsFragment())
                     .commit();
+            //highlight the correct tab in the bottom nav
+            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
         }
 
         // Test Firebase connection
         testFirebaseConnection();
     }
+
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (id == R.id.historyFragment) {
                     selectedFragment = new HistoryFragment();
+
+                    //to be modified, keep as organizer for now
                 } else if (id == R.id.eventsFragment) {
                     selectedFragment = new OrganizerEventsFragment();
                 } else if (id == R.id.inboxFragment) {
