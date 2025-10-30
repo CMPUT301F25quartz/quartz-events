@@ -26,4 +26,8 @@
        android:name="com.example.ajilore.code.ui.events.EventsFragment"
        android:label="fragment_events"
        tools:layout="@layout/fragment_events" />
+   <fragment
+       android:id="@+id/createEventFragment"
+       android:name="com.example.ajilore.code.ui.events.CreateEventFragment"
+       android:label="CreateEventFragment" />
 </navigation>
