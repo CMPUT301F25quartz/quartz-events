@@ -1,32 +1,347 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".ui.events.CreateEventFragment">
+    android:fillViewport="true"
+    android:background="@android:color/white">
 
-    <EditText
-        android:id="@+id/etTitle"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Event title"
-        android:inputType="textCapSentences"
-        android:maxLines="1"
-        android:imeOptions="actionDone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:padding="20dp">
 
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        app:layout_constraintTop_toBottomOf="@+id/etTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Top bar (back + title) -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/back"
+            app:srcCompat="@android:drawable/ic_media_previous"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Create New Event"
+            android:textSize="28sp"
+            android:textColor="#121212"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/btnBack"
+            app:layout_constraintTop_toTopOf="@id/btnBack"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="12dp" />
+
+        <!-- Big poster drop zone -->
+        <FrameLayout
+            android:id="@+id/posterBig"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:background="@drawable/bg_dropzone_dashed"
+            android:foreground="?attr/selectableItemBackground"
+            android:contentDescription="@string/add_poster"
+            app:layout_constraintTop_toBottomOf="@+id/tvHeader"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/ivPlusBig"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+"
+                    android:textSize="36sp"
+                    android:textColor="#16BFA6" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Poster Photo"
+                    android:textColor="#888888"
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Two small slots -->
+        <LinearLayout
+            android:id="@+id/posterSmallsRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/posterBig"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <FrameLayout
+                android:id="@+id/posterSmall1"
+                android:layout_width="0dp"
+                android:layout_height="90dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_dropzone_dashed">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textSize="28sp"
+                    android:textColor="#16BFA6"/>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/posterSmall2"
+                android:layout_width="0dp"
+                android:layout_height="90dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_dropzone_dashed">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textSize="28sp"
+                    android:textColor="#16BFA6"/>
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Section title -->
+        <TextView
+            android:id="@+id/sectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event Details"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:textColor="#14121F"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/posterSmallsRow"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Label + Field: Event Name -->
+        <TextView
+            android:id="@+id/lblEventName"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:text="Event Name"
+            app:layout_constraintTop_toBottomOf="@id/sectionTitle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEventName"
+            style="@style/OutlinedBox"
+            app:layout_constraintTop_toBottomOf="@id/lblEventName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint=""
+                android:inputType="textCapSentences" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: Event Type -->
+
+        <TextView
+            android:id="@+id/lblEventType"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:text="Event Type"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tilEventName" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEventType"
+            style="@style/OutlinedBox"
+            app:endIconMode="dropdown_menu"
+            app:layout_constraintTop_toBottomOf="@id/lblEventType"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/actEventType"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint=""
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: DateTime (with calendar icon) -->
+
+        <TextView
+            android:id="@+id/lblDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Select Date and Time"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tilEventType" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDate"
+            style="@style/OutlinedBox"
+            app:endIconMode="custom"
+            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:layout_constraintTop_toBottomOf="@id/lblDate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDate"
+                android:focusable="false"
+                android:cursorVisible="false"
+                android:hint=""
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: Location -->
+        <TextView
+            android:id="@+id/lblLocation"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:text="Location"
+            app:layout_constraintTop_toBottomOf="@id/tilDate"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilLocation"
+            style="@style/OutlinedBox"
+            app:layout_constraintTop_toBottomOf="@id/lblLocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etLocation"
+                android:hint=""
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: Capacity (compact) -->
+
+        <TextView
+            android:id="@+id/lblCapacity"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:text="Set Capacity"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tilLocation" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCapacity"
+            style="@style/OutlinedBox"
+            android:layout_width="800dp"
+            app:endIconMode="dropdown_menu"
+            app:layout_constraintTop_toBottomOf="@id/lblCapacity"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/actCapacity"
+                android:hint=""
+                android:inputType="none"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: Registration Opens -->
+        <TextView
+            android:id="@+id/lblRegOpen"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:text="Registration Opens"
+            app:layout_constraintTop_toBottomOf="@id/tilCapacity"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegOpen"
+            style="@style/OutlinedBox"
+            app:endIconMode="custom"
+            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:layout_constraintTop_toBottomOf="@id/lblRegOpen"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegOpen"
+                android:focusable="false"
+                android:cursorVisible="false"
+                android:hint=""
+                android:layout_height="match_parent"
+                android:layout_width="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Label + Field: Registration Closes -->
+        <TextView
+            android:id="@+id/lblRegClose"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:text="Registration Closes"
+            app:layout_constraintTop_toBottomOf="@id/tilRegOpen"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegClose"
+            style="@style/OutlinedBox"
+            app:endIconMode="custom"
+            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:layout_constraintTop_toBottomOf="@id/lblRegClose"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegClose"
+                android:focusable="false"
+                android:cursorVisible="false"
+                android:hint=""
+                android:layout_height="match_parent"
+                android:layout_width="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Buttons row -->
+        <LinearLayout
+            android:id="@+id/btnRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegClose"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="@style/OutlinedBtn"
+                android:text="Cancel"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginEnd="16dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                style="@style/PrimaryBtn"
+                android:text="Save"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
