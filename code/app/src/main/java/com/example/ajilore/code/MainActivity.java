@@ -15,7 +15,6 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.events.EntrantEventsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
-import com.example.ajilore.code.ui.events.ManageEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
@@ -103,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (id == R.id.historyFragment) {
                     selectedFragment = new HistoryFragment();
+
+                    //to be modified, keep as organizer for now
                 } else if (id == R.id.eventsFragment) {
                     selectedFragment = new OrganizerEventsFragment();
                 } else if (id == R.id.inboxFragment) {

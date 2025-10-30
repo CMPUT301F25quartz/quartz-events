@@ -24,9 +24,18 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+/**
+ * OrganizerEventsFragment
+ *
+ * Purpose: Shows the organizer’s events in a scrollable list. Live-updates from Firestore
+ * and routes into ManageEventsFragment when an event is clicked.
+ *
+ * Pattern: Fragment + RecyclerView adapter (simple list controller).
+ *
+ */
+
 
 public class OrganizerEventsFragment extends Fragment {
 
@@ -35,40 +44,29 @@ public class OrganizerEventsFragment extends Fragment {
     private final List<EventItem> data = new ArrayList<>();
     private FirebaseFirestore db;
 
+
+    /**
+     * Inflates the organizer events screen.
+     */
     @Nullable
     @Override
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_organizer_events, container, false);
     }
 
+
+    /**
+     * Sets up RecyclerView, adapter, click handlers, and Firestore listening.
+     */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
-
-        db.collection("org_events")
-                .limit(1)
-                .get()
-                .addOnSuccessListener((QuerySnapshot snap) -> {
-                    if (snap.isEmpty()) {
-                        Map<String, Object> e = new HashMap<>();
-                        e.put("title", "A Virtual Evening of Smooth Jazz");
-                        e.put("startsAt", Timestamp.now());
-                        e.put("posterKey", "jazz");
-
-                        db.collection("org_events")
-                                .add(e)
-                                .addOnSuccessListener(ref ->
-                                        Toast.makeText(requireContext(), "Seeded one sample event ✅", Toast.LENGTH_SHORT).show())
-                                .addOnFailureListener(err ->
-                                        Toast.makeText(requireContext(), "Seed failed: " + err.getMessage(), Toast.LENGTH_LONG).show());
-                    }
-                })
-                .addOnFailureListener(err ->
-                        Toast.makeText(requireContext(), "Check Firestore rules/connection: " + err.getMessage(), Toast.LENGTH_LONG).show());
 
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
@@ -83,17 +81,17 @@ public class OrganizerEventsFragment extends Fragment {
         });
         rv.setAdapter(adapter);
 
-        btnCreate.setOnClickListener(x ->{
-                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show();
-                requireActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, new CreateEventFragment())
-                        .addToBackStack(null)
-                        .commit();
-                });
+        btnCreate.setOnClickListener(x ->
+                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show()
+        );
 
         loadEvents();
     }
 
+
+    /**
+     * Subscribes to /org_events ordered by startsAt (desc) and updates the list on changes.
+     */
     private void loadEvents() {
         Query q = db.collection("org_events")
                 .orderBy("startsAt", Query.Direction.DESCENDING);
@@ -127,6 +125,13 @@ public class OrganizerEventsFragment extends Fragment {
     }
 
     // Map posterKey -> drawable resource id
+
+    /**
+     * Maps a posterKey from Firestore to a local drawable resource.
+     * @param key string like "jazz", "band", etc. (nullable)
+     * @return drawable resource id to show in the list
+     */
+
     private int mapPoster(String key) {
         if (key == null) return R.drawable.jazz;
         switch (key) {
@@ -141,20 +146,45 @@ public class OrganizerEventsFragment extends Fragment {
     }
 
     // ---------- model ----------
+
+    /**
+     * Lightweight UI model for one organizer event row.
+     */
     public static class EventItem {
         public final String eventId, title, dateText;
         public final int posterRes;
+
+
+        /**
+         * @param eventId   Firestore document id
+         * @param title     event title to display
+         * @param dateText  human-readable date/time
+         * @param posterRes drawable resource for the list image
+         */
+
+
         public EventItem(String eventId, String title, String dateText, int posterRes) {
             this.eventId = eventId; this.title = title; this.dateText = dateText; this.posterRes = posterRes;
         }
     }
 
     // ---------- adapter ----------
+    /** Click handler for an event row. */
     interface OnEventClick { void onClick(EventItem item); }
 
+
+    /**
+     * RecyclerView adapter that binds EventItem rows for the organizer list.
+     */
     public static class EventsAdapter extends RecyclerView.Adapter<EventVH> {
         private final List<EventItem> items;
         private final OnEventClick click;
+
+        /**
+         * @param items backing list (changed when Firestore updates)
+         * @param click row click callback to open ManageEventsFragment
+         */
+
         public EventsAdapter(List<EventItem> items, OnEventClick click) {
             this.items = items; this.click = click;
         }
@@ -168,6 +198,9 @@ public class OrganizerEventsFragment extends Fragment {
     }
 
     // ---------- view holder ----------
+    /**
+     * Holds the views for one event row and binds an EventItem into them.
+     */
     public static class EventVH extends RecyclerView.ViewHolder {
         private final android.widget.TextView tvTitle, tvDate;
         private final android.widget.ImageView ivEdit, ivPoster;
@@ -179,6 +212,13 @@ public class OrganizerEventsFragment extends Fragment {
             ivEdit  = itemView.findViewById(R.id.ivEdit);
             ivPoster= itemView.findViewById(R.id.ivPoster);
         }
+
+
+        /**
+         * Binds one EventItem to the row and wires up clicks.
+         * @param e     event data to show
+         * @param click callback for row/edit icon clicks
+         */
         void bind(EventItem e, OnEventClick click) {
             tvTitle.setText(e.title);
             tvDate.setText(e.dateText);
