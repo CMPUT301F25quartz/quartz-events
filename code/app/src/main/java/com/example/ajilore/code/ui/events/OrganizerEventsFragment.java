@@ -24,7 +24,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrganizerEventsFragment extends Fragment {
 
@@ -47,6 +49,27 @@ public class OrganizerEventsFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+        db.collection("org_events")
+                .limit(1)
+                .get()
+                .addOnSuccessListener((QuerySnapshot snap) -> {
+                    if (snap.isEmpty()) {
+                        Map<String, Object> e = new HashMap<>();
+                        e.put("title", "A Virtual Evening of Smooth Jazz");
+                        e.put("startsAt", Timestamp.now());
+                        e.put("posterKey", "jazz");
+
+                        db.collection("org_events")
+                                .add(e)
+                                .addOnSuccessListener(ref ->
+                                        Toast.makeText(requireContext(), "Seeded one sample event ✅", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(err ->
+                                        Toast.makeText(requireContext(), "Seed failed: " + err.getMessage(), Toast.LENGTH_LONG).show());
+                    }
+                })
+                .addOnFailureListener(err ->
+                        Toast.makeText(requireContext(), "Check Firestore rules/connection: " + err.getMessage(), Toast.LENGTH_LONG).show());
+
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -60,9 +83,13 @@ public class OrganizerEventsFragment extends Fragment {
         });
         rv.setAdapter(adapter);
 
-        btnCreate.setOnClickListener(x ->
-                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show()
-        );
+        btnCreate.setOnClickListener(x ->{
+                Toast.makeText(requireContext(), "Create New Event clicked", Toast.LENGTH_SHORT).show();
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, new CreateEventFragment())
+                        .addToBackStack(null)
+                        .commit();
+                });
 
         loadEvents();
     }
