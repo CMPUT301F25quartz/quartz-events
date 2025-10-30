@@ -24,6 +24,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+
 public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
 
@@ -86,11 +87,14 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment, new OrganizerEventsFragment())
                     .commit();
+            //highlight the correct tab in the bottom nav
+            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
         }
 
         // Test Firebase connection
         testFirebaseConnection();
     }
+
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 

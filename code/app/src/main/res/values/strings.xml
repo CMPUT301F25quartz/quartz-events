@@ -4,5 +4,18 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="back">Back</string>
     <string name="add_poster">Add Poster</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="registration_closes">Registration Closes</string>
+    <string name="registration_opens">Registration Opens</string>
+    <string name="set_capacity">Set Capacity</string>
+    <string name="location">Location</string>
+    <string name="select_date_and_time">Select Date and Time</string>
+    <string name="event_type">Event Type</string>
+    <string name="event_name">Event Name</string>
+    <string name="event_details">Event Details</string>
+    <string name="add">+</string>
+    <string name="add_poster_photo">Add Poster Photo</string>
+    <string name="create_new_event">Create New Event</string>
 
 </resources>

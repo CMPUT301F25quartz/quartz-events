@@ -10,6 +10,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +27,17 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+/**
+ * OrganizerEventsFragment
+ *
+ * Purpose: Shows the organizer’s events in a scrollable list. Live-updates from Firestore
+ * and routes into ManageEventsFragment when an event is clicked.
+ *
+ * Pattern: Fragment + RecyclerView adapter (simple list controller).
+ *
+ */
+
 
 /**
  * OrganizerEventsFragment
