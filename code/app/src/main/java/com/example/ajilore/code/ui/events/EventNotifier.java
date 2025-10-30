@@ -165,6 +165,7 @@ public final class EventNotifier {
     }
 
     // Internal batching helper
+// collects per-batch sizes so delivered count is accurate
     private static void writeInboxInChunks(@NonNull FirebaseFirestore db,
                                            @NonNull List<String> uids,
                                            @NonNull String eventId,
@@ -176,26 +177,28 @@ public final class EventNotifier {
                                            @NonNull String broadcastId,
                                            @NonNull Callback cb) {
         final int LIMIT = 450;
-        int delivered = 0;
+
+        List<WriteBatch> batches = new ArrayList<>();
+        List<Integer> batchSizes = new ArrayList<>();
 
         int from = 0;
-        // simple loop of async commits
-        List<WriteBatch> batches = new ArrayList<>();
         while (from < uids.size()) {
             int to = Math.min(from + LIMIT, uids.size());
             List<String> chunk = uids.subList(from, to);
 
             WriteBatch batch = db.batch();
+            int thisBatchCount = 0;
+
             for (String uid : chunk) {
                 DocumentReference inboxRef = db.collection("org_events").document(eventId)
                         .collection("entrants").document(uid)
                         .collection("inbox").document();
 
                 Map<String, Object> inbox = new HashMap<>();
-                inbox.put("type", targetStatus.equals("chosen") ? "invite"
-                        : targetStatus.equals("selected") ? "selected_notice"
-                        : targetStatus.equals("cancelled") ? "cancelled_notice"
-                        : "broadcast");
+                inbox.put("type",
+                        targetStatus.equals("chosen")    ? "invite" :
+                                targetStatus.equals("selected")  ? "selected_notice" :
+                                        targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
                 inbox.put("audience", targetStatus);
                 inbox.put("eventId", eventId);
                 inbox.put("eventTitle", eventTitle);
@@ -207,8 +210,11 @@ public final class EventNotifier {
                 inbox.put("createdAt", FieldValue.serverTimestamp());
 
                 batch.set(inboxRef, inbox);
+                thisBatchCount++;
             }
+
             batches.add(batch);
+            batchSizes.add(thisBatchCount);
             from = to;
         }
 
@@ -217,27 +223,28 @@ public final class EventNotifier {
             return;
         }
 
-        // Chain commits
-        commitChain(db, batches, 0, delivered, broadcastId, cb);
+        commitChain(batches, batchSizes, 0, 0, broadcastId, cb);
     }
 
-    private static void commitChain(FirebaseFirestore db,
-                                    List<WriteBatch> batches,
+    private static void commitChain(@NonNull List<WriteBatch> batches,
+                                    @NonNull List<Integer> batchSizes,
                                     int index,
                                     int deliveredSoFar,
-                                    String broadcastId,
-                                    Callback cb) {
+                                    @NonNull String broadcastId,
+                                    @NonNull Callback cb) {
         if (index >= batches.size()) {
             cb.onSuccess(deliveredSoFar, broadcastId);
             return;
         }
+
         WriteBatch batch = batches.get(index);
-        int thisBatchSize = 0; // just for reporting
-        // (we can’t easily count set() calls here without tracking earlier; skip this or track if needed)
+        int thisBatchSize = batchSizes.get(index);
 
         batch.commit()
-                .addOnSuccessListener(v -> commitChain(db, batches, index + 1, deliveredSoFar + thisBatchSize, broadcastId, cb))
+                .addOnSuccessListener(v ->
+                        commitChain(batches, batchSizes, index + 1, deliveredSoFar + thisBatchSize, broadcastId, cb))
                 .addOnFailureListener(cb::onError);
     }
+
 }
 
