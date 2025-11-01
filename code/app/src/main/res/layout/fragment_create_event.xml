@@ -174,18 +174,18 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilEventType"
             style="@style/OutlinedBox"
-            app:endIconMode="dropdown_menu"
             app:layout_constraintTop_toBottomOf="@id/lblEventType"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_height="wrap_content">
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/actEventType"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEventType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint=""
-                android:inputType="none" />
+                android:inputType="textCapSentences" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Label + Field: DateTime (with calendar icon) -->

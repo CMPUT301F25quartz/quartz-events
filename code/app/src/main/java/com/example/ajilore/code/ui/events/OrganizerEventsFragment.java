@@ -109,7 +109,7 @@ public class OrganizerEventsFragment extends Fragment {
      */
     private void loadEvents() {
         Query q = db.collection("org_events")
-                .orderBy("startsAt", Query.Direction.DESCENDING);
+                .orderBy("createdAt", Query.Direction.DESCENDING);
 
         q.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override public void onEvent(@Nullable QuerySnapshot snap, @Nullable FirebaseFirestoreException e) {

@@ -27,6 +27,7 @@ public class CreateEventFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private EditText etTitle;
+    private EditText etEventType;
     private Button btnSave;
     private FirebaseFirestore db;
     private static final String ARG_PARAM1 = "param1";
@@ -70,18 +71,26 @@ public class CreateEventFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        // Inflate the layout for this fragment, the views will exist after this
         return inflater.inflate(R.layout.fragment_create_event, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        //This helps to bind and attach listeners
+        super.onViewCreated(view, savedInstanceState);
+
         etTitle = view.findViewById(R.id.etTitle);
         btnSave = view.findViewById(R.id.btnSave);
+        etEventType = view.findViewById(R.id.etEventType);
+
         db = FirebaseFirestore.getInstance();
 
         btnSave.setOnClickListener(click -> {
             String title = etTitle.getText().toString().trim();
+            String eventType = etEventType.getText().toString().trim();
+
+
             if (title.isEmpty()) {
                 etTitle.setError("Title required");
                 return;
@@ -93,6 +102,10 @@ public class CreateEventFragment extends Fragment {
             event.put("startsAt", com.google.firebase.Timestamp.now());
             //TODO: Use a real poster later
             event.put("posterKey", "jazz");
+            event.put("type", eventType);
+            event.put("capacity", 100);
+            event.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+            event.put("status","published");
 
             btnSave.setEnabled(false);
             db.collection("org_events").add(event)
