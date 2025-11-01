@@ -53,4 +53,12 @@
         <item name="cornerRadius">24dp</item>
     </style>
 
+    <!-- Style for Material Date Picker Dialog -->
+    <style name="ThemeOverlay.App.DatePicker" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <!-- You can customize colors here if needed -->
+        <!-- For example: -->
+        <item name="colorPrimary">#5367FF</item>
+        <!-- <item name="colorOnPrimary">@color/white</item> -->
+    </style>
+
 </resources>
