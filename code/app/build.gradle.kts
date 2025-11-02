@@ -53,3 +53,19 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-firestore")
 }
+
+tasks.register<Javadoc>("javadoc") {
+    // This sets the title for the generated documentation page
+    options.windowTitle = "Quartz Events Javadoc"
+
+    // This makes sure the task fails on any error
+    isFailOnError = true
+
+    // This specifies which source files to include
+    source(android.sourceSets["main"].java.srcDirs)
+
+    // This adds all the project dependencies (Android SDK, Firebase, etc.) to the classpath
+    classpath += project.files(android.bootClasspath.joinToString(File.pathSeparator))
+    // FIX: Use getByName("compileClasspath") to access the configuration
+    classpath += configurations.getByName("compileClasspath")
+}

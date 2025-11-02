@@ -37,7 +37,7 @@
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="12 NOV · SAT · 6:00 PM"
+                android:maxLines="1"
                 android:textSize="12sp"
                 android:textColor="#2D5BFF" />
 
