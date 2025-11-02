@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Top bar -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="@android:color/transparent"
+                android:contentDescription="Back"
+                android:layout_width="32dp"
+                android:layout_height="32dp" />
+
+            <TextView
+                android:text="Manage Event"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_marginStart="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvEventTitle"
+            android:text="Event title"
+            android:textColor="#666666"
+            android:layout_marginTop="2dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Draw controls -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/etCount"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:inputType="number"
+                android:hint="How many to draw?" />
+
+            <Button
+                android:id="@+id/btnRunDraw"
+                android:text="Run Draw"
+                android:layout_marginStart="12dp"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp" />
+        </LinearLayout>
+
+        <!-- Section title -->
+        <TextView
+            android:text="Selected Entrants"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Empty state -->
+        <TextView
+            android:id="@+id/tvEmpty"
+            android:text="No Selected Entrants!\nRun the draw to select entrants."
+            android:textAlignment="center"
+            android:padding="24dp"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Selected list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSelected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
