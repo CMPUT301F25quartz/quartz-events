@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@+id/eventsFragment">
+    app:startDestination="@+id/generalEventsFragment">
 
 
    <fragment
@@ -22,12 +22,18 @@
        android:label="fragment_inbox"
        tools:layout="@layout/fragment_inbox" />
    <fragment
-       android:id="@+id/eventsFragment"
-       android:name="com.example.ajilore.code.ui.events.EventsFragment"
-       android:label="fragment_events"
+       android:id="@+id/generalEventsFragment"
+       android:name="com.example.ajilore.code.ui.events.GeneralEventsFragment"
+       android:label="Events"
        tools:layout="@layout/fragment_events" />
    <fragment
        android:id="@+id/createEventFragment"
        android:name="com.example.ajilore.code.ui.events.CreateEventFragment"
        android:label="CreateEventFragment" />
+   <fragment
+       android:id="@+id/manageEventQRFragment"
+       android:name="com.example.ajilore.code.ui.events.ManageEventQRFragment"
+       android:label="fragment_manage_event_q_r"
+       tools:layout="@layout/fragment_manage_event_q_r" />
+
 </navigation>

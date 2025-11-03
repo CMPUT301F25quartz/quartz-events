@@ -53,4 +53,27 @@
         <item name="cornerRadius">24dp</item>
     </style>
 
+    <!-- Style for Material Date Picker Dialog -->
+    <style name="ThemeOverlay.App.DatePicker" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <!-- You can customize colors here if needed -->
+        <!-- For example: -->
+        <item name="colorPrimary">#5367FF</item>
+        <!-- <item name="colorOnPrimary">@color/white</item> -->
+    </style>
+
+
+    <!-- New and improved button style -->
+    <style name="Widget.App.Button.Custom" parent="Widget.Material3.Button">
+        <!-- Set the background color correctly -->
+        <item name="backgroundTint">#00B6AA</item>
+        <!-- Define the corner radius -->
+        <item name="shapeAppearance">@style/ShapeAppearance.App.Button.Rounded</item>
+    </style>
+
+    <!-- This style defines the shape with a 6dp corner radius -->
+    <style name="ShapeAppearance.App.Button.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">6dp</item>
+    </style>
+
 </resources>

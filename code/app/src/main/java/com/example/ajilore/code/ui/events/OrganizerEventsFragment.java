@@ -109,7 +109,7 @@ public class OrganizerEventsFragment extends Fragment {
      */
     private void loadEvents() {
         Query q = db.collection("org_events")
-                .orderBy("startsAt", Query.Direction.DESCENDING);
+                .orderBy("createdAt", Query.Direction.DESCENDING);
 
         q.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override public void onEvent(@Nullable QuerySnapshot snap, @Nullable FirebaseFirestoreException e) {
@@ -128,10 +128,45 @@ public class OrganizerEventsFragment extends Fragment {
                                 : "";
                         String posterKey = d.getString("posterKey");
 
+                        //Added by Precious
+                        String type = d.getString("type");
+                        String location = d.getString("location");
+
+                        Object capacityObj = d.get("capacity");
+                        String capacity = "";
+
+                        if (capacityObj instanceof Number) {
+                            // If it's already a number, convert it to a string.
+                            capacity = String.valueOf(((Number) capacityObj).longValue());
+                        } else if (capacityObj instanceof String) {
+                            // If it's a string, just use it directly.
+                            // (You could also try to parse it, but for display this is fine).
+                            capacity = (String) capacityObj;
+                        }
+
+
+                        String subtitle = "";
+                        if(type != null && !type.isEmpty()){
+                            subtitle = type;
+                        }
+
+                        if(location != null && !location.isEmpty()){
+                            subtitle = subtitle.isEmpty() ? location : (subtitle + " · " + location);
+                        }
+
+                        //I think we can include capacity if its present
+                        if(capacity != null && !capacity.isEmpty()){
+                            subtitle = subtitle.isEmpty() ? (capacity + " ppl") :
+                                    (subtitle + " · " + capacity + " ppl");
+                        }
+
                         data.add(new EventItem(id,
                                 title != null ? title : "(untitled)",
                                 dateText,
-                                mapPoster(posterKey)));
+                                mapPoster(posterKey), subtitle));
+
+                        android.util.Log.d("OrgList", "subtitle=" + subtitle);
+
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -166,7 +201,7 @@ public class OrganizerEventsFragment extends Fragment {
      * Lightweight UI model for one organizer event row.
      */
     public static class EventItem {
-        public final String eventId, title, dateText;
+        public final String eventId, title, dateText, subtitle;
         public final int posterRes;
 
 
@@ -178,8 +213,8 @@ public class OrganizerEventsFragment extends Fragment {
          */
 
 
-        public EventItem(String eventId, String title, String dateText, int posterRes) {
-            this.eventId = eventId; this.title = title; this.dateText = dateText; this.posterRes = posterRes;
+        public EventItem(String eventId, String title, String dateText, int posterRes, String subtitle) {
+            this.eventId = eventId; this.title = title; this.dateText = dateText; this.posterRes = posterRes; this.subtitle = subtitle;
         }
     }
 
@@ -217,12 +252,13 @@ public class OrganizerEventsFragment extends Fragment {
      * Holds the views for one event row and binds an EventItem into them.
      */
     public static class EventVH extends RecyclerView.ViewHolder {
-        private final android.widget.TextView tvTitle, tvDate;
+        private final android.widget.TextView tvTitle, tvDate, tvSubtitle;
         private final android.widget.ImageView ivEdit, ivPoster;
 
         public EventVH(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvSubtitle = itemView.findViewById(R.id.tvSubtitle);
             tvDate  = itemView.findViewById(R.id.tvDate);
             ivEdit  = itemView.findViewById(R.id.ivEdit);
             ivPoster= itemView.findViewById(R.id.ivPoster);
@@ -238,6 +274,15 @@ public class OrganizerEventsFragment extends Fragment {
             tvTitle.setText(e.title);
             tvDate.setText(e.dateText);
             ivPoster.setImageResource(e.posterRes);
+
+            //show/hide subtitle gracefully
+            if (e.subtitle != null && !e.subtitle.isEmpty()) {
+                tvSubtitle.setText(e.subtitle);
+                tvSubtitle.setVisibility(View.VISIBLE);
+            }else{
+                tvSubtitle.setVisibility(View.GONE);
+            }
+
             itemView.setOnClickListener(v -> click.onClick(e));
             ivEdit.setOnClickListener(v -> click.onClick(e));
         }

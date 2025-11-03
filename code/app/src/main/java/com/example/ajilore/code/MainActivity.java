@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.events.EntrantEventsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
+import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
@@ -88,12 +89,17 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.nav_host_fragment, new OrganizerEventsFragment())
                     .commit();
             //highlight the correct tab in the bottom nav
-            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
+            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
         }
 
         // Test Firebase connection
         testFirebaseConnection();
+
+
     }
+
+
+
 
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
@@ -108,12 +114,12 @@ public class MainActivity extends AppCompatActivity {
                     selectedFragment = new HistoryFragment();
 
                     //to be modified, keep as organizer for now
-                } else if (id == R.id.eventsFragment) {
-                    selectedFragment = new OrganizerEventsFragment();
+                } else if (id == R.id.generalEventsFragment) {
+                    selectedFragment = new GeneralEventsFragment();
                 } else if (id == R.id.inboxFragment) {
                     selectedFragment = new InboxFragment();
                 } else if (id == R.id.profileFragment) {
-                    selectedFragment = new ProfileFragment();
+                    selectedFragment = new OrganizerEventsFragment();
                 }
 
                 if (selectedFragment != null) {
