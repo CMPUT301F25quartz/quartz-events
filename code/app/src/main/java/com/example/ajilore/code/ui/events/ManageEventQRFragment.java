@@ -86,6 +86,8 @@ public class ManageEventQRFragment extends Fragment {
     private Bitmap qrBitmap;
     private String eventId, eventTitle;
 
+    private ImageButton btnBack;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -105,6 +107,8 @@ public class ManageEventQRFragment extends Fragment {
         TextView tvTitle = view.findViewById(R.id.tvEventTitle);
         TextView tvSub = view.findViewById(R.id.tvEventSubtitle);
         ImageButton btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(x -> requireActivity().onBackPressed());
+
         ivQR = view.findViewById(R.id.ivQR);
 
         tvTitle.setText(eventTitle);
