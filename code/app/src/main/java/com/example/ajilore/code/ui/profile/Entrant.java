@@ -1,9 +1,10 @@
-package com.example.ajilore.code;
+package com.example.ajilore.code.ui.profile;
 
 public class Entrant {
     private String name;
     private String email;
     private String phone; //optional
+    private String role;
 
     //firestore constructor
     public Entrant(){ }
@@ -12,6 +13,7 @@ public class Entrant {
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.role = "entrant";
     }
 
     public String getName(){
@@ -30,10 +32,21 @@ public class Entrant {
     }
 
     public void setEmail(String email) {
+
         this.email = email;
     }
 
     public void setPhone(String phone) {
+
         this.phone = phone;
     }
+
+    public String getRole(){
+        return role;
+    }
+
+    public void setRole(String role){
+        this.role = role;
+    }
+
 }
