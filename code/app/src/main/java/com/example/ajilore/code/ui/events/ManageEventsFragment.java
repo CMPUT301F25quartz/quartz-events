@@ -188,8 +188,19 @@ public class ManageEventsFragment extends Fragment {
                     ((Button) y).getText() + " (not wired yet)", Toast.LENGTH_SHORT).show();
         };
         btnWaitingTop.setOnClickListener(exitNotify);
-        btnQR.setOnClickListener(exitNotify);
+        //btnQR.setOnClickListener(exitNotify);
         btnEditTop.setOnClickListener(exitNotify);
+
+        //QR Page/Generator
+        btnQR.setOnClickListener(x -> {
+            Fragment f = ManageEventQRFragment.newInstance(eventId, eventTitle);
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, f)
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         // message counter
         etMessage.addTextChangedListener(new TextWatcher() {

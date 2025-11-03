@@ -2,65 +2,139 @@ package com.example.ajilore.code.ui.events;
 
 import android.os.Bundle;
 
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.ajilore.code.R;
+import com.example.ajilore.code.ui.events.list.EventRow;
+import com.example.ajilore.code.ui.events.list.EventsAdapter;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link com.example.ajilore.code.ui.events.EventsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class EventsFragment extends Fragment {
+public abstract class EventsFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    protected abstract @LayoutRes int getRowLayoutId();
+    protected abstract Query getEventsQuery();
+    protected abstract void onEventClick(@NonNull EventRow row);
 
-    public EventsFragment() {
-        // Required empty public constructor
-    }
+    private RecyclerView rvEvents;
+    private View progress, emptyView;
+    private EventsAdapter adapter;
+    private FirebaseFirestore db;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment EventsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static com.example.ajilore.code.ui.events.EventsFragment newInstance(String param1, String param2) {
-        com.example.ajilore.code.ui.events.EventsFragment fragment = new com.example.ajilore.code.ui.events.EventsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_events, container, false);
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+        super.onViewCreated(v, s);
+
+        rvEvents  = v.findViewById(R.id.rvEvents);
+        progress  = v.findViewById(R.id.progress);
+        emptyView = v.findViewById(R.id.emptyView);
+
+        rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        // Adapter uses our item layout and click callback
+        adapter = new EventsAdapter(R.layout.item_event, row -> {
+            Fragment f = EventDetailsFragment.newInstance(row.id, row.title, /* userId */ "demoUser");
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, f)
+                    .addToBackStack(null)
+                    .commit();
+        });
+        rvEvents.setAdapter(adapter);
+
+        // Load events from /org_events by time
+        showLoading(true);
+        FirebaseFirestore.getInstance()
+                .collection("org_events")
+                .orderBy("startsAt", Query.Direction.ASCENDING) // or by createdAt if you prefer
+                .addSnapshotListener((snap, e) -> {
+                    showLoading(false);
+                    if (e != null) {
+                        Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    List<EventRow> rows = new ArrayList<>();
+                    if (snap != null) {
+                        for (DocumentSnapshot d : snap.getDocuments()) {
+                            String id        = d.getId();
+                            String title     = safe(d.getString("title"), "(Untitled)");
+                            String location  = safe(d.getString("location"), "TBA");
+                            String status    = safe(d.getString("status"), "Open");
+                            String posterKey = d.getString("posterKey");
+                            Timestamp ts     = d.getTimestamp("startsAt");
+                            String dateText  = (ts != null)
+                                    ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
+                                    : "";
+
+                            rows.add(new EventRow(
+                                    id,
+                                    title,
+                                    location,
+                                    dateText,
+                                    mapPoster(posterKey),
+                                    status
+                            ));
+                        }
+                    }
+                    adapter.replaceAll(rows);
+                    emptyView.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
+                });
+    }
+
+
+     //---helpers----
+
+    private String safe(String s, String def){
+        return (s == null || s.trim().isEmpty()) ? def:s;
+
+    }
+
+    private void showLoading(boolean show){
+        if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private int mapPoster(String key){
+        if(key == null) return R.drawable.jazz;
+        switch(key){
+            case "jazz": return R.drawable.jazz;
+            case "band" : return R.drawable.jazz;
+            case "jimi" : return R.drawable.jazz;
+            case "gala" : return R.drawable.jazz;
+            default: return R.drawable.jazz;
+        }
     }
 }
