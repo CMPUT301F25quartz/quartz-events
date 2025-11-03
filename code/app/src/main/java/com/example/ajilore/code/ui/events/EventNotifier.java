@@ -99,7 +99,7 @@ public final class EventNotifier {
 
                     // 1) Load all entrants for this event (small demo scale → simple)
                     db.collection("org_events").document(eventId)
-                            .collection("entrants")
+                            .collection("waiting_list")
                             .get()
                             .addOnSuccessListener((QuerySnapshot snaps) -> {
                                 if (snaps == null || snaps.isEmpty()) {
@@ -204,7 +204,7 @@ public final class EventNotifier {
                     String broadcastId = bRef.getId();
 
                     DocumentReference inboxRef = db.collection("org_events").document(eventId)
-                            .collection("entrants").document(uid)
+                            .collection("waiting_list").document(uid)
                             .collection("inbox").document();
 
                     Map<String, Object> inbox = new HashMap<>();
@@ -254,7 +254,7 @@ public final class EventNotifier {
 
             for (String uid : chunk) {
                 DocumentReference inboxRef = db.collection("org_events").document(eventId)
-                        .collection("entrants").document(uid)
+                        .collection("waiting_list").document(uid)
                         .collection("inbox").document();
 
                 Map<String, Object> inbox = new HashMap<>();

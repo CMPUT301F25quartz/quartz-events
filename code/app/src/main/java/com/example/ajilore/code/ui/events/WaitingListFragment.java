@@ -93,7 +93,7 @@ public class WaitingListFragment extends Fragment {
         rvEntrants.setAdapter(adapter);
 
         db.collection("org_events").document(eventId)
-                .collection("entrants")
+                .collection("waiting_list")
                 .addSnapshotListener((snap, err) -> {
                     entrantList.clear();
                     int total = 0, accepted = 0, declined = 0, pending = 0;
@@ -102,13 +102,32 @@ public class WaitingListFragment extends Fragment {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
                             String name = d.getString("name");
+                            String status = d.getString("status");
                             String responded = d.getString("responded");
-                            responded = responded == null ? "Pending" : responded;
-                            entrantList.add(new Entrant(uid, name, responded));
+
+                            String displayStatus;
+                            if ("chosen".equalsIgnoreCase(status) && "pending".equalsIgnoreCase(responded)) {
+                                displayStatus = "Pending";
+                            } else if ("selected".equalsIgnoreCase(status) && "accepted".equalsIgnoreCase(responded)) {
+                                displayStatus = "Accepted";
+                            } else if ("waiting".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
+                                displayStatus = "Declined";
+                            } else if ("waiting".equalsIgnoreCase(status)) {
+                                displayStatus = "Waiting";
+                            } else {
+                                // fallback if anything else
+                                displayStatus = responded != null ? responded : "Pending";
+                            }
+                            entrantList.add(new Entrant(uid, name, displayStatus));
+
                             total++;
-                            switch (responded.toLowerCase()) {
+                            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
+
+                            switch (safeResponded) {
                                 case "accepted": accepted++; break;
                                 case "declined": declined++; break;
+                                case "waiting" :
+                                    pending++; break;
                                 default: pending++; break;
                             }
                         }
