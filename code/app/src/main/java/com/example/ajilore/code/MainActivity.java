@@ -165,7 +165,9 @@ public class MainActivity extends AppCompatActivity {
     private void testFirebaseConnection() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        db.collection("events")
+        //Changed it so that it will query the right document
+
+        db.collection("org_events")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     int count = querySnapshot.size();
@@ -177,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         String title = doc.getString("title");
                         Log.d("Firebase", "Event: " + title);
+                        Log.d("EventsCheck", "Event ID: " +doc.getId());
                     }
 
                     Toast.makeText(this,

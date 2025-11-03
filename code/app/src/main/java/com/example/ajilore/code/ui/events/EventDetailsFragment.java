@@ -278,6 +278,7 @@ public class EventDetailsFragment extends Fragment {
         entrant.put("userId", userId);
         entrant.put("joinedAt", FieldValue.serverTimestamp());
         entrant.put("status", "waiting");
+        entrant.put("responded", null);
 
         waitingListRef.set(entrant)
                 .addOnSuccessListener(aVoid -> {

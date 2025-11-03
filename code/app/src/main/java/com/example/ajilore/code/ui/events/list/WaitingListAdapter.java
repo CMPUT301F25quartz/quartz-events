@@ -64,7 +64,7 @@ public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.
         void bind(Entrant e, Context context) {
             tvName.setText(e.nameOrUid);
 
-            switch (e.responded.toLowerCase()) {
+            switch (e.displayStatus.toLowerCase()) {
                 case "accepted":
                     tvStatus.setText("Accepted");
                     tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_accepted));
