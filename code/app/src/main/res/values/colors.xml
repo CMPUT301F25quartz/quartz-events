@@ -3,4 +3,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="backgroundColor">#FBFBFB</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="grey">#BDBDBD</color>
+    <color name="status_accepted">#4CAF50</color>   <!-- green -->
+    <color name="status_declined">#F44336</color>   <!-- red -->
+    <color name="status_pending">#BDBDBD</color>    <!-- gray -->
 </resources>

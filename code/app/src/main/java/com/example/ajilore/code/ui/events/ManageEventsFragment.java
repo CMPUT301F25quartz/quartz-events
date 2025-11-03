@@ -187,7 +187,16 @@ public class ManageEventsFragment extends Fragment {
             Toast.makeText(requireContext(),
                     ((Button) y).getText() + " (not wired yet)", Toast.LENGTH_SHORT).show();
         };
-        btnWaitingTop.setOnClickListener(exitNotify);
+        //Linking the waiting list fragment to the waiting list button
+        //btnWaitingTop.setOnClickListener(exitNotify);
+        btnWaitingTop.setOnClickListener(view -> {
+            Fragment f = WaitingListFragment.newInstance(eventId);
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, f)
+                    .addToBackStack(null)
+                    .commit();
+        });
         //btnQR.setOnClickListener(exitNotify);
         btnEditTop.setOnClickListener(exitNotify);
 

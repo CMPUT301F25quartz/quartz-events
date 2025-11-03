@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Top bar with back button and title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackground"
+            android:src="@android:drawable/ic_media_previous"
+            android:contentDescription="Back"
+            />
+
+        <TextView
+            android:id="@+id/tvScreenTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waiting List"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingStart="12dp"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
+    <!-- Stats row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/tvTotal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="0 Total"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/tvAccepted"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="0 Accepted"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/status_accepted"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/tvDeclined"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="0 Declined"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/status_declined"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/tvPending"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="0 Pending"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/status_pending"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Optional spacing -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search entrants..."
+        android:inputType="text"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:padding="10dp"
+        android:background="@drawable/bg_card_round" />
+
+    <!-- Spacing -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Entrants List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvEntrants"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:overScrollMode="always"/>
+
+    <!-- Empty state message -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No entrants to display"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:visibility="gone"
+        android:paddingTop="16dp"/>
+</LinearLayout>
