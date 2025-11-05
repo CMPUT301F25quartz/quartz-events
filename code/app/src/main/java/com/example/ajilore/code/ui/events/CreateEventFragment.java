@@ -1,10 +1,20 @@
 package com.example.ajilore.code.ui.events;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,9 +24,15 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.example.ajilore.code.R;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -24,12 +40,25 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Calendar;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Consumer;
+
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
+import android.net.Uri;
 
 /**
  * A {@link Fragment} that provides a user interface for creating a new event.
@@ -52,11 +81,58 @@ public class CreateEventFragment extends Fragment {
     private final Calendar regOpenCal = Calendar.getInstance();
     private final Calendar regCloseCal = Calendar.getInstance();
 
+    private ActivityResultLauncher<Intent> pickImageLauncher;
+    private ImageView ivPosterPreview;
+    private ImageButton ivPlusBig;
+
+    private Uri pickedPosterUri = null; // To keep track if the user picked an image
+     // To store Firebase Storage download URL
+
+    private String eventId = null;
+    private String existingPosterUrl = null;
+
+
+
+
     /**
      * Required empty public constructor for fragment instantiation.
      */
     public CreateEventFragment() {
         // Required empty public constructor
+    }
+
+    public static CreateEventFragment newInstance(String eventId){
+        CreateEventFragment fragment = new CreateEventFragment();
+        Bundle args = new Bundle();
+        if(eventId != null){
+            args.putString("eventId",eventId);
+        }
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        pickedPosterUri = result.getData().getData();
+                        requireContext().getContentResolver().takePersistableUriPermission(
+                                pickedPosterUri,Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        Glide.with(this).load(pickedPosterUri).into(ivPosterPreview);
+                        ivPosterPreview.setVisibility(View.VISIBLE);
+                        ivPlusBig.setVisibility(View.GONE);
+                    }
+                }
+        );
+
+        Bundle args = getArguments();
+        if(args != null && args.containsKey("eventId")){
+            eventId = args.getString("eventId");
+        }
     }
 
 
@@ -108,6 +184,25 @@ public class CreateEventFragment extends Fragment {
         TextInputLayout tilRegOpen = view.findViewById(R.id.tilRegOpen);
         TextInputLayout tilRegClose = view.findViewById(R.id.tilRegClose);
 
+        ivPosterPreview = view.findViewById(R.id.ivPosterPreview);
+        ivPlusBig = view.findViewById(R.id.ivPlusBig);
+
+        //Adding poster logic
+
+        ivPlusBig.setOnClickListener(v-> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            pickImageLauncher.launch(intent);
+        });
+
+        ivPosterPreview.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                    pickImageLauncher.launch(intent);
+                });
+
         // Dropdown options
         // Fetch string arrays from resources
         String[] types = getResources().getStringArray(R.array.event_types);
@@ -139,7 +234,60 @@ public class CreateEventFragment extends Fragment {
         //Save
         btnSave.setOnClickListener(x -> validateAndSave());
         db = FirebaseFirestore.getInstance();
+
+        if(eventId != null) {
+            db.collection("org_events").document(eventId).get()
+                    .addOnSuccessListener(doc ->{
+                        if(doc != null && doc.exists()){
+                            etTitle.setText(doc.getString("title"));
+                            etLocation.setText(doc.getString("location"));
+                            actEventType.setText(doc.getString("type"));
+                            //actCapacity.setText(doc.getString("capacity"));
+                            Object capacityObj = doc.get("capacity");
+                            if(capacityObj != null){
+                                actCapacity.setText(capacityObj.toString());
+                            } else {
+                                actCapacity.setText("");
+                            }
+
+
+                            //Set poster image from cloudinary
+                            existingPosterUrl = doc.getString("posterUrl");
+                            if(existingPosterUrl != null && existingPosterUrl.startsWith("https")){
+                                Glide.with(this).load(existingPosterUrl).into(ivPosterPreview);
+                                ivPosterPreview.setVisibility(View.VISIBLE);
+                                ivPlusBig.setVisibility(View.GONE);
+                            }else{
+                                ivPosterPreview.setVisibility(View.GONE);
+                                ivPlusBig.setVisibility(View.VISIBLE);
+                            }
+
+                            Timestamp startsAt = doc.getTimestamp("startsAt");
+                            if(startsAt != null){
+                                eventWhen.setTime(startsAt.toDate());
+                                etDate.setText(DateFormat.getDateInstance().format(eventWhen.getTime()));
+                            }
+
+                            //regOpenCal
+                            Timestamp regOpens = doc.getTimestamp("regOpens");
+                            if(regOpens != null){
+                                regOpenCal.setTime(regOpens.toDate());
+                                etRegOpens.setText(DateFormat.getDateInstance().format(regOpenCal.getTime()));
+                            }
+
+                            //regCloseCal
+                            Timestamp regCloses = doc.getTimestamp("regCloses");
+                            if(regCloses != null){
+                                regCloseCal.setTime(regCloses.toDate());
+                                etRegCloses.setText(DateFormat.getDateInstance().format(regCloseCal.getTime()));
+                            }
+                        }
+                    });
+        }
     }
+
+
+
 
 
     /**
@@ -213,7 +361,10 @@ public class CreateEventFragment extends Fragment {
      * 5. Navigates back upon successful creation or displays an error on failure.
      */
     private void validateAndSave() {
-        // --- Step 1: Get all input as strings ---
+
+        Log.d("CreateEventFragment", "validateAndSave() called");
+
+        // Step 1: Retrieve all user input as strings
         String title = etTitle.getText().toString().trim();
         String eventType = actEventType.getText().toString().trim();
         String location = etLocation.getText().toString().trim();
@@ -222,14 +373,13 @@ public class CreateEventFragment extends Fragment {
         String regOpensStr = etRegOpens.getText().toString().trim();
         String regClosesStr = etRegCloses.getText().toString().trim();
 
-        // --- Step 2: Perform validation on all fields ---
+        // Step 2: Validate input fields and set errors on invalid/empty
         boolean valid = true;
         if (title.isEmpty()) {
             etTitle.setError("Title is required");
             valid = false;
         }
         if (eventType.isEmpty()) {
-            // Use the TextInputLayout to show the error for dropdowns
             actEventType.setError("Type is required");
             valid = false;
         }
@@ -253,56 +403,120 @@ public class CreateEventFragment extends Fragment {
             etRegCloses.setError("Registration close date is required");
             valid = false;
         }
-
-        // If any field is invalid, stop here.
-        if (!valid) return;
-
-        // --- Step 3: Parse the capacity string to a number ---
-        long capacityVal;
-        try {
-            // Convert the string into a number (long)
-            capacityVal = Long.parseLong(capacityStr);
-        } catch (NumberFormatException e) {
-            // This will catch cases where the string is not a valid number, though unlikely with your dropdown.
-            actCapacity.setError("Invalid capacity format");
-            Log.e("CreateEventFragment", "Failed to parse capacity string: " + capacityStr, e);
+        if (!valid) {
+            btnSave.setEnabled(true);
             return;
         }
 
-        // --- Step 4: All data is valid, proceed to save ---
+        // Step 3: Parse capacity to number
+        long capacityVal;
+        try {
+            capacityVal = Long.parseLong(capacityStr);
+        } catch (NumberFormatException e) {
+            actCapacity.setError("Invalid capacity format");
+            Log.e("CreateEventFragment", "Failed to parse capacity: " + capacityStr, e);
+            btnSave.setEnabled(true);
+            return;
+        }
+
+        // Step 4: Prepare database event creation logic
         btnSave.setEnabled(false);
 
-        Map<String, Object> event = new HashMap<>();
-        event.put("title", title);
-        event.put("type", eventType);
-        event.put("location", location);
-        event.put("capacity", capacityVal); // <-- SAVE THE NUMBER, NOT THE STRING
+        Consumer<String> saveEventWithPosterUrl = (posterUrl) -> {
+            Map<String, Object> event = new HashMap<>();
+            event.put("title", title);
+            event.put("type", eventType);
+            event.put("location", location);
+            event.put("capacity", capacityVal);
+            event.put("startsAt", new Timestamp(eventWhen.getTime()));
+            event.put("regOpens", new Timestamp(regOpenCal.getTime()));
+            event.put("regCloses", new Timestamp(regCloseCal.getTime()));
+            event.put("posterUrl", posterUrl);
+            event.put("status", "published");
+            event.put("createdByUid", "precious"); // Replace with actual user ID in production
+            event.put("createdAt", FieldValue.serverTimestamp());
+            event.put("updatedAt", FieldValue.serverTimestamp());
 
-        // Use consistent field names for timestamps
-        event.put("startsAt", new Timestamp(eventWhen.getTime()));
-        event.put("regOpens", new Timestamp(regOpenCal.getTime())); // FIX: Use 'registrationOpens'
-        event.put("regCloses", new Timestamp(regCloseCal.getTime())); // FIX: Use 'registrationCloses'
+            if(posterUrl != null){
+                event.put("posterUrl", posterUrl);
+            }else if (existingPosterUrl != null){
+                event.put("posterUrl", existingPosterUrl);
+            }
 
-        //TODO: Use a real poster later
-        event.put("posterKey", "jazz");
-        event.put("status","published");
+            if(eventId == null){
+                //Create a new event
+                event.put("createdAt", FieldValue.serverTimestamp());
+                event.put("createdByUid","precious");
+                db.collection("org_events").add(event)
+                        .addOnSuccessListener(ref -> {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(requireContext(), "Event saved!", Toast.LENGTH_SHORT).show();
+                            requireActivity().getSupportFragmentManager().popBackStack();
+                        })
+                        .addOnFailureListener(err -> {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(requireContext(), "Failed to create: " + err.getMessage(), Toast.LENGTH_LONG).show();
+                        });
 
-        //TODO: Use the real user id
-        event.put("createdByUid","precious");
-        event.put("createdAt", FieldValue.serverTimestamp());
+            }else {
+                // update existing event
+                db.collection("org_events").document(eventId)
+                        .update(event)
+                        .addOnSuccessListener(ref -> {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
+                            requireActivity().getSupportFragmentManager().popBackStack();
+                        })
+                        .addOnFailureListener(err -> {
+                            btnSave.setEnabled(true);
+                            Toast.makeText(requireContext(), "Failed to update: " + err.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+            }
 
-        db.collection("org_events").add(event)
-                .addOnSuccessListener(ref -> {
-                    Toast.makeText(requireContext(), "Event created ✅", Toast.LENGTH_SHORT).show();
-                    if (isAdded()) { // Good practice to check if fragment is still attached
-                        requireActivity().getSupportFragmentManager().popBackStack();
-                    }
-                })
-                .addOnFailureListener(err -> {
-                    btnSave.setEnabled(true);
-                    Toast.makeText(requireContext(), "Failed to create: " + err.getMessage(), Toast.LENGTH_LONG).show();
-                });
+
+        };
+
+        // Step 5: Handle poster upload if provided, else save immediately
+        if (pickedPosterUri != null) {
+            uploadToCloudinary(pickedPosterUri, saveEventWithPosterUrl);
+        } else {
+            saveEventWithPosterUrl.accept(null);
+        }
+        Log.d("CreateEventFragment", "Validation passed, starting upload or save");
+
     }
+
+   private void uploadToCloudinary(Uri imageUri, Consumer<String> onUrlReady){
+       MediaManager.get().upload(imageUri)
+               .callback(new UploadCallback() {
+                   @Override
+                   public void onStart(String requestId) {
+                       Log.d("Cloudinary", "Started image upload: " + requestId);
+                   }
+                   @Override
+                   public void onProgress(String requestId, long bytes, long totalBytes) {}
+                   @Override
+                   public void onSuccess(String requestId, Map resultData) {
+                       String url = (String) resultData.get("secure_url");
+                       Log.d("Cloudinary", "Uploaded image URL: " + url);
+                       // Pass the URL to a callback for further use (e.g., save posterUrl to Firestore).
+                       onUrlReady.accept(url);
+                   }
+                   @Override
+                   public void onError(String requestId, ErrorInfo error) {
+                       Log.e("Cloudinary", "Upload error: " + error.getDescription());
+                       // Optionally show a toast or handle UI here.
+                       Toast.makeText(getContext(), "Upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                   }
+                   @Override
+                   public void onReschedule(String requestId, ErrorInfo error) {}
+               })
+               .dispatch();
+   }
+
+
+
+
 
 
 }
