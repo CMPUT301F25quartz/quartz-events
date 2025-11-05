@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Core colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App primary and secondary theme colors -->
+    <color name="teal_700">#018786</color>
+    <color name="teal_200">#03DAC5</color>
 </resources>

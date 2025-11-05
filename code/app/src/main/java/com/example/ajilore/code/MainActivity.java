@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.nav_host_fragment, new EventsFragment())
                     .commit();
         }
-
         // Test Firebase connection
         testFirebaseConnection();
     }
