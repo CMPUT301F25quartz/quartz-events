@@ -72,7 +72,7 @@ public class ManageEventsFragment extends Fragment {
     // ---- views ----
     private View cardNotify;
     private ToggleButton tgWaiting, tgChosen, tgSelected, tgCancelled;
-    private Button btnNotifyTop, btnSend;
+    private Button btnNotifyTop, btnSend, btnEditEvent;
     private EditText etMessage;
     private TextView tvCounter, tvTitle;
     private CheckBox cbAddLink, cbAddPoster;
@@ -121,7 +121,7 @@ public class ManageEventsFragment extends Fragment {
         Button btnSelectTop  = v.findViewById(R.id.btnSelectEntrants);
         Button btnQR         = v.findViewById(R.id.btnQR);
         btnNotifyTop         = v.findViewById(R.id.btnNotifyEntrants);
-        Button btnEditTop    = v.findViewById(R.id.btnEditEvent);
+        btnEditEvent    = v.findViewById(R.id.btnEditEvent);
 
         // audience pills (ensure your XML has these 4 IDs)
         tgWaiting   = v.findViewById(R.id.tgWaiting);
@@ -198,7 +198,14 @@ public class ManageEventsFragment extends Fragment {
                     .commit();
         });
         //btnQR.setOnClickListener(exitNotify);
-        btnEditTop.setOnClickListener(exitNotify);
+        btnEditEvent.setOnClickListener(view -> {
+            Fragment editFragment = CreateEventFragment.newInstance(eventId);
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, editFragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
 
         //QR Page/Generator
         btnQR.setOnClickListener(x -> {

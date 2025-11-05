@@ -51,7 +51,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="20dp"
-            android:layout_marginHorizontal="8dp">
+            android:layout_marginHorizontal="8dp"
+           >
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -59,13 +60,21 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <TextView
+                <ImageView
+                    android:id="@+id/ivPosterPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"/>
+
+                <ImageButton
                     android:id="@+id/ivPlusBig"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/add"
-                    android:textSize="36sp"
-                    android:textColor="#16BFA6" />
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/add_poster_photo"
+                    android:src="@drawable/ic_add"
+                    />
 
                 <TextView
                     android:layout_width="wrap_content"

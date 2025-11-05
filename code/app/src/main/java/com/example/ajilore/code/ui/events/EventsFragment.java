@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.list.EventRow;
-import com.example.ajilore.code.ui.events.list.EventsAdapter;
+import com.example.ajilore.code.ui.events.list.UserEventsAdapter;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link com.example.ajilore.code.ui.events.EventsFragment#newInstance} factory method to
+ * Use the {@link com.example.ajilore.code.ui.events.EventsFragment#} factory method to
  * create an instance of this fragment.
  */
 public abstract class EventsFragment extends Fragment {
@@ -40,7 +40,7 @@ public abstract class EventsFragment extends Fragment {
 
     private RecyclerView rvEvents;
     private View progress, emptyView;
-    private EventsAdapter adapter;
+    private UserEventsAdapter adapter;
     private FirebaseFirestore db;
 
 
@@ -65,7 +65,7 @@ public abstract class EventsFragment extends Fragment {
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // Adapter uses our item layout and click callback
-        adapter = new EventsAdapter(R.layout.item_event, row -> {
+        adapter = new UserEventsAdapter(R.layout.item_event, row -> {
             Fragment f = EventDetailsFragment.newInstance(row.id, row.title, /* userId */ "demoUser");
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -94,7 +94,7 @@ public abstract class EventsFragment extends Fragment {
                             String title     = safe(d.getString("title"), "(Untitled)");
                             String location  = safe(d.getString("location"), "TBA");
                             String status    = safe(d.getString("status"), "Open");
-                            String posterKey = d.getString("posterKey");
+                            String posterKey = d.getString("posterUrl");
                             Timestamp ts     = d.getTimestamp("startsAt");
                             String dateText  = (ts != null)
                                     ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
@@ -106,6 +106,7 @@ public abstract class EventsFragment extends Fragment {
                                     location,
                                     dateText,
                                     mapPoster(posterKey),
+                                    posterKey,
                                     status
                             ));
                         }

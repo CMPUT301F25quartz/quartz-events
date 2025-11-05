@@ -11,6 +11,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import java.util.List;
  *  - tvLocation          (location row)
  *  - btnViewDetails      (CTA button at the bottom)
  */
-public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.VH> {
+public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH> {
 
     /** Row click callback. We’ll call it for both the whole card and the CTA button. */
     public interface OnEventClick { void onClick(EventRow row); }
@@ -39,7 +40,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.VH> {
     private final OnEventClick onClick;
     @LayoutRes private final int layoutId;
 
-    public EventsAdapter(@LayoutRes int layoutId, @NonNull OnEventClick onClick) {
+    public UserEventsAdapter(@LayoutRes int layoutId, @NonNull OnEventClick onClick) {
         this.layoutId = layoutId;      // should be R.layout.item_event for this design
         this.onClick = onClick;
     }
@@ -92,7 +93,17 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.VH> {
 
         void bind(@NonNull EventRow row, @NonNull OnEventClick onClick) {
             // 1) Poster image
-            ivPoster.setImageResource(row.posterRes);
+            //ivPoster.setImageResource(row.posterRes);
+            if(row.posterUrl != null && row.posterUrl.startsWith("http")){
+                //This means that its a cloudinary image
+                Glide.with(itemView.getContext())
+                        .load(row.posterUrl)
+                        .placeholder(row.posterRes)
+                        .into(ivPoster);
+            } else {
+                ivPoster.setImageResource(row.posterRes);
+            }
+                //This means that its a cloudinary image
 
             // 2) Title binding:
             //    - tvEventTitle = white ribbon on the banner (visual flare)

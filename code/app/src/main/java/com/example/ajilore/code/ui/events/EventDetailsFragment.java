@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
@@ -154,7 +155,7 @@ public class EventDetailsFragment extends Fragment {
                         String location = doc.getString("location");
                         Double price = doc.getDouble("price");
                         Long capacityLong = doc.getLong("capacity");
-                        String posterKey = doc.getString("posterKey");
+                        String posterKey = doc.getString("posterUrl");
 
                         // Timestamps
                         Timestamp startsAt = doc.getTimestamp("startsAt");
@@ -194,8 +195,13 @@ public class EventDetailsFragment extends Fragment {
                         updateRegistrationWindow(regStartTime, regEndTime, now);
 
                         // Set poster
-                        ivPoster.setImageResource(mapPoster(posterKey));
-
+                        //ivPoster.setImageResource(mapPoster(posterKey));
+                        if (posterKey != null && posterKey.startsWith("http")){
+                            //This means that its a cloudinary image
+                            Glide.with(this).load(posterKey).into(ivPoster);
+                        } else {
+                            ivPoster.setImageResource(mapPoster(posterKey));
+                        }
                         // US 01.05.05: Display lottery selection criteria
                         displayLotteryInfo();
 

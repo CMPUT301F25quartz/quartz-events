@@ -24,6 +24,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.cloudinary.android.MediaManager;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.example.ajilore.code.R;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +40,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        //Setting up the Cloudinary connection
+        Map<String, Object> config = new HashMap<>();
+        config.put("cloud_name", "dswduwd5v");
+        config.put("api_key","494611986897794");
+        config.put("api_secret","dIx5IJLF94eA5Cqcoo8g90IvaA8");
+        MediaManager.init(this, config);
+
+
 
 
         // after setting up Firebase Auth set up (divine)
