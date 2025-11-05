@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Core colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="backgroundColor">#FBFBFB</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="grey">#BDBDBD</color>
+    <color name="status_accepted">#4CAF50</color>   <!-- green -->
+    <color name="status_declined">#F44336</color>   <!-- red -->
+    <color name="status_pending">#BDBDBD</color>    <!-- gray -->
+    <color name="gray">#FF757575</color>
+    <color name="dark_gray">#FF424242</color>
+    <color name="light_gray">#FFF5F5F5</color>
+    <color name="blue">#FF2196F3</color>
+    <color name="pink_red">#FFFFCDD2</color>
+    <color name="my_purple">#5669FF</color>
 
     <!-- App primary and secondary theme colors -->
     <color name="teal_700">#018786</color>

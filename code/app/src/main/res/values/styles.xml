@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- existing -->
+    <style name="Shape.SmallRound">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+
+    <!-- new: fallback so @style/Shape works -->
+    <style name="Shape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+
+    <style name="FormLabel">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#6A6A6A</item>
+        <item name="android:layout_marginTop">16dp</item>
+    </style>
+
+    <style name="OutlinedBox" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="boxStrokeColor">#EEEEEE</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="shapeAppearance">@style/Rounded16</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
+    <style name="Rounded16">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="PrimaryBtn" parent="Widget.Material3.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:backgroundTint">#5367FF</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="OutlinedBtn" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="strokeColor">#DDDDDD</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+
+    <!-- Style for Material Date Picker Dialog -->
+    <style name="ThemeOverlay.App.DatePicker" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <!-- You can customize colors here if needed -->
+        <!-- For example: -->
+        <item name="colorPrimary">#5367FF</item>
+        <!-- <item name="colorOnPrimary">@color/white</item> -->
+    </style>
+
+
+    <!-- New and improved button style -->
+    <style name="Widget.App.Button.Custom" parent="Widget.Material3.Button">
+        <!-- Set the background color correctly -->
+        <item name="backgroundTint">#00B6AA</item>
+        <!-- Define the corner radius -->
+        <item name="shapeAppearance">@style/ShapeAppearance.App.Button.Rounded</item>
+    </style>
+
+    <!-- This style defines the shape with a 6dp corner radius -->
+    <style name="ShapeAppearance.App.Button.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">6dp</item>
+    </style>
+
+</resources>
