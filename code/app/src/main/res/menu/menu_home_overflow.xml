@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_switch_organizer"
+        android:title="Organizer" />
+    <item
+        android:id="@+id/action_switch_admin"
+        android:title="Admin" />
+    <item
+        android:id="@+id/action_delete_profile"
+        android:title="Delete Profile" />
+    <item
+        android:id="@+id/action_sign_out"
+        android:title="Sign Out" />
+</menu>

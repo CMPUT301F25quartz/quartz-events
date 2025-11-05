@@ -41,7 +41,7 @@
                 android:id="@+id/tvDisplayName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="John"
+                android:text="Welcome"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:layout_marginTop="12dp"
@@ -56,15 +56,31 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp" />
 
-            <!-- Edit Profile button (no icon yet) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditProfile"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
+            <!-- NEW: Log in / Sign up toggle -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleAuthMode"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="Edit Profile"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="16dp"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModeLogin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Log in"
+                    android:checkable="true"
+                    android:checked="true" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModeSignup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sign up"
+                    android:checkable="true" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
 
             <!-- Name field -->
             <com.google.android.material.textfield.TextInputLayout
@@ -103,7 +119,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:helperText="Optional • 10 digits">
+                app:helperText="Optional">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPhone"
                     android:hint="Phone"
@@ -149,7 +165,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="@android:color/darker_gray" />
+                    app:tint="@android:color/darker_gray" />
 
                 <TextView
                     android:id="@+id/tvHelp"
@@ -160,7 +176,26 @@
                     android:layout_marginStart="8dp" />
             </LinearLayout>
 
-            <!-- Hidden: Save/Cancel (used when editing) -->
+            <!-- NEW: Primary action (changes label: Log in / Sign up / Continue) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Log in"
+                android:layout_marginTop="20dp"
+                android:enabled="true" />
+
+            <!-- Edit Profile button (visible after login) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditProfile"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="Edit Profile"
+                android:layout_marginTop="12dp" />
+
+            <!-- Save/Cancel (used only when editing email/phone) -->
             <LinearLayout
                 android:id="@+id/buttonRow"
                 android:orientation="horizontal"

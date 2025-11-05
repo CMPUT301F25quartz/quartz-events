@@ -125,6 +125,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    //helpers to switch from frgaments
+    public void switchToEvents() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
+        }
+    }
+
+    public void switchToHistory() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.historyFragment);
+        }
+    }
+
+    public void switchToProfile() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+        }
+    }
+    public void openHomeDirect() {
+        runOnUiThread(() -> {
+            Log.d("MainActivity", "openHomeDirect(): swapping to HomeFragment");
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.nav_host_fragment, new com.example.ajilore.code.ui.events.HomeFragment(), "HOME")
+                    .commit();
+
+            // Visually highlight the Events tab WITHOUT triggering the listener
+            if (bottomNavigationView != null) {
+                bottomNavigationView.getMenu().findItem(R.id.eventsFragment).setChecked(true);
+            }
+        });
+    }
+
+
+
 //    after setting up Firebase Auth set up (divine)
 //    private void setupBottomNavigation(String userRole) { // Add userRole param
 //        bottomNavigationView = findViewById(R.id.menu_bottom_nav);
