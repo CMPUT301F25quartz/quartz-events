@@ -9,5 +9,11 @@
     <color name="status_accepted">#4CAF50</color>   <!-- green -->
     <color name="status_declined">#F44336</color>   <!-- red -->
     <color name="status_pending">#BDBDBD</color>
+    <color name="gray">#FF757575</color>
+    <color name="dark_gray">#FF424242</color>
+    <color name="light_gray">#FFF5F5F5</color>
+    <color name="blue">#FF2196F3</color>
+    <color name="pink_red">#FFFFCDD2</color>
+    <color name="my_purple">#5669FF</color>
     <color name="blue">#FF1976D2</color>    <!-- blue -->
 </resources>
