@@ -28,7 +28,7 @@ public class AdminController {
     private FirebaseStorage storage;
 
     // Collection names matching your Firebase
-    private static final String EVENTS_COLLECTION = "events";
+    private static final String EVENTS_COLLECTION = "org_events";
     private static final String USERS_COLLECTION = "users";
     private static final String IMAGES_COLLECTION = "images";
 
