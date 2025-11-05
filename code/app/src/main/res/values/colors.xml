@@ -8,5 +8,6 @@
     <color name="grey">#BDBDBD</color>
     <color name="status_accepted">#4CAF50</color>   <!-- green -->
     <color name="status_declined">#F44336</color>   <!-- red -->
-    <color name="status_pending">#BDBDBD</color>    <!-- gray -->
+    <color name="status_pending">#BDBDBD</color>
+    <color name="blue">#FF1976D2</color>    <!-- blue -->
 </resources>
