@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, new EventsFragment())
+                    .replace(R.id.nav_host_fragment, new GeneralEventsFragment())
                     .commit();
         }
 
