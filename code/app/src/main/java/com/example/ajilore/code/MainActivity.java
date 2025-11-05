@@ -18,6 +18,7 @@ import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
+import com.example.ajilore.code.ui.profile.LoginFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -85,10 +86,8 @@ public class MainActivity extends AppCompatActivity {
         // Load default fragment on startup
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, new OrganizerEventsFragment())
+                    .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
-            //highlight the correct tab in the bottom nav
-            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
         }
 
         // Test Firebase connection
@@ -125,38 +124,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    //helpers to switch from frgaments
-    public void switchToEvents() {
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.eventsFragment);
-        }
-    }
 
-    public void switchToHistory() {
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.historyFragment);
-        }
-    }
-
-    public void switchToProfile() {
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.profileFragment);
-        }
-    }
-    public void openHomeDirect() {
-        runOnUiThread(() -> {
-            Log.d("MainActivity", "openHomeDirect(): swapping to HomeFragment");
-            getSupportFragmentManager().beginTransaction()
-                    .setReorderingAllowed(true)
-                    .replace(R.id.nav_host_fragment, new com.example.ajilore.code.ui.events.HomeFragment(), "HOME")
-                    .commit();
-
-            // Visually highlight the Events tab WITHOUT triggering the listener
-            if (bottomNavigationView != null) {
-                bottomNavigationView.getMenu().findItem(R.id.eventsFragment).setChecked(true);
-            }
-        });
-    }
 
 
 
