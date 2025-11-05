@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="et_search_profiles" type="id" />
+    <item name="rv_profiles" type="id" />
+    <item name="iv_user_image" type="id" />
+    <item name="tv_user_name" type="id" />
+
+    <item name="nav_events" type="id" />
+    <item name="events_recycler_view" type="id" />
+    <item name="nav_images" type="id" />
+    <item name="nav_profiles" type="id" />
+    <item name="admin_toolbar" type="id" />
+    <item name="profiles_recycler_view" type="id" />
+</resources>
