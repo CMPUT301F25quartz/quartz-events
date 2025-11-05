@@ -1,7 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
+}
 
+// Block to fix the protobuf duplicate class error
+configurations.all {
+    exclude(group = "com.google.protobuf", module = "protobuf-lite")
 }
 
 android {
@@ -44,9 +48,18 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+    implementation(libs.espresso.intents)
+    implementation(libs.fragment.testing)
+    implementation(libs.espresso.contrib)
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:4.8.0")
+    testImplementation("org.robolectric:robolectric:4.10")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.espresso.contrib)
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("com.google.android.material:material:1.12.0")
@@ -58,6 +71,11 @@ dependencies {
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("com.cloudinary:cloudinary-android:2.3.1")
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    // Image loading library - Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 }
 
 tasks.register<Javadoc>("javadoc") {
