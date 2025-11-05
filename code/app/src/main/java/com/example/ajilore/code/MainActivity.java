@@ -3,6 +3,7 @@ package com.example.ajilore.code;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -16,7 +17,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.admin.AdminEventsFragment;
 import com.example.ajilore.code.ui.admin.AdminProfilesFragment;
+import com.example.ajilore.code.ui.events.EntrantEventsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
+import com.example.ajilore.code.ui.events.GeneralEventsFragment;
+import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
@@ -25,6 +29,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.cloudinary.android.MediaManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MainActivity - The main entry point of the application.
@@ -43,8 +51,56 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        //Setting up the Cloudinary connection
+        Map<String, Object> config = new HashMap<>();
+        config.put("cloud_name", "dswduwd5v");
+        config.put("api_key","494611986897794");
+        config.put("api_secret","dIx5IJLF94eA5Cqcoo8g90IvaA8");
+        MediaManager.init(this, config);
+
+
+
+
+        // after setting up Firebase Auth set up (divine)
+//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        String userRole = "entrant"; // Default; replace with actual role fetch
+//        if (currentUser != null) {
+//            // Fetch role from Firestore (e.g., users/{userId}/role)
+//            FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid())
+//                    .get()
+//                    .addOnSuccessListener(doc -> {
+//                        userRole = doc.getString("role"); // e.g., "entrant", "organizer", "admin"
+//                        loadDefaultFragment(userRole);
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Log.e("MainActivity", "Failed to fetch user role: " + e.getMessage());
+//                        loadDefaultFragment("entrant"); // Fallback
+//                    });
+//        } else {
+//            // No user logged in; redirect to login or default to entrant
+//            loadDefaultFragment("entrant");
+//        }
+//        private void loadDefaultFragment(String role) {
+//            Fragment defaultFragment;
+//            switch (role) {
+//                case "organizer":
+//                    defaultFragment = new OrganizerEventsFragment();
+//                    break;
+//                case "admin":
+//                    defaultFragment = new ManageEventsFragment(); // Assuming you have this
+//                    break;
+//                default: // "entrant"
+//                    defaultFragment = new EntrantEventsFragment();
+//                    break;
+//            }
+//            getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.nav_host_fragment, defaultFragment)
+//                    .commit();
+//        }
         setContentView(R.layout.activity_main);
 
+        // Apply window insets (should be right after setContentView)
         // Apply window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -165,10 +221,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d("NAVIGATION", "Navigated to: " + tag);
     }
 
-    /**
-     * Setup bottom navigation for regular user features
-     * Handles navigation between: Events, History, Inbox, Profile
-     */
+
+
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 
@@ -180,12 +234,14 @@ public class MainActivity extends AppCompatActivity {
 
                 if (id == R.id.historyFragment) {
                     selectedFragment = new HistoryFragment();
-                } else if (id == R.id.eventsFragment) {
-                    selectedFragment = new EventsFragment();
+
+                    //to be modified, keep as organizer for now
+                } else if (id == R.id.generalEventsFragment) {
+                    selectedFragment = new GeneralEventsFragment();
                 } else if (id == R.id.inboxFragment) {
                     selectedFragment = new InboxFragment();
                 } else if (id == R.id.profileFragment) {
-                    selectedFragment = new ProfileFragment();
+                    selectedFragment = new OrganizerEventsFragment();
                 }
 
                 if (selectedFragment != null) {
@@ -197,15 +253,43 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+//    after setting up Firebase Auth set up (divine)
+//    private void setupBottomNavigation(String userRole) { // Add userRole param
+//        bottomNavigationView = findViewById(R.id.menu_bottom_nav);
+//        bottomNavigationView.setOnItemSelectedListener(item -> {
+//            Fragment selectedFragment = null;
+//            int id = item.getItemId();
+//            if (id == R.id.historyFragment) {
+//                selectedFragment = new HistoryFragment();
+//            } else if (id == R.id.eventsFragment) {
+//                // Conditionally load based on role
+//                if ("organizer".equals(userRole)) {
+//                    selectedFragment = new OrganizerEventsFragment();
+//                } else if ("entrant".equals(userRole)) {
+//                    selectedFragment = new EntrantEventsFragment();
+//                } else {
+//                    selectedFragment = new ManageEventsFragment(); // Admin
+//                }
+//            } else if (id == R.id.inboxFragment) {
+//                selectedFragment = new InboxFragment();
+//            } else if (id == R.id.profileFragment) {
+//                selectedFragment = new ProfileFragment();
+//            }
+//            if (selectedFragment != null) {
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.nav_host_fragment, selectedFragment)
+//                        .commit();
+//            }
+//            return true;
+//        });
+//    }
 
-    /**
-     * Test Firebase connection on app startup
-     * Fetches events collection to verify Firestore is working
-     */
     private void testFirebaseConnection() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        db.collection("events")
+        //Changed it so that it will query the right document
+
+        db.collection("org_events")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     int count = querySnapshot.size();
@@ -217,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         String title = doc.getString("title");
                         Log.d("Firebase", "Event: " + title);
+                        Log.d("EventsCheck", "Event ID: " +doc.getId());
                     }
 
                     Toast.makeText(this,

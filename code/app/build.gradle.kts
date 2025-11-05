@@ -1,7 +1,5 @@
-
 plugins {
     alias(libs.plugins.android.application)
-    // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
 }
 
@@ -64,9 +62,34 @@ dependencies {
     androidTestImplementation(libs.espresso.contrib)
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.3")
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.google.firebase:firebase-storage:20.3.0")
+    implementation("com.cloudinary:cloudinary-android:2.3.1")
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     // Image loading library - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+}
+
+tasks.register<Javadoc>("javadoc") {
+    // This sets the title for the generated documentation page
+    options.windowTitle = "Quartz Events Javadoc"
+
+    // This makes sure the task fails on any error
+    isFailOnError = true
+
+    // This specifies which source files to include
+    source(android.sourceSets["main"].java.srcDirs)
+
+    // This adds all the project dependencies (Android SDK, Firebase, etc.) to the classpath
+    classpath += project.files(android.bootClasspath.joinToString(File.pathSeparator))
+    // FIX: Use getByName("compileClasspath") to access the configuration
+    classpath += configurations.getByName("compileClasspath")
 }

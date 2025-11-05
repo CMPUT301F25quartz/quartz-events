@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- drawable/rectangle_4.xml -->
+    <vector
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="148dp"
+        android:height="43dp"
+        android:viewportWidth="148"
+        android:viewportHeight="43">
+
+        <!-- This path defines a rectangle with a corner radius of 6dp -->
+        <path
+            android:pathData="M6,0H142C145.314,0,148,2.686,148,6V37C148,40.314,145.314,43,142,43H6C2.686,43,0,40.314,0,37V6C0,2.686,2.686,0,6,0Z"
+            android:fillColor="#00B6AA" />
+
+    </vector>
+
+
+</selector>
