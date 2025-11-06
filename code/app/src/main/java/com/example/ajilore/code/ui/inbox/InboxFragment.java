@@ -16,8 +16,10 @@ import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,47 +101,53 @@ public class InboxFragment extends Fragment {
     private void loadUserNotifications() {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
-        String userId = user.getUid();
+        String userId ="demoUser";
+
 
         db.collection("org_events").get().addOnSuccessListener(eventSnapshots -> {
             for (DocumentSnapshot eventDoc : eventSnapshots) {
                 String eventId = eventDoc.getId();
-                String eventTitle = eventDoc.getString("title") != null ? eventDoc.getString("title") : "Unnamed Event";
 
-                eventDoc.getReference().collection("entrants").document(userId).get()
-                        .addOnSuccessListener(entrantDoc -> {
-                            if (entrantDoc.exists()) {
-                                String status = entrantDoc.getString("status");
-                                if (status == null) return;
+                // Go to org_events/{eventId}/waiting_list/{userId}/inbox
+                eventDoc.getReference()
+                        .collection("waiting_list")
+                        .document(userId)
+                        .collection("inbox")
+                        .orderBy("createdAt", Query.Direction.DESCENDING)
+                        .addSnapshotListener((snapshots, e) -> {
+                            if (e != null || snapshots == null) return;
 
-                                eventDoc.getReference().collection("broadcasts").get()
-                                        .addOnSuccessListener(broadcasts -> {
-                                            for (DocumentSnapshot b : broadcasts) {
-                                                String audience = b.getString("audience");
-                                                String message = b.getString("message");
+                            for (DocumentChange change : snapshots.getDocumentChanges()) {
+                                DocumentSnapshot inboxDoc = change.getDocument();
 
-                                                if (audience == null || message == null) continue;
+                                String message = inboxDoc.getString("message");
+                                String eventTitle = inboxDoc.getString("eventTitle");
+                                String type = inboxDoc.getString("type") != null ? inboxDoc.getString("type") : "general";
+                                boolean read = inboxDoc.getBoolean("read") != null && inboxDoc.getBoolean("read");
 
-                                                if ((status.equals("selected") && audience.equals("chosen")) ||
-                                                        (status.equals("rejected") && audience.equals("not_selected"))) {
+                                if (message != null && eventTitle != null) {
+                                    NotificationModel notification = new NotificationModel(
+                                            eventId,
+                                            eventTitle + ": " + message,
+                                            read,
+                                            type
+                                    );
 
-                                                    notificationList.add(new NotificationModel(
-                                                            eventId,
-                                                            eventTitle + ": " + message,
-                                                            false,
-                                                            "general"
-                                                    ));
-                                                }
-                                            }
-                                            adapter.notifyDataSetChanged();
-                                        });
+                                    // Avoid duplicates
+                                    if (!notificationList.contains(notification)) {
+                                        notificationList.add(0, notification);
+                                    }
+                                }
                             }
+                            adapter.notifyDataSetChanged();
                         });
             }
         }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(getContext(), "Error loading inbox: " + e.getMessage(), Toast.LENGTH_SHORT).show()
         );
     }
+
+
 
     private void markAllRead() {
         for (NotificationModel n : notificationList) {
