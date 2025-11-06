@@ -9,10 +9,8 @@ public class NotificationModel {
     private String actionText; // e.g. "See Details" or "See Event"
     private String type;       // e.g. "lottery_winner", "lottery_loser", "organizer"
 
-    // Required empty constructor for Firestore
-    public NotificationModel() {}
+    public NotificationModel() {} // Firestore requirement
 
-    // Full constructor
     public NotificationModel(String id, String message, String time, String imageUrl,
                              boolean isRead, String actionText, String type) {
         this.id = id;
@@ -24,13 +22,13 @@ public class NotificationModel {
         this.type = type;
     }
 
-    // --- NEW constructor for dummy/testing data ---
+    // Short constructor for local/demo data
     public NotificationModel(String id, String message, boolean isRead, String type) {
         this.id = id;
         this.message = message;
         this.isRead = isRead;
         this.type = type;
-        this.time = "";       // optional default values
+        this.time = "";
         this.imageUrl = "";
         this.actionText = "See Details";
     }
@@ -49,7 +47,19 @@ public class NotificationModel {
     public void setMessage(String message) { this.message = message; }
     public void setTime(String time) { this.time = time; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public void setRead(boolean read) { isRead = read; }
+    public void setRead(boolean read) { this.isRead = read; }
     public void setActionText(String actionText) { this.actionText = actionText; }
     public void setType(String type) { this.type = type; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof NotificationModel)) return false;
+        NotificationModel other = (NotificationModel) obj;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

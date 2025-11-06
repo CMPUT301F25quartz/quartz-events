@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Filter Buttons -->
+    <!-- Filter + Archive Buttons -->
     <LinearLayout
         android:id="@+id/filterButtonsLayout"
         android:layout_width="wrap_content"
@@ -40,6 +40,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/show_unread"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginStart="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewArchived"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Archived"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_marginStart="8dp"/>
     </LinearLayout>

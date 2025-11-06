@@ -76,4 +76,7 @@
     <string name="mark_all_read">Mark All Read</string>
     <string name="show_unread">Show Unread</string>
     <string name="show_all">Show All</string>
+    <string name="view_archived">View Archived</string>
+    <string name="show_inbox">Show Inbox</string>
+
 </resources>
