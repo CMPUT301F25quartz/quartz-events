@@ -8,9 +8,6 @@
         android:id="@+id/action_switch_admin"
         android:title="Admin" />
     <item
-        android:id="@+id/action_delete_profile"
-        android:title="Delete Profile" />
-    <item
         android:id="@+id/action_sign_out"
         android:title="Sign Out" />
 </menu>

@@ -1,225 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    android:id="@+id/profileRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <!-- Top App Bar (no custom icons/menus yet to avoid missing resources) -->
+    <!-- Top App Bar with overflow (three dots) -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/profileToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:title="Profile"
-        app:titleCentered="true" />
+        app:titleCentered="true"
+        app:menu="@menu/menu_profile_overflow" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:id="@+id/content"
-            android:orientation="vertical"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="24dp"
+            android:gravity="center_horizontal">
 
-            <!-- Avatar placeholder uses launcher icon so it always exists -->
             <ImageView
-                android:id="@+id/imgAvatar"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:layout_gravity="center_horizontal"
-                android:src="@mipmap/ic_launcher_round"
+                android:id="@+id/imgProfile"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/sym_def_app_icon"
                 android:scaleType="centerCrop"
-                android:layout_marginTop="16dp" />
+                android:background="@drawable/circle_background"
+                android:padding="8dp"
+                android:layout_marginBottom="16dp" />
 
-            <!-- Display name -->
+            <!-- Simple header / placeholder for user info -->
             <TextView
-                android:id="@+id/tvDisplayName"
+                android:id="@+id/tvProfileHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Welcome"
-                android:textSize="22sp"
+                android:text="Hi User"
                 android:textStyle="bold"
-                android:layout_marginTop="12dp"
-                android:layout_gravity="center_horizontal" />
+                android:textSize="20sp"
+                android:layout_marginBottom="12dp" />
 
-            <!-- Role chip (no custom color to avoid missing color) -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipRole"
+            <TextView
+                android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Entrant"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp" />
+                android:text="Name: —"
+                android:layout_marginTop="4dp" />
 
-            <!-- NEW: Log in / Sign up toggle -->
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleAuthMode"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvEmail"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:singleSelection="true">
+                android:text="Email: —"
+                android:layout_marginTop="4dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModeLogin"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Log in"
-                    android:checkable="true"
-                    android:checked="true" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModeSignup"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Sign up"
-                    android:checkable="true" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-            <!-- Name field -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilName"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvPhone"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etName"
-                    android:hint="Name"
-                    android:inputType="textPersonName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:text="Phone: —"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="20dp" />
 
-            <!-- Email field -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEmail"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmail"
-                    android:hint="Email"
-                    android:inputType="textEmailAddress"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Phone field -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPhone"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:helperText="Optional">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPhone"
-                    android:hint="Phone"
-                    android:inputType="phone"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Notifications toggle row -->
-            <LinearLayout
-                android:id="@+id/rowNotifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="20dp">
-
-                <TextView
-                    android:id="@+id/tvNotifLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Receive notifications from organizers/admins"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switchNotifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true" />
-            </LinearLayout>
-
-            <!-- Help row (use system help icon/color so they always exist) -->
-            <LinearLayout
-                android:id="@+id/rowHelp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="12dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="@android:color/darker_gray" />
-
-                <TextView
-                    android:id="@+id/tvHelp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="How the lottery works"
-                    android:textColor="#80838A"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
-
-            <!-- NEW: Primary action (changes label: Log in / Sign up / Continue) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPrimary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Log in"
-                android:layout_marginTop="20dp"
-                android:enabled="true" />
-
-            <!-- Edit Profile button (visible after login) -->
+            <!-- Edit Profile button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditProfile"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:text="Edit Profile"
-                android:layout_marginTop="12dp" />
-
-            <!-- Save/Cancel (used only when editing email/phone) -->
-            <LinearLayout
-                android:id="@+id/buttonRow"
-                android:orientation="horizontal"
-                android:gravity="end"
-                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone">
+                android:text="Edit Profile" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCancel"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:text="Cancel"
-                    android:layout_marginEnd="12dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+            <!-- Delete Profile button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteProfile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Delete Profile"
+                android:layout_marginTop="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSave"
-                    android:text="Save"
-                    android:enabled="false"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+            <!-- Spacer -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="24dp" />
+
+            <!-- Small hint -->
+            <TextView
+                android:id="@+id/tvHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Use the ••• menu to switch to Organizer/Admin or to Sign out."
+                android:textColor="#80838A"
+                android:textSize="13sp" />
 
         </LinearLayout>
     </ScrollView>

@@ -1,9 +1,14 @@
 package com.example.ajilore.code.ui.profile;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.*;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -11,26 +16,31 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.R;
-import com.example.ajilore.code.ui.events.EventsScreenFragment; // <-- using the simple screen
-// If you prefer an existing concrete events fragment from your team,
-// import that instead, e.g.:
-// import com.example.ajilore.code.ui.events.EntrantEventsFragment;
-
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class LoginFragment extends Fragment {
 
-    private MaterialButtonToggleGroup toggleMode;
-    private MaterialButton btnLogin, btnSignup, btnPrimary;
-    private TextInputLayout tilName, tilEmail, tilPhone;
-    private TextInputEditText etName, etEmail, etPhone;
+    // Views
+    private TextInputLayout tilNameLogin, tilEmailSignup, tilPhoneSignup;
+    private TextInputEditText etNameLogin, etEmailSignup, etPhoneSignup;
+    private MaterialButton btnContinueLogin, btnSignup;
+    private LinearLayout groupSignup;
 
-    private enum Mode { LOGIN, SIGNUP }
-    private Mode mode = Mode.LOGIN;
+    // Firestore
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+    private String uid;
+    private boolean authReady = false;
 
     @Nullable
     @Override
@@ -44,99 +54,192 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        toggleMode = v.findViewById(R.id.toggleMode);
-        btnLogin   = v.findViewById(R.id.btnLogin);
-        btnSignup  = v.findViewById(R.id.btnSignup);
-        btnPrimary = v.findViewById(R.id.btnPrimary);
+        // Bind views
+        tilNameLogin   = v.findViewById(R.id.tilNameLogin);
+        etNameLogin    = v.findViewById(R.id.etNameLogin);
+        btnContinueLogin = v.findViewById(R.id.btnContinueLogin);
 
-        tilName  = v.findViewById(R.id.tilName);
-        tilEmail = v.findViewById(R.id.tilEmail);
-        tilPhone = v.findViewById(R.id.tilPhone);
+        groupSignup    = v.findViewById(R.id.groupSignup);
+        tilEmailSignup = v.findViewById(R.id.tilEmailSignup);
+        etEmailSignup  = v.findViewById(R.id.etEmailSignup);
+        tilPhoneSignup = v.findViewById(R.id.tilPhoneSignup);
+        etPhoneSignup  = v.findViewById(R.id.etPhoneSignup);
+        btnSignup      = v.findViewById(R.id.btnSignup);
 
-        etName = v.findViewById(R.id.etName);
-        etEmail= v.findViewById(R.id.etEmail);
-        etPhone= v.findViewById(R.id.etPhone);
+        // Hide signup section initially
+        groupSignup.setVisibility(View.GONE);
 
-        // Default = LOGIN
-        toggleMode.check(R.id.btnLogin);
-        setMode(Mode.LOGIN);
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
 
-        toggleMode.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            if (checkedId == R.id.btnLogin) setMode(Mode.LOGIN);
-            else if (checkedId == R.id.btnSignup) setMode(Mode.SIGNUP);
-        });
+        // Disable interactions until auth is ready
+        setUiEnabled(false);
 
-        TextWatcher watcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { validate(); }
-            @Override public void afterTextChanged(Editable s) {}
-        };
-        etName.addTextChangedListener(watcher);
-        etEmail.addTextChangedListener(watcher);
-
-        btnPrimary.setOnClickListener(view -> {
-            if (mode == Mode.LOGIN) {
-                if (!isLoginValid()) {
-                    Toast.makeText(getContext(), "Enter your name to log in", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                // Later: check Firestore for user by name
-                navigateToEvents();
-            } else { // SIGNUP
-                if (!isSignupValid()) {
-                    Toast.makeText(getContext(), "Enter your name and a valid email to sign up", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                // Later: create user in Firestore with name, email, (optional) phone
-                navigateToEvents();
-            }
-        });
-    }
-
-    private void setMode(Mode m) {
-        mode = m;
-        boolean signup = (m == Mode.SIGNUP);
-
-        tilEmail.setVisibility(signup ? View.VISIBLE : View.GONE);
-        tilPhone.setVisibility(signup ? View.VISIBLE : View.GONE);
-
-        btnPrimary.setText(signup ? "Sign up" : "Log in");
-        validate();
-    }
-
-    private void validate() {
-        if (mode == Mode.LOGIN) {
-            tilName.setError(isNameOk() ? null : "Name is required");
-            btnPrimary.setEnabled(isNameOk());
+        // Ensure we have a UID
+        if (auth.getCurrentUser() == null) {
+            Log.d("AuthTest", "Starting anonymous sign-in…");
+            auth.signInAnonymously().addOnSuccessListener(res -> {
+                uid = res.getUser().getUid();
+                authReady = true;
+                Log.d("AuthTest", "Anonymous sign-in success. UID=" + uid);
+                setUiEnabled(true);
+            }).addOnFailureListener(e -> {
+                authReady = false;
+                Log.e("AuthTest", "Anonymous sign-in FAILED: " + e.getMessage(), e);
+                Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
         } else {
-            tilName.setError(isNameOk() ? null : "Name is required");
-            tilEmail.setError(isEmailOk() ? null : "Invalid email");
-            btnPrimary.setEnabled(isNameOk() && isEmailOk());
+            uid = auth.getCurrentUser().getUid();
+            authReady = true;
+            Log.d("AuthTest", "Already signed in. UID=" + uid);
+            setUiEnabled(true);
         }
+
+        // Live validation for login name
+        etNameLogin.addTextChangedListener(simpleWatcher(s -> {
+            boolean ok = isNonBlank(getText(etNameLogin));
+            tilNameLogin.setError(ok ? null : "Name required");
+            btnContinueLogin.setEnabled(authReady && ok);
+        }));
+
+        // Live validation for signup (email required, phone optional)
+        TextWatcher signupWatcher = simpleWatcher(s -> {
+            boolean okEmail = isEmailOk(getText(etEmailSignup));
+            tilEmailSignup.setError(okEmail ? null : "Must contain @");
+            btnSignup.setEnabled(okEmail && isNonBlank(getText(etNameLogin)));
+        });
+        etEmailSignup.addTextChangedListener(signupWatcher);
+        etPhoneSignup.addTextChangedListener(signupWatcher);
+
+        // LOGIN: check if user exists by nameLower; if yes -> navigate; if no -> show signup
+        btnContinueLogin.setOnClickListener(view -> {
+            if (!authReady) {
+                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String name = getText(etNameLogin);
+            if (!isNonBlank(name)) {
+                tilNameLogin.setError("Name required");
+                return;
+            }
+            String nameLower = name.toLowerCase(Locale.ROOT).trim();
+
+            db.collection("usersByName").document(nameLower)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Toast.makeText(getContext(), "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
+                            navigateToEvents();
+                        } else {
+                            Toast.makeText(getContext(), "No account found. Please sign up.", Toast.LENGTH_SHORT).show();
+                            groupSignup.setVisibility(View.VISIBLE);
+                        }
+                    })
+                    .addOnFailureListener(err ->
+                            Toast.makeText(getContext(), "Login check failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
+                    );
+        });
+
+        // SIGNUP: create user doc then navigate
+        btnSignup.setOnClickListener(view -> {
+            if (!authReady) {
+                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String name  = getText(etNameLogin);
+            String email = getText(etEmailSignup);
+            String phone = getText(etPhoneSignup);
+
+            if (!isNonBlank(name)) {
+                tilNameLogin.setError("Name required");
+                return;
+            }
+            if (!isEmailOk(email)) {
+                tilEmailSignup.setError("Must contain @");
+                return;
+            }
+
+            String nameLower = name.toLowerCase(Locale.ROOT).trim();
+            String deviceId  = getDeviceId();
+
+            Map<String, Object> user = new HashMap<>();
+            user.put("name", name.trim());
+            user.put("nameLower", nameLower);
+            user.put("email", email.trim());
+            user.put("phone", phone.trim());
+            user.put("role", "entrant");
+            user.put("createdAt", FieldValue.serverTimestamp());
+
+            // 1) Create users/{uid}
+            // 2) Create usersByName/{nameLower} with { uid } — create-only, enforced by rules
+            db.runTransaction(trx -> {
+                // Ensure name not taken (second layer of safety)
+                var nameDocRef = db.collection("usersByName").document(nameLower);
+                var nameDoc = trx.get(nameDocRef);
+                if (nameDoc.exists()) {
+                    throw new RuntimeException("That name is already taken.");
+                }
+                // Write profile
+                trx.set(db.collection("users").document(uid), user);
+                // Reserve name
+                Map<String,Object> idx = new HashMap<>();
+                idx.put("uid", uid);
+                idx.put("createdAt", FieldValue.serverTimestamp());
+                trx.set(nameDocRef, idx);
+                return null;
+            }).addOnSuccessListener(x -> {
+                Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                navigateToEvents();
+            }).addOnFailureListener(err ->
+                    Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
+            );
+        });
     }
 
-    private boolean isLoginValid() { return isNameOk(); }
-
-    private boolean isSignupValid() { return isNameOk() && isEmailOk(); }
-
-    private boolean isNameOk() {
-        CharSequence s = etName.getText();
-        return s != null && s.toString().trim().length() >= 1;
+    private void setUiEnabled(boolean enabled) {
+        if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled && isNonBlank(getText(etNameLogin)));
+        if (btnSignup != null)       btnSignup.setEnabled(enabled && isEmailOk(getText(etEmailSignup)) && isNonBlank(getText(etNameLogin)));
+        if (etNameLogin != null)     etNameLogin.setEnabled(true); // allow typing anytime
+        if (etEmailSignup != null)   etEmailSignup.setEnabled(enabled);
+        if (etPhoneSignup != null)   etPhoneSignup.setEnabled(enabled);
     }
 
-    private boolean isEmailOk() {
-        CharSequence s = etEmail.getText();
-        return s != null && s.toString().contains("@");
-    }
 
+    // ---------- navigation ----------
     private void navigateToEvents() {
-        // Replace container with your events screen
-        requireActivity().getSupportFragmentManager().beginTransaction()
+        requireActivity()
+                .getSupportFragmentManager()
+                .beginTransaction()
                 .replace(R.id.nav_host_fragment, new GeneralEventsFragment())
                 .commit();
-
-        // If you'd rather use your teammate's concrete fragment, use:
-        // .replace(R.id.nav_host_fragment, new EntrantEventsFragment())
     }
+
+    // ---------- helpers ----------
+    private String getText(TextInputEditText et) {
+        return et.getText() == null ? "" : et.getText().toString().trim();
+    }
+
+    private boolean isNonBlank(String s) {
+        return s != null && s.trim().length() > 0;
+    }
+
+    private boolean isEmailOk(String s) {
+        return s != null && s.contains("@");
+    }
+
+    private TextWatcher simpleWatcher(OnChange cb) {
+        return new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { cb.run(String.valueOf(s)); }
+            @Override public void afterTextChanged(Editable s) {}
+        };
+    }
+    private String getDeviceId() {
+        return Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+    }
+
+    private interface OnChange { void run(String s); }
 }
