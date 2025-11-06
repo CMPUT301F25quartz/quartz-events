@@ -10,16 +10,29 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Header -->
+        <!-- Header with Back Button -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp">
 
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_back"
+                android:contentDescription="Back" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Profile"
+                android:layout_toEndOf="@+id/btn_back"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+                android:text="Admin Dashboard"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#1F2937" />
@@ -69,19 +82,6 @@
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
                 android:layout_marginBottom="24dp" />
-
-            <!-- Edit Profile Button -->
-            <Button
-                android:id="@+id/btn_edit_profile"
-                android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:background="#ffffff"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
-                android:text="✏ Edit Profile"
-                android:textAllCaps="false"
-                android:textColor="#ffffff"
-                android:textSize="16sp" />
 
         </LinearLayout>
 

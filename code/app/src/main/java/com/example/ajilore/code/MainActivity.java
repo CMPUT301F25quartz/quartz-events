@@ -121,7 +121,8 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
         }
-
+        // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
+        bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
     }
