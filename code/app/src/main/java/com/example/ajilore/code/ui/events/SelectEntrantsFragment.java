@@ -28,6 +28,15 @@ import java.util.*;
  * - A snapshot listener keeps the UI list in sync with entrants in Firestore.
  * - The "Run Draw" button reads WAITING entrants, shuffles, and writes updates in a batch.
  *
+ * Additional Context:
+ * waiting: User is on the event waiting list and not yet chosen/selected.
+ *
+ * chosen: User has been selected in the draw and invited—awaiting their response (pending).
+ *
+ * selected: User has accepted the invite—confirmed to attend.
+ *
+ * cancelled (or similar): User was chosen but declined, or was removed.
+ *
  */
 
 
@@ -133,7 +142,7 @@ public class SelectEntrantsFragment extends Fragment {
 
     private void listenForSelected() {
         db.collection("org_events").document(eventId)
-                .collection("entrants")
+                .collection("waiting_list")
                 .whereEqualTo("status", "chosen")   // <— was "selected"
                 .addSnapshotListener((snap, e) -> {
                     if (e != null) {
@@ -180,7 +189,7 @@ public class SelectEntrantsFragment extends Fragment {
 
         // Get everyone still on the waiting list
         db.collection("org_events").document(eventId)
-                .collection("entrants")
+                .collection("waiting_list")
                 .whereEqualTo("status", "waiting")
                 .get()
                 .addOnSuccessListener(snap -> {
@@ -199,7 +208,7 @@ public class SelectEntrantsFragment extends Fragment {
                     for (DocumentSnapshot d : winners) {
                         DocumentReference ref =
                                 db.collection("org_events").document(eventId)
-                                        .collection("entrants").document(d.getId());
+                                        .collection("waiting_list").document(d.getId());
 
                         Map<String, Object> upd = new HashMap<>();
                         upd.put("status", "chosen");              // was "selected"

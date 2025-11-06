@@ -1,15 +1,25 @@
 <resources>
-    <string name="app_name">code</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="back">Back</string>
-    <string name="add_poster">Add Poster</string>
+    <string name="browse_events">Browse Events</string>
+    <string name="admin">ADMIN</string>
+    <string name="menu">Menu</string>
+    <string name="search_events">Search events…</string>
+    <string name="no_events_found">No events found</string>
+    <string name="empty_events">Empty events</string>
+    <string name="event_poster">Event Poster</string>
+    <string name="_12_nov_sat_6_00_pm">12 NOV- SAT -6:00 PM</string>
+    <string name="a_virtual_evening_of_smooth_jazz">A virtual evening of smooth jazz</string>
+    <string name="location">Location</string>
+    <string name="delete_event">Delete Event?</string>
+    <string name="delete_confirmation_message">Are you sure you want to remove event "%1$s"? This will remove this event from the list. This action cannot be undone</string>
+    <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_poster">Add Poster</string>
     <string name="save">Save</string>
     <string name="registration_closes">Registration Closes</string>
     <string name="registration_opens">Registration Opens</string>
     <string name="set_capacity">Set Capacity</string>
-    <string name="location">Location</string>
     <string name="select_date_and_time">Select Date and Time</string>
     <string name="event_type">Event Type</string>
     <string name="event_name">Event Name</string>
@@ -18,4 +28,34 @@
     <string name="add_poster_photo">Add Poster Photo</string>
     <string name="create_new_event">Create New Event</string>
 
+    <string-array name="event_types">
+        <item>Concert</item>
+        <item>Workshop</item>
+        <item>Party</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="event_capacities">
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+        <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+    </string-array>
+
+    <string name="profile">Profile</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="actions">ACTIONS</string>
+    <string name="events">Events</string>
+    <string name="profiles">Profiles</string>
+    <string name="images">Images</string>
+    <string name="admin_can_browse_events">Admin can browse events</string>
+    <string name="app_name">code</string>
+    <string name="search_images">Search images...</string>
+    <string name="search_users">Search users...</string>
 </resources>

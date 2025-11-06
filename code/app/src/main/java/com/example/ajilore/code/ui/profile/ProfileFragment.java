@@ -142,8 +142,6 @@ public class ProfileFragment extends Fragment {
 
             Toast.makeText(getContext(), (mode == Mode.SIGNUP ? "Signed up" : "Logged in") + " — opening Home…", Toast.LENGTH_SHORT).show();
 
-            // 🚀 Jump to Home immediately
-            ((MainActivity) requireActivity()).openHomeDirect();
 
             // --- Re-enable Firestore later if needed ---
             /*

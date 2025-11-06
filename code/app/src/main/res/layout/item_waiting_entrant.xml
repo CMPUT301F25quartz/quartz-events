@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:background="?attr/selectableItemBackground">
+    <ImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_avatar_placeholder"
+        android:contentDescription="Profile Avatar"
+        android:scaleType="centerCrop"
+        android:background="@drawable/bg_avatar_circle"
+        android:layout_marginEnd="12dp" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Entrant Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_marginStart="12dp"
+        android:gravity="center"
+        android:minWidth="72dp"
+        android:text="Accepted"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="13sp"
+        android:background="@drawable/bg_status_badge"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp" />
+</LinearLayout>

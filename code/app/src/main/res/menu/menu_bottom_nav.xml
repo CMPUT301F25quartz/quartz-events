@@ -6,7 +6,7 @@
         android:title = "History"
         />
     <item
-        android:id="@id/eventsFragment"
+        android:id="@id/generalEventsFragment"
         android:icon="@drawable/ic_events"
         android:title = "Events"
         />
