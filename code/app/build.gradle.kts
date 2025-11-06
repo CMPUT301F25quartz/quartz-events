@@ -20,6 +20,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -30,7 +31,16 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+
+
     }
+    //stuff I added
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -53,6 +63,8 @@ dependencies {
     implementation(libs.espresso.intents)
     implementation(libs.fragment.testing)
     implementation(libs.espresso.contrib)
+    //added
+    androidTestUtil("androidx.test:orchestrator:1.4.2")
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:4.8.0")
     testImplementation("org.robolectric:robolectric:4.10")
@@ -60,6 +72,15 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.espresso.intents)
     androidTestImplementation(libs.espresso.contrib)
+
+    //added for testing
+
+// For instrumentation tests in androidTest/ directory
+    androidTestImplementation ("com.google.truth:truth:1.4.2")
+
+
+
+
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("com.google.android.material:material:1.12.0")

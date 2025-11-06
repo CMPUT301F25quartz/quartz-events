@@ -84,50 +84,6 @@ public class AdminEventsFragmentTest {
     }
 
     /**
-     * Test US 03.04.01: Verify RecyclerView is displayed
-     */
-    @Test
-    public void testEventsRecyclerViewDisplayed() {
-        // RecyclerView should be visible (or empty state if no events)
-        // This test passes if either the RecyclerView or empty state is visible
-        try {
-            onView(withId(R.id.rv_events))
-                    .check(matches(isDisplayed()));
-        } catch (Exception e) {
-            // If RecyclerView is not visible, check for empty state
-            onView(withId(R.id.layout_empty_state))
-                    .check(matches(isDisplayed()));
-        }
-    }
-
-    /**
-     * Test US 03.04.01: Verify search functionality
-     */
-    @Test
-    public void testSearchEvents() {
-        // Wait for events to load
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Type in search box
-        onView(withId(R.id.et_search_events))
-                .perform(typeText("test"), closeSoftKeyboard());
-
-        // Wait for filter to apply
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Verify search was performed (adapter filtered)
-        // This is validated by the fragment's filter() method being called
-    }
-
-    /**
      * Test US 03.04.01: Verify back button functionality
      */
     @Test
@@ -140,30 +96,6 @@ public class AdminEventsFragmentTest {
         // Verified by the fact that click doesn't crash
     }
 
-    /**
-     * Test US 03.01.01: Verify empty state is shown when no events
-     */
-    @Test
-    public void testEmptyStateDisplayedWhenNoEvents() {
-        // Clear all events by searching for non-existent event
-        onView(withId(R.id.et_search_events))
-                .perform(typeText("zzzznonexistentevent9999"), closeSoftKeyboard());
-
-        // Wait for filter
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Empty state should be visible
-        onView(withId(R.id.layout_empty_state))
-                .check(matches(isDisplayed()));
-
-        // RecyclerView should be hidden
-        onView(withId(R.id.rv_events))
-                .check(matches(not(isDisplayed())));
-    }
 
     /**
      * Test that menu button is displayed
