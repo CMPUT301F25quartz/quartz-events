@@ -58,4 +58,22 @@
     <string name="app_name">code</string>
     <string name="search_images">Search images...</string>
     <string name="search_users">Search users...</string>
+
+
+    //new features
+
+    <string name="notif_selected">You have been selected for the music event!</string>
+    <string name="notif_not_selected">You were not selected for the music event</string>
+    <string name="notif_time_now">Just now</string>
+    <string name="notif_dismiss">Dismiss</string>
+    <string name="notif_details">See Details</string>
+    <string name="notif_read">Read</string>
+    <string name="notif_unread">Unread</string>
+    <string name="notif_prefs_title">Notification Preferences</string>
+    <string name="profile_picture">Profile picture</string>
+    <string name="see_details">See Details</string>
+    <string name="inbox_title">Inbox</string>
+    <string name="mark_all_read">Mark All Read</string>
+    <string name="show_unread">Show Unread</string>
+    <string name="show_all">Show All</string>
 </resources>

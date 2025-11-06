@@ -15,9 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,15 +75,31 @@ public class InboxFragment extends Fragment {
         btnMarkAllRead.setOnClickListener(v -> markAllRead());
         btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
 
-        // 🔥 Load from Firestore instead of dummy data
-        loadUserNotifications();
+        // ✅ Ensure the user is signed in (anonymous if needed)
+        signInAnonymouslyIfNeeded();
 
         return view;
     }
 
+    private void signInAnonymouslyIfNeeded() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            auth.signInAnonymously().addOnSuccessListener(result -> {
+                Toast.makeText(getContext(), "Signed in anonymously", Toast.LENGTH_SHORT).show();
+                loadUserNotifications();
+            }).addOnFailureListener(e ->
+                    Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
+        } else {
+            loadUserNotifications();
+        }
+    }
+
     // 🔥 Load notifications based on Firebase structure
     private void loadUserNotifications() {
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "demo-user";
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+        String userId = user.getUid();
 
         db.collection("org_events").get().addOnSuccessListener(eventSnapshots -> {
             for (DocumentSnapshot eventDoc : eventSnapshots) {

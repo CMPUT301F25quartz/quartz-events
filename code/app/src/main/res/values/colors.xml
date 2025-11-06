@@ -16,7 +16,7 @@
     <color name="pink_red">#FFFFCDD2</color>
     <color name="my_purple">#5669FF</color>
 
-    <!-- App primary and secondary theme colors -->
-    <color name="teal_700">#018786</color>
-    <color name="teal_200">#03DAC5</color>
+    <!-- App primary and secondary theme colors-->
+    <color name="remove">#018786</color>
+    <color name="removed">#03DAC5</color>
 </resources>
