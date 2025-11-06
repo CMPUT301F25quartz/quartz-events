@@ -20,18 +20,25 @@ import com.example.ajilore.code.ui.admin.AdminAboutFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
 
 public class ProfileFragment extends Fragment {
 
-    // UI refs from fragment_profile.xml
+    // UI
     private MaterialToolbar toolbar;
     private ImageView imgProfile;
-    private TextView tvName, tvEmail, tvPhone;
+    private TextView tvName, tvEmail, tvPhone, tvProfileHeader;
     private MaterialButton btnEditProfile, btnDeleteProfile;
 
-    public ProfileFragment() { /* empty */ }
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+    private String uid;
+
+    public ProfileFragment() { }
 
     @Nullable
     @Override
@@ -53,28 +60,29 @@ public class ProfileFragment extends Fragment {
         tvPhone        = v.findViewById(R.id.tvPhone);
         btnEditProfile = v.findViewById(R.id.btnEditProfile);
         btnDeleteProfile = v.findViewById(R.id.btnDeleteProfile);
+        tvProfileHeader = v.findViewById(R.id.tvProfileHeader);
 
-        // (Optional) Prefill with whatever you have available; replace with real data later
-        tvName.setText("Name: John Doe");
-        tvEmail.setText("Email: john@example.com");
-        tvPhone.setText("Phone: —");
 
-        // Overflow (three dots) actions
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        FirebaseUser current = auth.getCurrentUser();
+        uid = (current != null) ? current.getUid() : null;
+        //three dots
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
-
-        // Edit Profile: navigate to your edit flow or show a sheet/dialog
-        btnEditProfile.setOnClickListener(view -> {
-            Toast.makeText(getContext(), "Edit Profile tapped", Toast.LENGTH_SHORT).show();
-            // TODO: Navigate to your edit screen (e.g., EditProfileFragment or existing profile editor)
-            // Example:
-            // requireActivity().getSupportFragmentManager().beginTransaction()
-            //         .replace(R.id.nav_host_fragment, new EditProfileFragment())
-            //         .addToBackStack(null)
-            //         .commit();
-        });
+        btnEditProfile.setOnClickListener(view -> openEditProfile());
 
         // Delete Profile: confirm first
         btnDeleteProfile.setOnClickListener(view -> confirmDelete());
+
+        loadProfile();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh when coming back from Edit
+        loadProfile();
     }
 
     // Handle 3-dot menu clicks
@@ -100,14 +108,51 @@ public class ProfileFragment extends Fragment {
             return true;
         } else if (id == R.id.action_sign_out) {
             Toast.makeText(getContext(), "Signed out", Toast.LENGTH_SHORT).show();
-            // TODO: Call FirebaseAuth.getInstance().signOut() when you wire auth,
-            //navigate back to your LoginFragment
-             requireActivity().getSupportFragmentManager().beginTransaction()
+            FirebaseAuth.getInstance().signOut();
+            requireActivity().getSupportFragmentManager().beginTransaction()
                    .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
             return true;
         }
         return false;
+    }
+
+    private void loadProfile() {
+        var user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            tvProfileHeader.setText("Hi User");
+            tvName.setText("Name: —");
+            tvEmail.setText("Email: —");
+            tvPhone.setText("Phone: —");
+            return;
+        }
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String name  = doc.getString("name");
+                    String email = doc.getString("email");
+                    String phone = doc.getString("phone");
+
+                    tvProfileHeader.setText((name != null && !name.isEmpty()) ? "Hi " + name : "Hi User");
+                    tvName.setText("Name: " + (name == null || name.isEmpty() ? "—" : name));
+                    tvEmail.setText("Email: " + (email == null || email.isEmpty() ? "—" : email));
+                    tvPhone.setText("Phone: " + (phone == null || phone.isEmpty() ? "—" : phone));
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+    private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
+
+    private void openEditProfile(){
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.nav_host_fragment, new EditProfileFragment())
+                .addToBackStack(null)
+                .commit();
     }
 
     private void confirmDelete() {
@@ -119,13 +164,55 @@ public class ProfileFragment extends Fragment {
                 .show();
     }
 
-    // Stub: replace with real deletion (Firestore + Auth) when ready
     private void performDelete() {
-        // TODO: Delete from Firestore and/or Auth here
-        Toast.makeText(getContext(), "Profile deleted (stub)", Toast.LENGTH_SHORT).show();
-        //After delete, send user to Login screen
-        requireActivity().getSupportFragmentManager().beginTransaction()
-              .replace(R.id.nav_host_fragment, new LoginFragment()).commit();
+        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
+        if (current == null) {
+            Toast.makeText(getContext(), "Not signed in.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        uid = current.getUid();
+
+        // 1) Read user doc to get nameLower for secondary index
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    String nameLower = doc.getString("nameLower");
+
+                    // 2) Batch delete Firestore docs
+                    var batch = db.batch();
+                    batch.delete(db.collection("users").document(uid));
+                    if (nameLower != null && !nameLower.trim().isEmpty()) {
+                        batch.delete(db.collection("usersByName").document(nameLower));
+                    }
+
+                    batch.commit()
+                            .addOnSuccessListener(x -> {
+                                // 3) Delete Auth user (falls back to signOut if reauth is required)
+                                current.delete()
+                                        .addOnSuccessListener(v -> {
+                                            Toast.makeText(getContext(), "Profile deleted", Toast.LENGTH_SHORT).show();
+                                            navigateToLogin();
+                                        })
+                                        .addOnFailureListener(err -> {
+                                            // If delete requires recent login or fails, just sign out
+                                            FirebaseAuth.getInstance().signOut();
+                                            Toast.makeText(getContext(), "Profile data deleted. Signed out.", Toast.LENGTH_SHORT).show();
+                                            navigateToLogin();
+                                        });
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                            );
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void navigateToLogin() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.nav_host_fragment, new LoginFragment())
+                .commit();
     }
 
 
