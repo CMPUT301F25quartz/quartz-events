@@ -28,7 +28,7 @@ public class GeneralEventsFragment extends EventsFragment {
 
     @Override protected void onEventClick(@NonNull EventRow row) {
         // Navigate to details
-        EventDetailsFragment f = EventDetailsFragment.newInstance(row.id, row.title, /* userId */ "demoUser");
+        EventDetailsFragment f = EventDetailsFragment.newInstance(row.id, row.title);
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.nav_host_fragment, f)

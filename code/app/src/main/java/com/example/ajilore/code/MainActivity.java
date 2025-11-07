@@ -1,10 +1,12 @@
 package com.example.ajilore.code;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -23,6 +25,7 @@ import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
 import com.example.ajilore.code.ui.history.HistoryFragment;
 import com.example.ajilore.code.ui.inbox.InboxFragment;
+import com.example.ajilore.code.ui.profile.LoginFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.example.ajilore.code.utils.AdminAuthManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -60,45 +63,14 @@ public class MainActivity extends AppCompatActivity {
         MediaManager.init(this, config);
 
 
-
-
-        // after setting up Firebase Auth set up (divine)
-//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-//        String userRole = "entrant"; // Default; replace with actual role fetch
-//        if (currentUser != null) {
-//            // Fetch role from Firestore (e.g., users/{userId}/role)
-//            FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid())
-//                    .get()
-//                    .addOnSuccessListener(doc -> {
-//                        userRole = doc.getString("role"); // e.g., "entrant", "organizer", "admin"
-//                        loadDefaultFragment(userRole);
-//                    })
-//                    .addOnFailureListener(e -> {
-//                        Log.e("MainActivity", "Failed to fetch user role: " + e.getMessage());
-//                        loadDefaultFragment("entrant"); // Fallback
-//                    });
-//        } else {
-//            // No user logged in; redirect to login or default to entrant
-//            loadDefaultFragment("entrant");
-//        }
-//        private void loadDefaultFragment(String role) {
-//            Fragment defaultFragment;
-//            switch (role) {
-//                case "organizer":
-//                    defaultFragment = new OrganizerEventsFragment();
-//                    break;
-//                case "admin":
-//                    defaultFragment = new ManageEventsFragment(); // Assuming you have this
-//                    break;
-//                default: // "entrant"
-//                    defaultFragment = new EntrantEventsFragment();
-//                    break;
-//            }
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.nav_host_fragment, defaultFragment)
-//                    .commit();
-//        }
         setContentView(R.layout.activity_main);
+        bottomNavigationView = findViewById(R.id.menu_bottom_nav);
+        bottomNavigationView.setVisibility(View.GONE);
+
+        //hide the nav bar
+        //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
+
+
 
         // Apply window insets (should be right after setContentView)
         // Apply window insets
@@ -114,17 +86,60 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation (unchanged)
         setupBottomNavigation();
 
+        // Check if we should navigate to a specific fragment
+        handleNavigationIntent();
+
+
         // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, new GeneralEventsFragment())
+                    .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
         }
         // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
-        bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
+        // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
     }
+
+    /**
+     * Handle navigation intents from other activities
+     */
+    private void handleNavigationIntent() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("navigate_to")) {
+            String destination = intent.getStringExtra("navigate_to");
+
+            if ("profile".equals(destination)) {
+                // Show bottom nav
+                showBottomNav();
+
+                // Navigate to profile fragment
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, new ProfileFragment())
+                        .commit();
+
+                // Highlight profile tab in bottom nav
+                bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+            }
+        }
+    }
+
+    public void showBottomNav() {
+        if (bottomNavigationView != null){
+            bottomNavigationView.setVisibility(View.VISIBLE);
+            //set default tab to events
+            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
+        }
+    }
+
+    public void hideBottomNav() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+    }
+
+
 
     /**
      * Check if the current device is an admin device
@@ -242,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (id == R.id.inboxFragment) {
                     selectedFragment = new InboxFragment();
                 } else if (id == R.id.profileFragment) {
-                    selectedFragment = new OrganizerEventsFragment();
+                    selectedFragment = new ProfileFragment();
                 }
 
                 if (selectedFragment != null) {

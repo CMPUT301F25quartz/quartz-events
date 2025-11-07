@@ -233,12 +233,9 @@ public class AdminAdaptersIntegrationTest {
 
         adapter.setEvents(testEvents);
 
-        // Simulate click (in real test, this would be through ViewHolder)
-        Event testEvent = testEvents.get(0);
-        adapter.new EventViewHolder(new android.view.View(context))
-                .itemView.performClick();
+        new AdminEventsAdapter.EventViewHolder(new android.view.View(context));
 
-        // Note: This is a simplified test. Full UI test would use Espresso
+        // This is a simplified test. Full UI test would use Espresso
     }
 
     /**
