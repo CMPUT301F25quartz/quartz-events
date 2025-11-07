@@ -20,6 +20,8 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -46,7 +48,7 @@ public class EventDetailsFragment extends Fragment {
 
     private static final String ARG_EVENT_ID = "eventId";
     private static final String ARG_EVENT_TITLE = "eventTitle";
-    private static final String ARG_USER_ID = "userId";
+//    private static final String ARG_USER_ID = "userId";
 
     private String eventId;
     private String eventTitle;
@@ -79,12 +81,12 @@ public class EventDetailsFragment extends Fragment {
     private int waitingListCount = 0;
     private int capacity = 0;
 
-    public static EventDetailsFragment newInstance(String eventId, String title, String userId) {
+    public static EventDetailsFragment newInstance(String eventId, String title) {
         EventDetailsFragment fragment = new EventDetailsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
         args.putString(ARG_EVENT_TITLE, title);
-        args.putString(ARG_USER_ID, userId);
+//        args.putString(ARG_USER_ID, userId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -102,13 +104,20 @@ public class EventDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
-
+        // Get authenticated user's ID
+        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+            requireActivity().onBackPressed();
+            return;
+        }
+        userId = currentUser.getUid(); // Use authenticated user's ID
         // Get arguments
         Bundle args = getArguments();
         if (args != null) {
             eventId = args.getString(ARG_EVENT_ID);
             eventTitle = args.getString(ARG_EVENT_TITLE);
-            userId = args.getString(ARG_USER_ID);
+//            userId = args.getString(ARG_USER_ID);
         }
 
         // Initialize views
@@ -132,7 +141,7 @@ public class EventDetailsFragment extends Fragment {
 
         // US 01.06.02: Load event details for sign up
         loadEventDetails();
-
+        btnJoinLeave.setVisibility(View.VISIBLE);
         // US 01.01.01 & 01.01.02: Check waiting list status
         checkWaitingListStatus();
 

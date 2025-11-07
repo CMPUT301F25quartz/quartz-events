@@ -66,7 +66,7 @@ public abstract class EventsFragment extends Fragment {
 
         // Adapter uses our item layout and click callback
         adapter = new UserEventsAdapter(R.layout.item_event, row -> {
-            Fragment f = EventDetailsFragment.newInstance(row.id, row.title, /* userId */ "demoUser");
+            Fragment f = EventDetailsFragment.newInstance(row.id, row.title);
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.nav_host_fragment, f)
