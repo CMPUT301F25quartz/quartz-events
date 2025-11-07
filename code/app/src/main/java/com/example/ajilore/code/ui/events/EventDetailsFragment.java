@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
@@ -23,6 +25,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
@@ -34,6 +37,7 @@ import java.util.Map;
  * Fragment for displaying event details and managing waiting list membership
  * US 01.01.01: Join waiting list
  * US 01.01.02: Leave waiting list
+ * US 01.01.03: View list of events (handled by EntrantEventsFragment)
  * US 01.05.04: View total entrants count
  * US 01.06.02: Sign up from event details
  * US 01.05.05: View lottery selection criteria
@@ -64,9 +68,14 @@ public class EventDetailsFragment extends Fragment {
     private Button btnJoinLeave;
     private ProgressBar progressBar;
     private View layoutWaitingListInfo;
+    private ListenerRegistration eventListener;
+    private ListenerRegistration waitingListStatusListener;
+    private ListenerRegistration waitingListCountListener;
 
+    // US 01.01.01 & 01.01.02: Track waiting list status
     private boolean isOnWaitingList = false;
     private boolean isRegistrationOpen = false;
+    private boolean isSelectedForLottery = false;
     private int waitingListCount = 0;
     private int capacity = 0;
 
@@ -118,33 +127,37 @@ public class EventDetailsFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
 
+        // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // Load event details
+        // US 01.06.02: Load event details for sign up
         loadEventDetails();
 
-        // Check waiting list status
+        // US 01.01.01 & 01.01.02: Check waiting list status
         checkWaitingListStatus();
 
-        // Setup button click
+        // US 01.01.01 & 01.01.02: Setup join/leave button
         btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
     }
 
     /**
-     * Load event details from Firestore
+     * US 01.06.02: Load event details from Firestore
+     * Displays event information so entrants can make informed decision to sign up
      */
     private void loadEventDetails() {
         progressBar.setVisibility(View.VISIBLE);
 
-        db.collection("org_events")
+        eventListener = db.collection("org_events")
                 .document(eventId)
                 .addSnapshotListener((DocumentSnapshot doc, FirebaseFirestoreException e) -> {
                     progressBar.setVisibility(View.GONE);
 
                     if (e != null) {
-                        Toast.makeText(requireContext(),
-                                "Failed to load event: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Failed to load event: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
                         return;
                     }
 
@@ -153,25 +166,19 @@ public class EventDetailsFragment extends Fragment {
                         String title = doc.getString("title");
                         String description = doc.getString("description");
                         String location = doc.getString("location");
-                        Double price = doc.getDouble("price");
                         Long capacityLong = doc.getLong("capacity");
                         String posterKey = doc.getString("posterUrl");
 
                         // Timestamps
                         Timestamp startsAt = doc.getTimestamp("startsAt");
-                        Timestamp regStartTime = doc.getTimestamp("registrationStartTime");
-                        Timestamp regEndTime = doc.getTimestamp("registrationEndTime");
+                        Timestamp regStartTime = doc.getTimestamp("regOpens");
+                        Timestamp regEndTime = doc.getTimestamp("regCloses");
 
                         // Update UI
                         tvTitle.setText(title != null ? title : "Untitled Event");
                         tvDescription.setText(description != null ? description : "No description available");
                         tvLocation.setText(location != null ? location : "Location TBA");
 
-                        if (price != null) {
-                            tvPrice.setText(String.format("$%.2f", price));
-                        } else {
-                            tvPrice.setText("Free");
-                        }
 
                         if (capacityLong != null) {
                             capacity = capacityLong.intValue();
@@ -194,56 +201,74 @@ public class EventDetailsFragment extends Fragment {
                         isRegistrationOpen = isRegistrationOpen(regStartTime, regEndTime, now);
                         updateRegistrationWindow(regStartTime, regEndTime, now);
 
+                        updateJoinLeaveButton();
                         // Set poster
-                        //ivPoster.setImageResource(mapPoster(posterKey));
-                        if (posterKey != null && posterKey.startsWith("http")){
-                            //This means that its a cloudinary image
-                            Glide.with(this).load(posterKey).into(ivPoster);
+                        if (posterKey != null && !posterKey.isEmpty()) {
+                            Glide.with(this)
+                                    .load(posterKey)
+                                    .placeholder(R.drawable.jazz)  // While loading
+                                    .error(R.drawable.jazz)        // If load fails
+                                    .into(ivPoster);
                         } else {
-                            ivPoster.setImageResource(mapPoster(posterKey));
+                            ivPoster.setImageResource(R.drawable.jazz);  // Default placeholder
                         }
                         // US 01.05.05: Display lottery selection criteria
                         displayLotteryInfo();
 
-                        // Load waiting list count
+                        // US 01.05.04: Load waiting list count
                         loadWaitingListCount();
                     }
                 });
     }
 
     /**
-     * Check if user is on waiting list
+     * US 01.01.01 & 01.01.02: Check if user is on waiting list
      */
     private void checkWaitingListStatus() {
-        db.collection("org_events")
+        waitingListStatusListener = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
                 .document(userId)
                 .addSnapshotListener((DocumentSnapshot doc, FirebaseFirestoreException e) -> {
                     if (e != null) {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Error checking waiting list status",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                         return;
                     }
 
                     isOnWaitingList = (doc != null && doc.exists());
-                    updateJoinLeaveButton();
+                    // isSelectedForLottery = "chosen".equals(doc.getString("status"));  for accept/decline
+                    if (eventListener != null) {
+                        updateJoinLeaveButton();
+                    }
                 });
+
     }
 
     /**
      * US 01.05.04: Load and display waiting list count
+     * Shows total number of entrants on the waiting list
      */
     private void loadWaitingListCount() {
-        db.collection("org_events")
+        waitingListCountListener = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
                 .addSnapshotListener((QuerySnapshot snapshot, FirebaseFirestoreException e) -> {
                     if (e != null) {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Error loading waiting list count",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                         return;
                     }
 
                     if (snapshot != null) {
                         waitingListCount = snapshot.size();
-                        tvWaitingListCount.setText("Total Entrants: " + waitingListCount);
+                        tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
                 });
@@ -263,16 +288,30 @@ public class EventDetailsFragment extends Fragment {
         btnJoinLeave.setEnabled(false);
 
         if (isOnWaitingList) {
-            // Leave waiting list
-            leaveWaitingList();
+            // US 01.01.02: Leave waiting list - show confirmation
+            showLeaveConfirmationDialog();
         } else {
-            // Join waiting list
+            // US 01.01.01: Join waiting list
             joinWaitingList();
         }
     }
 
     /**
+     * US 01.01.02: Show confirmation dialog before leaving waiting list
+     */
+    private void showLeaveConfirmationDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Leave the waiting list?")
+                .setMessage("By clicking the leave button, you confirm that you will forfeit your spot on the waiting list and will no longer be considered for the lottery.")
+                .setPositiveButton("Leave", (dialog, which) -> leaveWaitingList())
+                .setNegativeButton("Cancel", (dialog, which) -> btnJoinLeave.setEnabled(true))
+                .setOnCancelListener(dialog -> btnJoinLeave.setEnabled(true))
+                .show();
+    }
+
+    /**
      * US 01.01.01: Join waiting list
+     * US 01.06.02: Sign up for event from event details
      */
     private void joinWaitingList() {
         DocumentReference waitingListRef = db.collection("org_events")
@@ -284,19 +323,22 @@ public class EventDetailsFragment extends Fragment {
         entrant.put("userId", userId);
         entrant.put("joinedAt", FieldValue.serverTimestamp());
         entrant.put("status", "waiting");
-        entrant.put("responded", null);
 
         waitingListRef.set(entrant)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(),
-                            "Successfully joined waiting list!",
-                            Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Successfully joined waiting list!",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
-                            "Failed to join: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to join: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 });
     }
@@ -311,32 +353,51 @@ public class EventDetailsFragment extends Fragment {
                 .document(userId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(),
-                            "Successfully left waiting list",
-                            Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Successfully left waiting list",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
-                            "Failed to leave: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to leave: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 });
     }
 
     /**
-     * Update join/leave button based on status
+     * US 01.01.01 & 01.01.02: Update join/leave button based on status
      */
     private void updateJoinLeaveButton() {
+
+        if (!isRegistrationOpen) {
+            btnJoinLeave.setText("Registration Closed");
+            btnJoinLeave.setEnabled(false);
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
+            btnJoinLeave.setVisibility(View.VISIBLE);
+            return;
+        }
         if (isOnWaitingList) {
-            btnJoinLeave.setText("Leave Waiting List");
-            btnJoinLeave.setBackgroundColor(0xFFFF6B6B); // Red
+            btnJoinLeave.setText("Leave ->");
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
         } else {
             btnJoinLeave.setText("Join Waiting List");
-            btnJoinLeave.setBackgroundColor(0xFF17C172); // Green
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.blue));
         }
 
-        btnJoinLeave.setEnabled(isRegistrationOpen);
+        btnJoinLeave.setEnabled(true);
+
+        // Hide button if selected for lottery (prepare for accept/decline buttons)
+        if (isSelectedForLottery) {
+            btnJoinLeave.setVisibility(View.GONE);
+        } else {
+            btnJoinLeave.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -349,13 +410,13 @@ public class EventDetailsFragment extends Fragment {
         }
 
         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-        String startStr = df.format(regStart.toDate());
         String endStr = df.format(regEnd.toDate());
 
         if (isRegistrationOpen) {
             tvRegistrationWindow.setText("Registration closes: " + endStr);
             tvRegistrationWindow.setTextColor(0xFF17C172); // Green
         } else if (now.before(regStart.toDate())) {
+            String startStr = df.format(regStart.toDate());
             tvRegistrationWindow.setText("Registration opens: " + startStr);
             tvRegistrationWindow.setTextColor(0xFFFFA500); // Orange
         } else {
@@ -363,9 +424,28 @@ public class EventDetailsFragment extends Fragment {
             tvRegistrationWindow.setTextColor(0xFFFF6B6B); // Red
         }
     }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Remove all Firestore listeners to prevent memory leaks
+        if (eventListener != null) {
+            eventListener.remove();
+            eventListener = null;
+        }
+        if (waitingListStatusListener != null) {
+            waitingListStatusListener.remove();
+            waitingListStatusListener = null;
+        }
+        if (waitingListCountListener != null) {
+            waitingListCountListener.remove();
+            waitingListCountListener = null;
+        }
+    }
 
     /**
      * US 01.05.05: Display lottery selection criteria and guidelines
+     * Informs entrants about the lottery process
      */
     private void displayLotteryInfo() {
         String lotteryText = "Lottery Selection Process:\n\n" +
@@ -390,17 +470,22 @@ public class EventDetailsFragment extends Fragment {
         return now.after(start) && now.before(end);
     }
 
-    /**
-     * Map poster key to drawable
-     */
-    private int mapPoster(String key) {
-        if (key == null) return R.drawable.jazz;
-        switch (key) {
-            case "jazz": return R.drawable.jazz;
-            case "band": return R.drawable.jazz;
-            case "jimi": return R.drawable.jazz;
-            case "gala": return R.drawable.jazz;
-            default: return R.drawable.jazz;
-        }
+
+
+    // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
+    // Commented out for later sprints
+
+    /*
+    // US 01.04.01: Accept invitation (future implementation)
+    private Button btnAcceptSpot;
+    private Button btnDecline;
+
+    private void handleAcceptSpot() {
+        // Will be implemented when lottery system is ready
     }
+
+    private void handleDeclineSpot() {
+        // Will be implemented when lottery system is ready
+    }
+    */
 }
