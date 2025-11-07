@@ -1,5 +1,6 @@
 package com.example.ajilore.code.ui.inbox;
 
+
 public class NotificationModel {
     private String eventId;          // Event this notification belongs to
     private String firestoreDocId;   // Firestore document ID of this inbox notification
@@ -10,7 +11,9 @@ public class NotificationModel {
     private String actionText;
     private String type;
 
+
     public NotificationModel() {} // Firestore requirement
+
 
     // Full constructor
     public NotificationModel(String eventId, String firestoreDocId, String message, String time, String imageUrl,
@@ -25,6 +28,7 @@ public class NotificationModel {
         this.type = type;
     }
 
+
     // Short constructor
     public NotificationModel(String eventId, String firestoreDocId, String message, boolean isRead, String type) {
         this.eventId = eventId;
@@ -37,6 +41,7 @@ public class NotificationModel {
         this.actionText = "See Details";
     }
 
+
     // --- Getters & Setters ---
     public String getEventId() { return eventId; }
     public String getFirestoreDocId() { return firestoreDocId; }
@@ -47,6 +52,7 @@ public class NotificationModel {
     public String getActionText() { return actionText; }
     public String getType() { return type; }
 
+
     public void setEventId(String eventId) { this.eventId = eventId; }
     public void setFirestoreDocId(String firestoreDocId) { this.firestoreDocId = firestoreDocId; }
     public void setMessage(String message) { this.message = message; }
@@ -56,12 +62,14 @@ public class NotificationModel {
     public void setActionText(String actionText) { this.actionText = actionText; }
     public void setType(String type) { this.type = type; }
 
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof NotificationModel)) return false;
         NotificationModel other = (NotificationModel) obj;
         return firestoreDocId != null && firestoreDocId.equals(other.firestoreDocId);
     }
+
 
     @Override
     public int hashCode() {
