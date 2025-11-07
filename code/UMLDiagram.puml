@@ -150,6 +150,9 @@ class SelectEntrantsFragment$VH {
 }
 class EventItem {
 + eventId : String
++ title : String
++ dateText : String
++ subtitle : String
 + posterRes : int
 + posterUrl : String
 }
@@ -207,6 +210,13 @@ interface AdminController$DataCallback {
 }
 interface AdminController$OperationCallback {
 }
+class HistoryAdapter {
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ViewHolder
++ onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+class HistoryAdapter$ViewHolder {
+}
 class NotificationAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : NotificationViewHolder
 + onBindViewHolder(arg0 : NotificationViewHolder, arg1 : int) : void
@@ -224,9 +234,8 @@ class LoginFragment {
 interface LoginFragment$OnChange {
 }
 class HistoryFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.history.HistoryFragment
-+ onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
 class AdminEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -303,9 +312,10 @@ interface OrganizerEventsAdapter$OnEventClick {
 class OrganizerEventsAdapter$EventVH {
 }
 class EventDetailsFragment {
-+ {static} newInstance(arg0 : String, arg1 : String, arg2 : String) : EventDetailsFragment
++ {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onDestroyView() : void
 }
 class AdminUsersAdapter {
 + setUsers(arg0 : List<User>) : void
@@ -354,6 +364,9 @@ AppCompatActivity <|-- MainActivity
 Fragment <|-- AdminAboutFragment
 AdminController +.. AdminController$DataCallback
 AdminController +.. AdminController$OperationCallback
+Adapter <|-- HistoryAdapter
+HistoryAdapter +.. HistoryAdapter$ViewHolder
+ViewHolder <|-- HistoryAdapter$ViewHolder
 Adapter <|-- NotificationAdapter
 NotificationAdapter +.. NotificationAdapter$OnNotificationActionListener
 NotificationAdapter +.. NotificationAdapter$NotificationViewHolder
