@@ -1,5 +1,6 @@
 package com.example.ajilore.code;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -85,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation (unchanged)
         setupBottomNavigation();
 
+        // Check if we should navigate to a specific fragment
+        handleNavigationIntent();
+
+
         // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -95,6 +100,29 @@ public class MainActivity extends AppCompatActivity {
         // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
+    }
+
+    /**
+     * Handle navigation intents from other activities
+     */
+    private void handleNavigationIntent() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("navigate_to")) {
+            String destination = intent.getStringExtra("navigate_to");
+
+            if ("profile".equals(destination)) {
+                // Show bottom nav
+                showBottomNav();
+
+                // Navigate to profile fragment
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, new ProfileFragment())
+                        .commit();
+
+                // Highlight profile tab in bottom nav
+                bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+            }
+        }
     }
 
     public void showBottomNav() {

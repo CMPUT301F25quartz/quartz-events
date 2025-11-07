@@ -2,40 +2,38 @@
 skinparam monochrome true
 skinparam classAttributeIconSize 0
 
-class com.example.ajilore.code.ui.events.data.Entrant {
+class Entrant {
 + uid : String
 + nameOrUid : String
 + displayStatus : String
 }
-class com.example.ajilore.code.adapters.AdminEventsAdapter {
+class AdminEventsAdapter {
 + setEvents(arg0 : List<Event>) : void
 + filter(arg0 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventViewHolder
 + onBindViewHolder(arg0 : EventViewHolder, arg1 : int) : void
 + getItemCount() : int
 }
-interface com.example.ajilore.code.adapters.AdminEventsAdapter$OnEventActionListener {
+interface AdminEventsAdapter$OnEventActionListener {
 }
-class com.example.ajilore.code.adapters.AdminEventsAdapter$EventViewHolder {
+class AdminEventsAdapter$EventViewHolder {
 }
-class com.example.ajilore.code.ui.inbox.InboxFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.inbox.InboxFragment
-+ onCreate(arg0 : Bundle) : void
+class InboxFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
-class com.example.ajilore.code.ui.events.ManageEventsFragment {
+class ManageEventsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : ManageEventsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-enum com.example.ajilore.code.ui.events.Audience {
+enum Audience {
 +  NONE
 +  WAITING
 +  CHOSEN
 +  SELECTED
 +  CANCELLED
 }
-class com.example.ajilore.code.models.User {
+class User {
 + getUserId() : String
 + setUserId(arg0 : String) : void
 + getName() : String
@@ -51,42 +49,55 @@ class com.example.ajilore.code.models.User {
 + isNotificationsEnabled() : boolean
 + setNotificationsEnabled(arg0 : boolean) : void
 }
-class com.example.ajilore.code.ui.events.OrganizerEventsFragment {
+class OrganizerEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.ui.events.CreateEventFragment {
+class Entrant {
++ getName() : String
++ getEmail() : String
++ getPhone() : String
++ setName(arg0 : String) : void
++ setEmail(arg0 : String) : void
++ setPhone(arg0 : String) : void
++ getRole() : String
++ setRole(arg0 : String) : void
+}
+class CreateEventFragment {
 + {static} newInstance(arg0 : String) : CreateEventFragment
 + onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.ui.events.list.UserEventsAdapter {
+class EventsScreenFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class UserEventsAdapter {
 + replaceAll(arg0 : List<EventRow>) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
 + onBindViewHolder(arg0 : VH, arg1 : int) : void
 + getItemCount() : int
 }
-interface com.example.ajilore.code.ui.events.list.UserEventsAdapter$OnEventClick {
+interface UserEventsAdapter$OnEventClick {
 }
-class com.example.ajilore.code.ui.events.list.UserEventsAdapter$VH {
+class UserEventsAdapter$VH {
 }
-class com.example.ajilore.code.ui.profile.ProfileFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.profile.ProfileFragment
-+ onCreate(arg0 : Bundle) : void
+class ProfileFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onResume() : void
 }
-class com.example.ajilore.code.ui.events.GeneralEventsFragment {
+class GeneralEventsFragment {
 # getRowLayoutId() : int
 # getEventsQuery() : Query
 # onEventClick(arg0 : EventRow) : void
 }
-class com.example.ajilore.code.ui.events.ManageEventQRFragment {
+class ManageEventQRFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : ManageEventQRFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.AdminActivity {
+class AdminActivity {
 # onCreate(arg0 : Bundle) : void
 + loadFragment(arg0 : Fragment) : void
 + switchToEventsPage() : void
@@ -94,54 +105,70 @@ class com.example.ajilore.code.AdminActivity {
 + switchToImagesPage() : void
 + switchToAboutPage() : void
 }
-class com.example.ajilore.code.ui.admin.AdminProfilesFragment {
+class EditProfileFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class EditProfileFragment$SimpleWatcher {
++ beforeTextChanged(arg0 : CharSequence, arg1 : int, arg2 : int, arg3 : int) : void
++ onTextChanged(arg0 : CharSequence, arg1 : int, arg2 : int, arg3 : int) : void
++ afterTextChanged(arg0 : Editable) : void
+}
+class AdminProfilesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onUserClick(arg0 : User) : void
 + onDeleteClick(arg0 : User) : void
 }
-class com.example.ajilore.code.ui.admin.AdminImagesFragment {
+class AdminImagesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
-abstract class com.example.ajilore.code.ui.events.EventsFragment {
+abstract class EventsFragment {
 # getRowLayoutId() : {abstract}int
 # getEventsQuery() : {abstract}Query
 # onEventClick(arg0 : EventRow) : {abstract}void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.utils.AdminAuthManager {
+class AdminAuthManager {
 + {static} getDeviceId(arg0 : Context) : String
 + {static} isAdmin(arg0 : Context) : boolean
 + {static} addCurrentDeviceAsAdmin(arg0 : Context) : void
 }
-class com.example.ajilore.code.ui.events.SelectEntrantsFragment {
+class SelectEntrantsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : SelectEntrantsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.ui.events.SelectEntrantsFragment$Entrant {
+class SelectEntrantsFragment$Entrant {
 }
-class com.example.ajilore.code.ui.events.SelectEntrantsFragment$SelectedAdapter {
+class SelectEntrantsFragment$SelectedAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
 + onBindViewHolder(arg0 : VH, arg1 : int) : void
 + getItemCount() : int
 }
-class com.example.ajilore.code.ui.events.SelectEntrantsFragment$VH {
+class SelectEntrantsFragment$VH {
 }
-class com.example.ajilore.code.ui.events.list.EventItem {
+class EventItem {
 + eventId : String
 + posterRes : int
 + posterUrl : String
 }
-class com.example.ajilore.code.MainActivity {
+class SendNotificationHelper {
++ {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String) : void
+}
+class NotificationPreferencesFragment {
+}
+class MainActivity {
 # onCreate(arg0 : Bundle) : void
++ showBottomNav() : void
++ hideBottomNav() : void
 + onCreateOptionsMenu(arg0 : Menu) : boolean
 + onOptionsItemSelected(arg0 : MenuItem) : boolean
 }
-class com.example.ajilore.code.ui.admin.AdminAboutFragment {
+class AdminAboutFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
-class com.example.ajilore.code.ui.events.list.EventRow {
+class EventRow {
 + id : String
 + title : String
 + location : String
@@ -150,50 +177,86 @@ class com.example.ajilore.code.ui.events.list.EventRow {
 + posterRes : int
 + posterUrl : String
 }
-class com.example.ajilore.code.controllers.AdminController {
+class NotificationModel {
++ getEventId() : String
++ getFirestoreDocId() : String
++ getMessage() : String
++ getTime() : String
++ getImageUrl() : String
++ isRead() : boolean
++ getActionText() : String
++ getType() : String
++ setEventId(arg0 : String) : void
++ setFirestoreDocId(arg0 : String) : void
++ setMessage(arg0 : String) : void
++ setTime(arg0 : String) : void
++ setImageUrl(arg0 : String) : void
++ setRead(arg0 : boolean) : void
++ setActionText(arg0 : String) : void
++ setType(arg0 : String) : void
++ equals(arg0 : Object) : boolean
++ hashCode() : int
+}
+class AdminController {
 + fetchAllEvents(arg0 : DataCallback<List<Event>>) : void
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
 }
-interface com.example.ajilore.code.controllers.AdminController$DataCallback {
+interface AdminController$DataCallback {
 }
-interface com.example.ajilore.code.controllers.AdminController$OperationCallback {
+interface AdminController$OperationCallback {
 }
-class com.example.ajilore.code.ui.history.HistoryFragment {
+class NotificationAdapter {
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : NotificationViewHolder
++ onBindViewHolder(arg0 : NotificationViewHolder, arg1 : int) : void
++ getItemCount() : int
++ updateList(arg0 : List<NotificationModel>, arg1 : boolean) : void
+}
+interface NotificationAdapter$OnNotificationActionListener {
+}
+class NotificationAdapter$NotificationViewHolder {
+}
+class LoginFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+interface LoginFragment$OnChange {
+}
+class HistoryFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.history.HistoryFragment
 + onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
-class com.example.ajilore.code.ui.admin.AdminEventsFragment {
+class AdminEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onEventClick(arg0 : Event) : void
 + onDeleteClick(arg0 : Event) : void
 }
-class com.example.ajilore.code.ui.events.EventNotifier {
+class EventNotifier {
 + {static} notifyAudience(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : boolean, arg5 : String, arg6 : String, arg7 : Callback) : void
 + {static} notifySingle(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String, arg6 : boolean, arg7 : String, arg8 : Callback) : void
 }
-interface com.example.ajilore.code.ui.events.EventNotifier$Callback {
+interface EventNotifier$Callback {
 }
-class com.example.ajilore.code.ui.events.WaitingListFragment {
+class WaitingListFragment {
 + {static} newInstance(arg0 : String) : WaitingListFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.ui.events.list.WaitingListAdapter {
+class WaitingListAdapter {
 + updateList(arg0 : List<Entrant>) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
 + onBindViewHolder(arg0 : VH, arg1 : int) : void
 + getItemCount() : int
 }
-class com.example.ajilore.code.ui.events.list.WaitingListAdapter$VH {
+class WaitingListAdapter$VH {
 }
-class com.example.ajilore.code.ui.events.EntrantEventsFragment {
+class EntrantEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.models.Event {
+class Event {
 + getEventId() : String
 + setEventId(arg0 : String) : void
 + getOrganiserDeviceId() : String
@@ -216,7 +279,7 @@ class com.example.ajilore.code.models.Event {
 + setTitle(arg0 : String) : void
 + getFormattedDateTime() : String
 }
-class com.example.ajilore.code.ui.events.model.Event {
+class Event {
 + id : String
 + title : String
 + type : String
@@ -230,79 +293,89 @@ class com.example.ajilore.code.ui.events.model.Event {
 + createdByUid : String
 + createdAt : Timestamp
 }
-class com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter {
+class OrganizerEventsAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventVH
 + onBindViewHolder(arg0 : EventVH, arg1 : int) : void
 + getItemCount() : int
 }
-interface com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter$OnEventClick {
+interface OrganizerEventsAdapter$OnEventClick {
 }
-class com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter$EventVH {
+class OrganizerEventsAdapter$EventVH {
 }
-class com.example.ajilore.code.ui.events.EventDetailsFragment {
+class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String, arg2 : String) : EventDetailsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class com.example.ajilore.code.adapters.AdminUsersAdapter {
+class AdminUsersAdapter {
 + setUsers(arg0 : List<User>) : void
 + filter(arg0 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : UserViewHolder
 + onBindViewHolder(arg0 : UserViewHolder, arg1 : int) : void
 + getItemCount() : int
 }
-interface com.example.ajilore.code.adapters.AdminUsersAdapter$OnUserActionListener {
+interface AdminUsersAdapter$OnUserActionListener {
 }
-class com.example.ajilore.code.adapters.AdminUsersAdapter$UserViewHolder {
+class AdminUsersAdapter$UserViewHolder {
 }
 
 
-com.example.ajilore.code.adapters.Adapter <|-- com.example.ajilore.code.adapters.AdminEventsAdapter
-com.example.ajilore.code.adapters.AdminEventsAdapter +.. com.example.ajilore.code.adapters.AdminEventsAdapter$OnEventActionListener
-com.example.ajilore.code.adapters.AdminEventsAdapter +.. com.example.ajilore.code.adapters.AdminEventsAdapter$EventViewHolder
-com.example.ajilore.code.adapters.ViewHolder <|-- com.example.ajilore.code.adapters.AdminEventsAdapter$EventViewHolder
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.inbox.InboxFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.ManageEventsFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.OrganizerEventsFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.CreateEventFragment
-com.example.ajilore.code.ui.events.list.Adapter <|-- com.example.ajilore.code.ui.events.list.UserEventsAdapter
-com.example.ajilore.code.ui.events.list.UserEventsAdapter +.. com.example.ajilore.code.ui.events.list.UserEventsAdapter$OnEventClick
-com.example.ajilore.code.ui.events.list.UserEventsAdapter +.. com.example.ajilore.code.ui.events.list.UserEventsAdapter$VH
-com.example.ajilore.code.ui.events.list.ViewHolder <|-- com.example.ajilore.code.ui.events.list.UserEventsAdapter$VH
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.profile.ProfileFragment
-com.example.ajilore.code.ui.events.EventsFragment <|-- com.example.ajilore.code.ui.events.GeneralEventsFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.ManageEventQRFragment
-androidx.appcompat.app.AppCompatActivity <|-- com.example.ajilore.code.AdminActivity
-com.example.ajilore.code.ui.admin.OnUserActionListener <|.. com.example.ajilore.code.ui.admin.AdminProfilesFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminProfilesFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminImagesFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.EventsFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.SelectEntrantsFragment
-com.example.ajilore.code.ui.events.SelectEntrantsFragment +.. com.example.ajilore.code.ui.events.SelectEntrantsFragment$Entrant
-com.example.ajilore.code.ui.events.SelectEntrantsFragment +.. com.example.ajilore.code.ui.events.SelectEntrantsFragment$SelectedAdapter
-com.example.ajilore.code.ui.events.Adapter <|-- com.example.ajilore.code.ui.events.SelectEntrantsFragment$SelectedAdapter
-com.example.ajilore.code.ui.events.SelectEntrantsFragment +.. com.example.ajilore.code.ui.events.SelectEntrantsFragment$VH
-com.example.ajilore.code.ui.events.ViewHolder <|-- com.example.ajilore.code.ui.events.SelectEntrantsFragment$VH
-androidx.appcompat.app.AppCompatActivity <|-- com.example.ajilore.code.MainActivity
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminAboutFragment
-com.example.ajilore.code.controllers.AdminController +.. com.example.ajilore.code.controllers.AdminController$DataCallback
-com.example.ajilore.code.controllers.AdminController +.. com.example.ajilore.code.controllers.AdminController$OperationCallback
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.history.HistoryFragment
-com.example.ajilore.code.ui.admin.OnEventActionListener <|.. com.example.ajilore.code.ui.admin.AdminEventsFragment
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminEventsFragment
-com.example.ajilore.code.ui.events.EventNotifier +.. com.example.ajilore.code.ui.events.EventNotifier$Callback
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.WaitingListFragment
-com.example.ajilore.code.ui.events.list.Adapter <|-- com.example.ajilore.code.ui.events.list.WaitingListAdapter
-com.example.ajilore.code.ui.events.list.WaitingListAdapter +.. com.example.ajilore.code.ui.events.list.WaitingListAdapter$VH
-com.example.ajilore.code.ui.events.list.ViewHolder <|-- com.example.ajilore.code.ui.events.list.WaitingListAdapter$VH
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.EntrantEventsFragment
-com.example.ajilore.code.ui.events.list.Adapter <|-- com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter
-com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter +.. com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter$OnEventClick
-com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter +.. com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter$EventVH
-com.example.ajilore.code.ui.events.list.ViewHolder <|-- com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter$EventVH
-androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.EventDetailsFragment
-com.example.ajilore.code.adapters.Adapter <|-- com.example.ajilore.code.adapters.AdminUsersAdapter
-com.example.ajilore.code.adapters.AdminUsersAdapter +.. com.example.ajilore.code.adapters.AdminUsersAdapter$OnUserActionListener
-com.example.ajilore.code.adapters.AdminUsersAdapter +.. com.example.ajilore.code.adapters.AdminUsersAdapter$UserViewHolder
-com.example.ajilore.code.adapters.ViewHolder <|-- com.example.ajilore.code.adapters.AdminUsersAdapter$UserViewHolder
+Adapter <|-- AdminEventsAdapter
+AdminEventsAdapter +.. AdminEventsAdapter$OnEventActionListener
+AdminEventsAdapter +.. AdminEventsAdapter$EventViewHolder
+ViewHolder <|-- AdminEventsAdapter$EventViewHolder
+Fragment <|-- InboxFragment
+Fragment <|-- ManageEventsFragment
+Fragment <|-- OrganizerEventsFragment
+Fragment <|-- CreateEventFragment
+Fragment <|-- EventsScreenFragment
+Adapter <|-- UserEventsAdapter
+UserEventsAdapter +.. UserEventsAdapter$OnEventClick
+UserEventsAdapter +.. UserEventsAdapter$VH
+ViewHolder <|-- UserEventsAdapter$VH
+Fragment <|-- ProfileFragment
+EventsFragment <|-- GeneralEventsFragment
+Fragment <|-- ManageEventQRFragment
+AppCompatActivity <|-- AdminActivity
+Fragment <|-- EditProfileFragment
+EditProfileFragment +.. EditProfileFragment$SimpleWatcher
+TextWatcher <|.. EditProfileFragment$SimpleWatcher
+OnUserActionListener <|.. AdminProfilesFragment
+Fragment <|-- AdminProfilesFragment
+Fragment <|-- AdminImagesFragment
+Fragment <|-- EventsFragment
+Fragment <|-- SelectEntrantsFragment
+SelectEntrantsFragment +.. SelectEntrantsFragment$Entrant
+SelectEntrantsFragment +.. SelectEntrantsFragment$SelectedAdapter
+Adapter <|-- SelectEntrantsFragment$SelectedAdapter
+SelectEntrantsFragment +.. SelectEntrantsFragment$VH
+ViewHolder <|-- SelectEntrantsFragment$VH
+AppCompatActivity <|-- MainActivity
+Fragment <|-- AdminAboutFragment
+AdminController +.. AdminController$DataCallback
+AdminController +.. AdminController$OperationCallback
+Adapter <|-- NotificationAdapter
+NotificationAdapter +.. NotificationAdapter$OnNotificationActionListener
+NotificationAdapter +.. NotificationAdapter$NotificationViewHolder
+ViewHolder <|-- NotificationAdapter$NotificationViewHolder
+Fragment <|-- LoginFragment
+LoginFragment +.. LoginFragment$OnChange
+Fragment <|-- HistoryFragment
+OnEventActionListener <|.. AdminEventsFragment
+Fragment <|-- AdminEventsFragment
+EventNotifier +.. EventNotifier$Callback
+Fragment <|-- WaitingListFragment
+Adapter <|-- WaitingListAdapter
+WaitingListAdapter +.. WaitingListAdapter$VH
+ViewHolder <|-- WaitingListAdapter$VH
+Fragment <|-- EntrantEventsFragment
+Adapter <|-- OrganizerEventsAdapter
+OrganizerEventsAdapter +.. OrganizerEventsAdapter$OnEventClick
+OrganizerEventsAdapter +.. OrganizerEventsAdapter$EventVH
+ViewHolder <|-- OrganizerEventsAdapter$EventVH
+Fragment <|-- EventDetailsFragment
+Adapter <|-- AdminUsersAdapter
+AdminUsersAdapter +.. AdminUsersAdapter$OnUserActionListener
+AdminUsersAdapter +.. AdminUsersAdapter$UserViewHolder
+ViewHolder <|-- AdminUsersAdapter$UserViewHolder
 @enduml

@@ -60,6 +60,8 @@ jobs:
                   ParserConfig cfg = new ParserConfig();
                   cfg.addFilePath(source);                  // directory or single file
                   cfg.setOutFilePath(outPuml);              // where to write .puml
+                  cfg.setShowPackage(false);  // ADD THIS LINE TO REMOVE PACKAGES
+
 
                   // Visibility filters – adjust as you like
                   cfg.addMethodModifier("public");
