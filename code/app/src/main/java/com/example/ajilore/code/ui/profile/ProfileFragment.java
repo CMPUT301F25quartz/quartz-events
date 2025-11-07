@@ -31,6 +31,30 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
 
+/**
+ * {@code ProfileFragment} displays and manages a user's profile information
+ * <p>
+ *     It allows users to:
+ *     <ul>
+ *         <li>View their profile information including name, email and phone number</li>
+ *         <li>Edit their profile information</li>
+ *         <li>Delete their account</li>
+ *         <li>switch to organizer or admin mode if allowed</li>
+ *         <li>sign out of their account</li>
+ *     </ul>
+ * </p>
+ * <p>
+ *     The fragment also interacts with Firebase Authentication and Firestore to handle user identity and data persistence.
+ * </p><b>Outstanding issues:</b>
+ * <ul>
+ *     <li> There are no profile pictures for the users</li>
+ *     <li> When you go to the profile page as an existing user, your profile information is not displayed properly</li>
+ * </ul>
+ *
+ * @author
+ * Temi Akindele
+ */
+
 public class ProfileFragment extends Fragment {
 
     // UI
@@ -40,13 +64,21 @@ public class ProfileFragment extends Fragment {
     private MaterialButton btnEditProfile, btnDeleteProfile;
     private BottomNavigationView bottomNavigationView;
 
-
+    //firebase
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private String uid;
-
+    /** Default constructor required for Fragment instantiation. */
     public ProfileFragment() { }
 
+    /**
+     * Inflates the layout for the ProfileFragment.
+     *
+     * @param inflater  LayoutInflater used to inflate XML layout
+     * @param container Parent view group
+     * @param savedInstanceState Previously saved instance state (if any)
+     * @return The root view of the fragment
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -55,6 +87,12 @@ public class ProfileFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
+    /**
+     * Initializes Firebase, binds UI elements, and loads user profile information.
+     *
+     * @param v Root view after layout inflation
+     * @param savedInstanceState Previously saved state (if any)
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -89,6 +127,7 @@ public class ProfileFragment extends Fragment {
         loadProfile();
     }
 
+    /** Refreshes profile information whenever the fragment becomes visible again. */
     @Override
     public void onResume() {
         super.onResume();
@@ -96,7 +135,12 @@ public class ProfileFragment extends Fragment {
         loadProfile();
     }
 
-    // Handle 3-dot menu clicks
+    /**
+     * Handles toolbar (3-dot) menu item clicks.
+     *
+     * @param item Menu item selected by the user
+     * @return true if handled successfully, false otherwise
+     */
     private boolean onMenuItemClick(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_switch_organizer) {
@@ -126,7 +170,11 @@ public class ProfileFragment extends Fragment {
         }
         return false;
     }
-
+    /**
+     * Loads user profile information from Firestore and updates the UI.
+     * <p>
+     * Displays default placeholders if user data is unavailable.
+     */
     private void loadProfile() {
         var user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -157,6 +205,9 @@ public class ProfileFragment extends Fragment {
     }
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 
+    /**
+     * Opens the Edit Profile screen by replacing the current fragment.
+     */
     private void openEditProfile(){
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -164,7 +215,9 @@ public class ProfileFragment extends Fragment {
                 .addToBackStack(null)
                 .commit();
     }
-
+    /**
+     * Displays a confirmation dialog before permanently deleting the user's profile.
+     */
     private void confirmDelete() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Profile")
@@ -173,7 +226,11 @@ public class ProfileFragment extends Fragment {
                 .setPositiveButton("Delete", (d, w) -> performDelete())
                 .show();
     }
-
+    /**
+     * Deletes the user’s profile data from Firestore and Firebase Authentication.
+     * <p>
+     * If deletion fails due to authentication constraints, the user is signed out instead.
+     */
     private void performDelete() {
         FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
         if (current == null) {
@@ -217,7 +274,9 @@ public class ProfileFragment extends Fragment {
                         Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
     }
-
+    /**
+     * Navigates the user back to the Login screen after sign-out or deletion.
+     */
     private void navigateToLogin() {
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()

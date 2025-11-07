@@ -29,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -333,6 +334,10 @@ public class EventDetailsFragment extends Fragment {
         entrant.put("joinedAt", FieldValue.serverTimestamp());
         entrant.put("status", "waiting");
 
+        // Log the registration to the history collection
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+
         waitingListRef.set(entrant)
                 .addOnSuccessListener(aVoid -> {
                     if (isAdded()) {
@@ -497,4 +502,26 @@ public class EventDetailsFragment extends Fragment {
         // Will be implemented when lottery system is ready
     }
     */
+    //method to log the history of the events that the user has registered for in registrations collection
+    private void logRegistrationToHistory(@NonNull String userId,
+                                          @NonNull String eventId,
+                                          @NonNull String eventTitle) {
+        Map<String, Object> reg = new HashMap<>();
+        reg.put("userId", userId);
+        reg.put("eventId", eventId);
+        reg.put("eventTitle", eventTitle);
+        reg.put("registeredAt", FieldValue.serverTimestamp());
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .collection("registrations")
+                .document(eventId)
+                .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(),
+                                "Failed to save registration history: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show()
+                );
+    }
 }
