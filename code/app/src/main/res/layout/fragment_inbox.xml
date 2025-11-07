@@ -1,15 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.inbox.InboxFragment"
-    android:background="#27F5D6">
+    android:padding="16dp">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!-- Title -->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:id="@+id/textInboxTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/inbox_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</FrameLayout>
+    <!-- Filter + Archive Buttons -->
+    <LinearLayout
+        android:id="@+id/filterButtonsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/textInboxTitle"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkAllRead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mark_all_read"
+            style="?attr/materialButtonOutlinedStyle" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFilterUnread"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/show_unread"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginStart="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewArchived"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Archived"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!-- Notification List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerNotifications"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/filterButtonsLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
