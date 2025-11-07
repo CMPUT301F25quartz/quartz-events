@@ -19,8 +19,6 @@ interface com.example.ajilore.code.adapters.AdminEventsAdapter$OnEventActionList
 class com.example.ajilore.code.adapters.AdminEventsAdapter$EventViewHolder {
 }
 class com.example.ajilore.code.ui.inbox.InboxFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.inbox.InboxFragment
-+ onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
 class com.example.ajilore.code.ui.events.ManageEventsFragment {
@@ -55,11 +53,24 @@ class com.example.ajilore.code.ui.events.OrganizerEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
+class com.example.ajilore.code.ui.profile.Entrant {
++ getName() : String
++ getEmail() : String
++ getPhone() : String
++ setName(arg0 : String) : void
++ setEmail(arg0 : String) : void
++ setPhone(arg0 : String) : void
++ getRole() : String
++ setRole(arg0 : String) : void
+}
 class com.example.ajilore.code.ui.events.CreateEventFragment {
 + {static} newInstance(arg0 : String) : CreateEventFragment
 + onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class com.example.ajilore.code.ui.events.EventsScreenFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
 class com.example.ajilore.code.ui.events.list.UserEventsAdapter {
 + replaceAll(arg0 : List<EventRow>) : void
@@ -72,9 +83,9 @@ interface com.example.ajilore.code.ui.events.list.UserEventsAdapter$OnEventClick
 class com.example.ajilore.code.ui.events.list.UserEventsAdapter$VH {
 }
 class com.example.ajilore.code.ui.profile.ProfileFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.profile.ProfileFragment
-+ onCreate(arg0 : Bundle) : void
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onResume() : void
 }
 class com.example.ajilore.code.ui.events.GeneralEventsFragment {
 # getRowLayoutId() : int
@@ -93,6 +104,15 @@ class com.example.ajilore.code.AdminActivity {
 + switchToProfilesPage() : void
 + switchToImagesPage() : void
 + switchToAboutPage() : void
+}
+class com.example.ajilore.code.ui.profile.EditProfileFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class com.example.ajilore.code.ui.profile.EditProfileFragment$SimpleWatcher {
++ beforeTextChanged(arg0 : CharSequence, arg1 : int, arg2 : int, arg3 : int) : void
++ onTextChanged(arg0 : CharSequence, arg1 : int, arg2 : int, arg3 : int) : void
++ afterTextChanged(arg0 : Editable) : void
 }
 class com.example.ajilore.code.ui.admin.AdminProfilesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -133,8 +153,15 @@ class com.example.ajilore.code.ui.events.list.EventItem {
 + posterRes : int
 + posterUrl : String
 }
+class com.example.ajilore.code.utils.SendNotificationHelper {
++ {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String) : void
+}
+class com.example.ajilore.code.ui.inbox.NotificationPreferencesFragment {
+}
 class com.example.ajilore.code.MainActivity {
 # onCreate(arg0 : Bundle) : void
++ showBottomNav() : void
++ hideBottomNav() : void
 + onCreateOptionsMenu(arg0 : Menu) : boolean
 + onOptionsItemSelected(arg0 : MenuItem) : boolean
 }
@@ -150,6 +177,26 @@ class com.example.ajilore.code.ui.events.list.EventRow {
 + posterRes : int
 + posterUrl : String
 }
+class com.example.ajilore.code.ui.inbox.NotificationModel {
++ getEventId() : String
++ getFirestoreDocId() : String
++ getMessage() : String
++ getTime() : String
++ getImageUrl() : String
++ isRead() : boolean
++ getActionText() : String
++ getType() : String
++ setEventId(arg0 : String) : void
++ setFirestoreDocId(arg0 : String) : void
++ setMessage(arg0 : String) : void
++ setTime(arg0 : String) : void
++ setImageUrl(arg0 : String) : void
++ setRead(arg0 : boolean) : void
++ setActionText(arg0 : String) : void
++ setType(arg0 : String) : void
++ equals(arg0 : Object) : boolean
++ hashCode() : int
+}
 class com.example.ajilore.code.controllers.AdminController {
 + fetchAllEvents(arg0 : DataCallback<List<Event>>) : void
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
@@ -159,6 +206,22 @@ class com.example.ajilore.code.controllers.AdminController {
 interface com.example.ajilore.code.controllers.AdminController$DataCallback {
 }
 interface com.example.ajilore.code.controllers.AdminController$OperationCallback {
+}
+class com.example.ajilore.code.ui.inbox.NotificationAdapter {
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : NotificationViewHolder
++ onBindViewHolder(arg0 : NotificationViewHolder, arg1 : int) : void
++ getItemCount() : int
++ updateList(arg0 : List<NotificationModel>, arg1 : boolean) : void
+}
+interface com.example.ajilore.code.ui.inbox.NotificationAdapter$OnNotificationActionListener {
+}
+class com.example.ajilore.code.ui.inbox.NotificationAdapter$NotificationViewHolder {
+}
+class com.example.ajilore.code.ui.profile.LoginFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+interface com.example.ajilore.code.ui.profile.LoginFragment$OnChange {
 }
 class com.example.ajilore.code.ui.history.HistoryFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : com.example.ajilore.code.ui.history.HistoryFragment
@@ -265,6 +328,7 @@ androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.inbox.InboxFragm
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.ManageEventsFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.OrganizerEventsFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.CreateEventFragment
+androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.EventsScreenFragment
 com.example.ajilore.code.ui.events.list.Adapter <|-- com.example.ajilore.code.ui.events.list.UserEventsAdapter
 com.example.ajilore.code.ui.events.list.UserEventsAdapter +.. com.example.ajilore.code.ui.events.list.UserEventsAdapter$OnEventClick
 com.example.ajilore.code.ui.events.list.UserEventsAdapter +.. com.example.ajilore.code.ui.events.list.UserEventsAdapter$VH
@@ -273,6 +337,9 @@ androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.profile.ProfileF
 com.example.ajilore.code.ui.events.EventsFragment <|-- com.example.ajilore.code.ui.events.GeneralEventsFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.events.ManageEventQRFragment
 androidx.appcompat.app.AppCompatActivity <|-- com.example.ajilore.code.AdminActivity
+androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.profile.EditProfileFragment
+com.example.ajilore.code.ui.profile.EditProfileFragment +.. com.example.ajilore.code.ui.profile.EditProfileFragment$SimpleWatcher
+com.example.ajilore.code.ui.profile.TextWatcher <|.. com.example.ajilore.code.ui.profile.EditProfileFragment$SimpleWatcher
 com.example.ajilore.code.ui.admin.OnUserActionListener <|.. com.example.ajilore.code.ui.admin.AdminProfilesFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminProfilesFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminImagesFragment
@@ -287,6 +354,12 @@ androidx.appcompat.app.AppCompatActivity <|-- com.example.ajilore.code.MainActiv
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminAboutFragment
 com.example.ajilore.code.controllers.AdminController +.. com.example.ajilore.code.controllers.AdminController$DataCallback
 com.example.ajilore.code.controllers.AdminController +.. com.example.ajilore.code.controllers.AdminController$OperationCallback
+com.example.ajilore.code.ui.inbox.Adapter <|-- com.example.ajilore.code.ui.inbox.NotificationAdapter
+com.example.ajilore.code.ui.inbox.NotificationAdapter +.. com.example.ajilore.code.ui.inbox.NotificationAdapter$OnNotificationActionListener
+com.example.ajilore.code.ui.inbox.NotificationAdapter +.. com.example.ajilore.code.ui.inbox.NotificationAdapter$NotificationViewHolder
+com.example.ajilore.code.ui.inbox.ViewHolder <|-- com.example.ajilore.code.ui.inbox.NotificationAdapter$NotificationViewHolder
+androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.profile.LoginFragment
+com.example.ajilore.code.ui.profile.LoginFragment +.. com.example.ajilore.code.ui.profile.LoginFragment$OnChange
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.history.HistoryFragment
 com.example.ajilore.code.ui.admin.OnEventActionListener <|.. com.example.ajilore.code.ui.admin.AdminEventsFragment
 androidx.fragment.app.Fragment <|-- com.example.ajilore.code.ui.admin.AdminEventsFragment
