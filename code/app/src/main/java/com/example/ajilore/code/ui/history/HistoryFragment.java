@@ -1,67 +1,87 @@
 package com.example.ajilore.code.ui.history;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link com.example.ajilore.code.ui.history.HistoryFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * HistoryFragment - Displays all events a user has registered for.
+ *
+ * US 01.02.03: As an entrant, I want to have a history of events
+ * I have registered for, whether I was selected or not.
  */
-//search the events based on the id of the users
 public class HistoryFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView recyclerView;
+    private ProgressBar progressBar;
+    private HistoryAdapter adapter;
+    private List<Map<String, Object>> historyList = new ArrayList<>();
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FirebaseFirestore db;
+    private String uid;
 
-    public HistoryFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment HistoryFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static com.example.ajilore.code.ui.history.HistoryFragment newInstance(String param1, String param2) {
-        com.example.ajilore.code.ui.history.HistoryFragment fragment = new com.example.ajilore.code.ui.history.HistoryFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_history, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
+
+        recyclerView = v.findViewById(R.id.recyclerHistory);
+        progressBar = v.findViewById(R.id.progressHistory);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new HistoryAdapter(historyList);
+        recyclerView.setAdapter(adapter);
+
+        db = FirebaseFirestore.getInstance();
+        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        loadHistory();
+    }
+
+    private void loadHistory() {
+        progressBar.setVisibility(View.VISIBLE);
+        db.collection("users")
+                .document(uid)
+                .collection("registrations")
+                .orderBy("registeredAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(query -> {
+                    historyList.clear();
+                    for (DocumentSnapshot doc : query) {
+                        historyList.add(doc.getData());
+                    }
+                    adapter.notifyDataSetChanged();
+                    progressBar.setVisibility(View.GONE);
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "Failed to load history: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }
