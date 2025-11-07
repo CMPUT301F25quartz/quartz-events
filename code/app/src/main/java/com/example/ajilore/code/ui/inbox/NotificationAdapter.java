@@ -16,6 +16,10 @@ import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
+/**
+ * Adapter class for displaying notifications in a RecyclerView.
+ * Handles showing notification messages, time, profile image, and action buttons.
+ */
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
     private Context context;
@@ -23,11 +27,33 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     private OnNotificationActionListener listener;
     private boolean isArchivedView;
 
+    /**
+     * Listener interface for handling notification actions.
+     */
     public interface OnNotificationActionListener {
+        /**
+         * Called when the user dismisses a notification.
+         *
+         * @param item The notification that was dismissed.
+         */
         void onDismiss(NotificationModel item);
+
+        /**
+         * Called when the user clicks the notification action button.
+         *
+         * @param item The notification that the action is performed on.
+         */
         void onAction(NotificationModel item);
     }
 
+    /**
+     * Constructor for NotificationAdapter.
+     *
+     * @param context          The context.
+     * @param notificationList List of notifications to display.
+     * @param listener         Listener for notification actions.
+     * @param isArchivedView   Flag indicating if the view is showing archived notifications.
+     */
     public NotificationAdapter(Context context, List<NotificationModel> notificationList,
                                OnNotificationActionListener listener, boolean isArchivedView) {
         this.context = context;
@@ -54,7 +80,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         );
         holder.btnAction.setText(notification.getActionText() != null ? notification.getActionText() : "View");
 
-        // Hide dismiss button in archived view
+        // Hide dismiss button if this is an archived view
         holder.btnDismiss.setVisibility(isArchivedView ? View.GONE : View.VISIBLE);
 
         holder.btnDismiss.setOnClickListener(v -> {
@@ -71,12 +97,20 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         return notificationList != null ? notificationList.size() : 0;
     }
 
+    /**
+     * ViewHolder class for individual notification items.
+     */
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView imageProfile;
         TextView textMessage, textTime;
         LinearLayout buttonContainer;
         MaterialButton btnDismiss, btnAction;
 
+        /**
+         * Constructor for NotificationViewHolder.
+         *
+         * @param itemView The root view of the notification item.
+         */
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             imageProfile = itemView.findViewById(R.id.imageProfile);
@@ -88,6 +122,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
+    /**
+     * Updates the list of notifications and refreshes the view.
+     *
+     * @param newList        The new list of notifications.
+     * @param isArchivedView Flag indicating if the view is showing archived notifications.
+     */
     public void updateList(List<NotificationModel> newList, boolean isArchivedView) {
         this.notificationList = newList;
         this.isArchivedView = isArchivedView;

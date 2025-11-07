@@ -2,9 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".ui.inbox.InboxFragment">
+
 
     <!-- Title -->
     <TextView
@@ -18,6 +21,22 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+
+    <!-- ⚙️ Settings Icon -->
+    <ImageButton
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/settings"
+        android:padding="8dp"
+        app:tint="@color/black"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintTop_toTopOf="@id/textInboxTitle"
+        app:layout_constraintBottom_toBottomOf="@id/textInboxTitle"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
     <!-- Filter + Archive Buttons -->
     <LinearLayout
         android:id="@+id/filterButtonsLayout"
@@ -28,6 +47,7 @@
         app:layout_constraintTop_toBottomOf="@id/textInboxTitle"
         app:layout_constraintStart_toStartOf="parent">
 
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMarkAllRead"
             android:layout_width="wrap_content"
@@ -35,22 +55,25 @@
             android:text="@string/mark_all_read"
             style="?attr/materialButtonOutlinedStyle" />
 
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterUnread"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/show_unread"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginStart="8dp" />
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnViewArchived"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="View Archived"
+            android:text="@string/view_archived"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginStart="8dp" />
     </LinearLayout>
+
 
     <!-- Notification List -->
     <androidx.recyclerview.widget.RecyclerView
@@ -63,5 +86,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:clipToPadding="false"
         android:paddingBottom="16dp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
