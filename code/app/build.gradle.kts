@@ -63,7 +63,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("com.google.android.material:material:1.12.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    //implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.zxing:core:3.5.3")
@@ -73,9 +73,17 @@ dependencies {
     implementation("com.cloudinary:cloudinary-android:2.3.1")
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database:20.3.3")
+
     // Image loading library - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.google.firebase:firebase-auth:22.3.0")
+    implementation("com.google.android.material:material:1.12.0")
+
+
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.register<Javadoc>("javadoc") {
