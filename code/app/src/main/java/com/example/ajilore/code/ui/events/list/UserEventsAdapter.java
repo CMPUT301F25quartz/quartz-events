@@ -37,32 +37,62 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
     public interface OnEventClick { void onClick(EventRow row); }
 
     private final List<EventRow> items = new ArrayList<>();
+
+    /**
+     * Called when an event row or its CTA button is clicked.
+     * @param row The EventRow instance that was clicked.
+     */
     private final OnEventClick onClick;
     @LayoutRes private final int layoutId;
 
+
+
+    /**
+     * Constructs a new adapter for event rows using the given layout.
+     * @param layoutId Resource ID, typically R.layout.item_event.
+     * @param onClick  Callback for responding to row click events.
+     */
     public UserEventsAdapter(@LayoutRes int layoutId, @NonNull OnEventClick onClick) {
         this.layoutId = layoutId;      // should be R.layout.item_event for this design
         this.onClick = onClick;
     }
 
-    /** Replace entire list; simple + fine for labs. */
+    /**
+     * Replace the full list of events with new items and refresh the UI.
+     * @param newItems List of event rows to display.
+     */
     public void replaceAll(@NonNull List<EventRow> newItems) {
         items.clear();
         items.addAll(newItems);
         notifyDataSetChanged();
     }
 
+    /**
+     * Creates a new ViewHolder for an event row.
+     * @param parent   Parent ViewGroup.
+     * @param viewType Unused view type (single layout).
+     * @return New ViewHolder for one event.
+     */
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
         return new VH(v);
     }
 
+    /**
+     * Binds an EventRow to the ViewHolder and updates all child views.
+     * @param holder   The ViewHolder instance.
+     * @param position Index of the event in the adapter.
+     */
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.bind(items.get(position), onClick);
     }
 
+    /**
+     * Returns the number of events currently in the adapter.
+     * @return List size.
+     */
     @Override
     public int getItemCount() { return items.size(); }
 
@@ -78,6 +108,10 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
         private final TextView tvLocation;
         private final Button btnViewDetails;
 
+        /**
+         * Wires up view references from the item layout.
+         * @param itemView Root view of the row.
+         */
         VH(@NonNull View itemView) {
             super(itemView);
             ivPoster          = itemView.findViewById(R.id.ivPoster);
@@ -91,6 +125,11 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
             btnViewDetails    = itemView.findViewById(R.id.btnViewDetails);
         }
 
+        /**
+         * Binds an EventRow to this view, populating poster, titles, date, status, and handling clicks.
+         * @param row The EventRow model for this position.
+         * @param onClick Callback for row or CTA button tap.
+         */
         void bind(@NonNull EventRow row, @NonNull OnEventClick onClick) {
             // 1) Poster image
             //ivPoster.setImageResource(row.posterRes);

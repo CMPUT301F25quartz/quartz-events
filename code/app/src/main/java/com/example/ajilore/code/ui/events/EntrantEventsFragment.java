@@ -29,6 +29,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Fragment for entrants to view all available events in a scrollable list.
+ * Events are fetched live from Firestore and shown in chronological order.
+ */
 public class EntrantEventsFragment extends Fragment {
 
     private RecyclerView rvEvents;
@@ -40,6 +44,14 @@ public class EntrantEventsFragment extends Fragment {
 
     private String currentUserId = "user_temp_id"; // TODO: Replace with actual user ID from auth
 
+    /**
+     * Inflate the events list layout for entrants.
+     *
+     * @param inflater  The LayoutInflater object.
+     * @param container The parent ViewGroup.
+     * @param savedInstanceState Saved instance state Bundle.
+     * @return The fragment's root view.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -48,6 +60,12 @@ public class EntrantEventsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_entrant_events, container, false);
     }
 
+    /**
+     * Initializes the RecyclerView, adapter, and starts the event loading process.
+     *
+     * @param view The fragment's root view after inflation.
+     * @param savedInstanceState Previously saved state, if any.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -64,6 +82,10 @@ public class EntrantEventsFragment extends Fragment {
         loadAvailableEvents();
     }
 
+    /**
+     * Loads all available events from Firestore and updates the list UI.
+     * Shows or hides a progress bar and "empty" message as appropriate.
+     */
     private void loadAvailableEvents() {
         progressBar.setVisibility(View.VISIBLE);
         tvEmptyState.setVisibility(View.GONE);
@@ -121,6 +143,12 @@ public class EntrantEventsFragment extends Fragment {
         });
     }
 
+    /**
+     * Maps a poster key to a drawable resource for the event poster.
+     *
+     * @param key String resource key.
+     * @return Drawable resource ID fallback.
+     */
     private int mapPoster(String key) {
         if (key == null) return R.drawable.jazz;
         switch (key) {
@@ -132,6 +160,11 @@ public class EntrantEventsFragment extends Fragment {
         }
     }
 
+    /**
+     * Handles event row clicks and opens the event details fragment.
+     *
+     * @param item The {@link EventRow} that was tapped.
+     */
     private void onEventClick(EventRow item) {
         Fragment detailsFragment = EventDetailsFragment.newInstance(
                 item.id, // eventId

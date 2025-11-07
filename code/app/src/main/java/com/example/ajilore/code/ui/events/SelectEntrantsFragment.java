@@ -296,12 +296,22 @@ public class SelectEntrantsFragment extends Fragment {
         private final TextView tvName, tvBadge;
         private final ImageView ivAvatar;
 
+        /**
+         * Constructs a ViewHolder for a selected entrant row view.
+         *
+         * @param itemView The inflated item view.
+         */
         VH(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);
             tvBadge = itemView.findViewById(R.id.tvBadge);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
         }
+        /**
+         * Binds an {@link Entrant}'s details to the row, including avatar and status label.
+         *
+         * @param e Entrant data for this row.
+         */
         void bind(Entrant e) {
             tvName.setText(e.nameOrUid);
             // Pending/Accepted/Declined
@@ -309,6 +319,12 @@ public class SelectEntrantsFragment extends Fragment {
             // simple placeholder avatar
             ivAvatar.setImageResource(R.drawable.jazz);
         }
+        /**
+         * Capitalizes the first letter of a response status.
+         *
+         * @param s The status string
+         * @return String with the first character in uppercase.
+         */
         private String cap(String s) { return s.substring(0,1).toUpperCase() + s.substring(1); }
     }
 }

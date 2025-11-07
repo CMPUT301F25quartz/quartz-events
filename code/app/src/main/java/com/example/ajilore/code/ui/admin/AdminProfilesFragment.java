@@ -65,6 +65,15 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     private LinearLayout layoutEmptyState;
     private ImageButton btnBack;
 
+
+    /**
+     * Inflates the admin profiles fragment view and initializes core UI and data elements.
+     *
+     * @param inflater The LayoutInflater object for view inflation.
+     * @param container Parent ViewGroup (if any).
+     * @param savedInstanceState Saved state from prior instance.
+     * @return The root view for admin profile browsing.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -81,6 +90,10 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         return view;
     }
 
+    /**
+     * Binds and wires up all core UI widgets in the fragment.
+     * @param view The root fragment view.
+     */
     private void initializeViews(View view) {
         rvUsers = view.findViewById(R.id.rv_users);
         etSearch = view.findViewById(R.id.et_search_users);
@@ -88,12 +101,18 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         btnBack = view.findViewById(R.id.btn_back);
     }
 
+    /**
+     * Initializes the RecyclerView, sets its adapter, and layout manager.
+     */
     private void setupRecyclerView() {
         adapter = new AdminUsersAdapter(requireContext(), this);
         rvUsers.setAdapter(adapter);
         rvUsers.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
 
+    /**
+     * Sets up the user search EditText to filter adapter contents live.
+     */
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -110,10 +129,17 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         });
     }
 
+    /**
+     * Sets up the back navigation button on the toolbar.
+     */
     private void setupBackButton() {
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
     }
 
+    /**
+     * Loads all user records via the AdminController and updates adapter and UI.
+     * Displays loading state while in progress and empty state if no results.
+     */
     private void loadUsers() {
         showLoading(true);
 
@@ -143,16 +169,27 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         });
     }
 
+    /**
+     * Shows or hides the loading indicator (by toggling visibility of the RecyclerView).
+     * @param show True to show (hide list), false to hide (show list).
+     */
     private void showLoading(boolean show) {
         rvUsers.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Updates whether the empty state layout or RecyclerView is shown based on data content.
+     */
     private void updateEmptyState() {
         boolean isEmpty = adapter.getItemCount() == 0;
         layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         rvUsers.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Callback when a user row is tapped to show brief info.
+     * @param user User instance that was tapped.
+     */
     @Override
     public void onUserClick(User user) {
         Toast.makeText(requireContext(),
@@ -160,11 +197,19 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
                 Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Callback when the delete button for a user is tapped.
+     * @param user User to be deleted.
+     */
     @Override
     public void onDeleteClick(User user) {
         showDeleteDialog(user);
     }
 
+    /**
+     * Displays a dialog to confirm permanent user deletion.
+     * @param user The User record to delete.
+     */
     private void showDeleteDialog(User user) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete User?")
@@ -175,6 +220,10 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
                 .show();
     }
 
+    /**
+     * Requests AdminController to delete a user, and refreshes UI on result.
+     * @param user User to remove.
+     */
     private void deleteUser(User user) {
         adminController.removeUser(user.getUserId(), new AdminController.OperationCallback() {
             @Override

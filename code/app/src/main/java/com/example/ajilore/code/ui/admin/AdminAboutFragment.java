@@ -42,6 +42,15 @@ public class AdminAboutFragment extends Fragment {
     private TextView tvAdminName;
     private FirebaseFirestore db;
 
+
+    /**
+     * Inflates the admin dashboard layout and attaches click listeners for admin navigation buttons.
+     *
+     * @param inflater          The LayoutInflater used to inflate fragment views.
+     * @param container         The parent view the fragment UI will be attached to.
+     * @param savedInstanceState Previous saved instance state, if any.
+     * @return The root View for the fragment's UI.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -124,7 +133,8 @@ public class AdminAboutFragment extends Fragment {
     }
 
     /**
-     * Sets up click listeners for navigation buttons.
+     * Configures click listeners on navigation hub buttons, routing to corresponding admin sections.
+     * @param view Root view containing all admin dashboard buttons.
      */
     private void setupNavigationButtons(View view) {
         Button btnEvents = view.findViewById(R.id.btn_events);

@@ -44,9 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link ManageEventQRFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment that generates, displays, shares and saves a deep link QR code for an event.
+ * Use the {@link #newInstance(String, String)} factory method to configure for a specific event.
  */
 public class ManageEventQRFragment extends Fragment {
 
@@ -59,17 +58,20 @@ public class ManageEventQRFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+
+    /**
+     * Default empty constructor for fragment instantiation.
+     */
     public ManageEventQRFragment() {
         // Required empty public constructor
     }
 
     /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
+     * Factory method to create a new instance using provided event details.
      *
-     * @param eventId    Parameter 1.
-     * @param eventTitle Parameter 2.
-     * @return A new instance of fragment ManageEventQRFragment.
+     * @param eventId    The ID of the event to generate a QR for.
+     * @param eventTitle The title of the event for display.
+     * @return A new instance of ManageEventQRFragment with arguments set.
      */
     // TODO: Rename and change types and number of parameters
     public static ManageEventQRFragment newInstance(String eventId, String eventTitle) {
@@ -88,6 +90,14 @@ public class ManageEventQRFragment extends Fragment {
 
     private ImageButton btnBack;
 
+    /**
+     * Inflates the Manage Event QR layout.
+     *
+     * @param inflater  LayoutInflater for view creation.
+     * @param container Parent ViewGroup, if any.
+     * @param savedInstanceState Saved instance state, if any.
+     * @return The fragment's root view.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -95,6 +105,12 @@ public class ManageEventQRFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_manage_event_q_r, container, false);
     }
 
+    /**
+     * Initializes event args, sets up the QR code, title, subtitle, and button listeners.
+     *
+     * @param view Root view after inflation.
+     * @param savedInstanceState Saved instance state bundle, if any.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -130,7 +146,9 @@ public class ManageEventQRFragment extends Fragment {
     }
 
     /**
-     * Build a deep link for this event and share it
+     * Generates a deep link URL for the current event.
+     *
+     * @return Event deep link URL for QR encoding.
      */
     private String buildDeepLink() {
         return "https://quartz-events.page.link/event/" + eventId;
@@ -138,9 +156,9 @@ public class ManageEventQRFragment extends Fragment {
 
 
     /**
-     * Generate and display the QR for this event
+     * Generates a QR code image for the event and displays it in the ImageView.
      *
-     * @param size The size of the QR in pixels
+     * @param size Size (in pixels) for QR image.
      */
     private void renderQRInto(int size) {
         try {
@@ -152,7 +170,13 @@ public class ManageEventQRFragment extends Fragment {
     }
 
     /**
-     * Turn a string into a QR bitmap using ZXing
+     * Uses ZXing to generate a QR code Bitmap from given string.
+     *
+     * @param text String to encode.
+     * @param width Width in pixels.
+     * @param height Height in pixels.
+     * @return Bitmap QR code image.
+     * @throws WriterException If QR generation fails.
      */
     private Bitmap generateQRBitmap(String text, int width, int height) throws WriterException {
         Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
@@ -169,7 +193,7 @@ public class ManageEventQRFragment extends Fragment {
     }
 
     /**
-     * Share the QR as a PNG via FileProvider
+     * Shares the QR code bitmap as a PNG using FileProvider and Android Sharesheet.
      */
     private void sharePng(){
         if(qrBitmap == null) return;
@@ -199,7 +223,7 @@ public class ManageEventQRFragment extends Fragment {
         }
 
     /**
-     * Save the QR into the user's photo's
+     * Saves the QR code PNG to the user's Pictures/Quartz Events folder.
      */
     private void downloadPng(){
         if(qrBitmap == null) return;
