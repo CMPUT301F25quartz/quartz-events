@@ -86,6 +86,10 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         return view;
     }
 
+    /**
+     * Wires up member variables and UI fields from the root view.
+     * @param view Root fragment view
+     */
     private void initializeViews(View view) {
         rvEvents = view.findViewById(R.id.rv_events);
         etSearch = view.findViewById(R.id.et_search_events);
@@ -93,12 +97,18 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         btnBack = view.findViewById(R.id.btn_back);
     }
 
+    /**
+     * Sets up the RecyclerView and its adapter for the event list.
+     */
     private void setupRecyclerView() {
         adapter = new AdminEventsAdapter(requireContext(), this);
         rvEvents.setAdapter(adapter);
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
 
+    /**
+     * Configures the search EditText to filter events live.
+     */
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -115,6 +125,9 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         });
     }
 
+    /**
+     * Sets up the back button in the toolbar to navigate to previous screen.
+     */
     private void setupBackButton() {
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
     }
@@ -153,17 +166,28 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         });
     }
 
+    /**
+     * Sets list visibility based on loading state.
+     * @param show True to show "loading", false to show the list.
+     */
     private void showLoading(boolean show) {
         // You can add a ProgressBar to your layout and toggle it here
         rvEvents.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Shows or hides empty state view if there are no events loaded.
+     */
     private void updateEmptyState() {
         boolean isEmpty = adapter.getItemCount() == 0;
         layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         rvEvents.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Called when an event is clicked by the admin for detail/toast display.
+     * @param event The Event model
+     */
     @Override
     public void onEventClick(Event event) {
         Toast.makeText(requireContext(),
@@ -181,6 +205,11 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         showDeleteDialog(event);
     }
 
+
+    /**
+     * Shows confirmation dialog before event deletion, with title and cancel actions.
+     * @param event The Event to potentially remove.
+     */
     private void showDeleteDialog(Event event) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
@@ -210,6 +239,10 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         dialog.show();
     }
 
+    /**
+     * Removes an event from the backend and reloads the event list on success.
+     * @param event Event to delete.
+     */
     private void deleteEvent(Event event) {
         adminController.removeEvent(event.getEventId(), new AdminController.OperationCallback() {
             @Override

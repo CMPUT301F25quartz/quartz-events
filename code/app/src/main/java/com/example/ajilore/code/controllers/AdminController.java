@@ -32,14 +32,20 @@ public class AdminController {
     private static final String USERS_COLLECTION = "users";
     private static final String IMAGES_COLLECTION = "images";
 
+    /**
+     * Constructs an AdminController and connects to Firestore and Storage.
+     */
     public AdminController() {
         this.db = FirebaseFirestore.getInstance();
         this.storage = FirebaseStorage.getInstance();
     }
 
     /**
-     * Fetches all events from Firestore.
-     * US 03.04.01: Browse Events
+     * Fetches all event documents from Firestore.
+     * <p>User Story:</p>
+     * <ul><li>US 03.04.01 - Browse Events</li></ul>
+     *
+     * @param callback DataCallback returning list of events or an error.
      */
     public void fetchAllEvents(final DataCallback<List<Event>> callback) {
         Log.d(TAG, "Fetching all events...");
@@ -73,8 +79,11 @@ public class AdminController {
     }
 
     /**
-     * Fetches all users from Firestore.
-     * US 03.05.01: Browse Profiles/Users
+     * Fetches all user profiles from Firestore.
+     * <p>User Story:</p>
+     * <ul><li>US 03.05.01 - Browse Users/Profiles</li></ul>
+     *
+     * @param callback DataCallback returning the user list or error.
      */
     public void fetchAllUsers(final DataCallback<List<User>> callback) {
         Log.d(TAG, "Fetching all users...");
@@ -108,8 +117,12 @@ public class AdminController {
     }
 
     /**
-     * Removes an event from Firestore and its associated image from Storage.
-     * US 03.01.01: Remove Events
+     * Removes an event and corresponding poster image from Firestore and Storage.
+     * <p>User Story:</p>
+     * <ul><li>US 03.01.01 - Remove Events</li></ul>
+     *
+     * @param eventId  Event document id to delete.
+     * @param callback OperationCallback for success/error handling.
      */
     public void removeEvent(String eventId, final OperationCallback callback) {
         Log.d(TAG, "Removing event: " + eventId);
@@ -151,11 +164,11 @@ public class AdminController {
     }
 
     /**
-     * Removes a user from Firestore.
-     * Note: You may want to add additional logic here to handle:
-     * - Removing user's events
-     * - Removing user from waiting lists
-     * - Cleaning up related data
+     * Removes a user profile from Firestore.
+     * Extend this method to remove user's events, waiting list entries, or extra cleanup as needed.
+     *
+     * @param userId User's document ID.
+     * @param callback OperationCallback for success/error.
      */
     public void removeUser(String userId, final OperationCallback callback) {
         Log.d(TAG, "Removing user: " + userId);
@@ -173,7 +186,10 @@ public class AdminController {
     }
 
     /**
-     * Helper method to delete an image from Firebase Storage.
+     * Helper to remove an image from Firebase Storage by URL.
+     * Does not propagate errors to caller; logs internally.
+     *
+     * @param imageURL Fully qualified Firebase Storage URL for image.
      */
     private void deleteImageFromStorage(String imageURL) {
         try {
@@ -189,13 +205,37 @@ public class AdminController {
     }
 
     // Callback interfaces
+    /**
+     * Generic data fetch callback with type and error reporting.
+     */
     public interface DataCallback<T> {
+
+        /**
+         * Called with a result if data fetch succeeds.
+         * @param data The data returned from Firestore.
+         */
         void onSuccess(T data);
+
+        /**
+         * Called if the data fetch operation fails for any reason.
+         * @param e The error or exception thrown.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Generic operation callback for CRUD/remove operations.
+     */
     public interface OperationCallback {
+        /**
+         * Success indicator for operation.
+         */
         void onSuccess();
+
+        /**
+         * Error indicator for operation.
+         * @param e The error or exception thrown.
+         */
         void onError(Exception e);
     }
 }

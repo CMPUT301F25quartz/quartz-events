@@ -27,15 +27,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link com.example.ajilore.code.ui.events.EventsFragment#} factory method to
- * create an instance of this fragment.
+ * Base fragment displaying a list of events.
+ * Meant to be subclassed for specific event list screens.
+ * Handles event list loading, RecyclerView setup, and empty/progress views.
  */
 public abstract class EventsFragment extends Fragment {
 
-
+    /**
+     * Provides the layout resource ID for one row in the event list.
+     * Subclasses must supply a layout with correct binding IDs.
+     * @return Layout resource for an event row.
+     */
     protected abstract @LayoutRes int getRowLayoutId();
+
+    /**
+     * Supplies the Firestore query used to load events.
+     * Subclasses can control ordering and filtering.
+     * @return Firestore {@link Query} fetching events.
+     */
     protected abstract Query getEventsQuery();
+
+    /**
+     * Handles the user tapping an event row in the list.
+     * @param row The {@link EventRow} that was clicked.
+     */
     protected abstract void onEventClick(@NonNull EventRow row);
 
     private RecyclerView rvEvents;
@@ -44,7 +59,13 @@ public abstract class EventsFragment extends Fragment {
     private FirebaseFirestore db;
 
 
-
+    /**
+     * Inflates the event list fragment view.
+     * @param inflater LayoutInflater for view creation.
+     * @param container Parent ViewGroup, if any.
+     * @param savedInstanceState Previously saved state, if any.
+     * @return The root view for this fragment.
+     */
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,7 +74,11 @@ public abstract class EventsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_events, container, false);
     }
 
-
+    /**
+     * Initializes RecyclerView, starts event loading, binds click handlers, and sets up progress/empty views.
+     * @param v Root fragment view after inflation.
+     * @param s Saved instance state, if any.
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
@@ -118,16 +143,30 @@ public abstract class EventsFragment extends Fragment {
 
 
      //---helpers----
-
+    /**
+     * Returns a string or a default if the value is null or empty.
+     * @param s The string to check
+     * @param def The default value
+     * @return The original string or the default if blank.
+     */
     private String safe(String s, String def){
         return (s == null || s.trim().isEmpty()) ? def:s;
 
     }
 
+    /**
+     * Shows or hides the progress view.
+     * @param show True to show, false to hide.
+     */
     private void showLoading(boolean show){
         if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * Converts a Firestore poster key to a drawable resource.
+     * @param key Poster key.
+     * @return The drawable resource ID.
+     */
     private int mapPoster(String key){
         if(key == null) return R.drawable.jazz;
         switch(key){

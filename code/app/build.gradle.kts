@@ -1,3 +1,8 @@
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.attributes.Attribute
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -74,22 +79,82 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     // Image loading library - Glide
+
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+   // implementation(files("/Users/preciousajilore/Library/Android/sdk/platforms/android-36/android.jar"))
+
 }
 
-tasks.register<Javadoc>("javadoc") {
-    // This sets the title for the generated documentation page
-    options.windowTitle = "Quartz Events Javadoc"
+fun Javadoc.configureAndroidJavadocTask() {
+    dependsOn("assembleDebug")
 
-    // This makes sure the task fails on any error
-    isFailOnError = true
+    // Java sources only (javadoc can’t parse Kotlin)
+    val javaSrcDirs = android.sourceSets["main"].java.srcDirs.filter { it.exists() }
+    setSource(javaSrcDirs)
+    include("**/*.java")
 
-    // This specifies which source files to include
-    source(android.sourceSets["main"].java.srcDirs)
+    // Classpath pieces
+    val bootCp = files(android.bootClasspath)
+    val debugJavaCompile = tasks.named("compileDebugJavaWithJavac", JavaCompile::class.java).get()
+    val compiledDebugOut = debugJavaCompile.destinationDirectory
 
-    // This adds all the project dependencies (Android SDK, Firebase, etc.) to the classpath
-    classpath += project.files(android.bootClasspath.joinToString(File.pathSeparator))
-    // FIX: Use getByName("compileClasspath") to access the configuration
-    classpath += configurations.getByName("compileClasspath")
+    // Turn AARs on debug classpath into JARs for javadoc
+    val jarView = configurations.getByName("debugCompileClasspath")
+        .incoming
+        .artifactView {
+            attributes {
+                attribute(Attribute.of("artifactType", String::class.java), "jar")
+            }
+            lenient(true)
+        }
+        .files
+
+    val generatedDirs = files(
+        "$buildDir/generated/source/r/debug",
+        "$buildDir/generated/not_namespaced_r_class_sources/debug/r",
+        "$buildDir/generated/source/buildConfig/debug",
+        "$buildDir/intermediates/javac/debug/classes",
+        "$buildDir/tmp/kapt3/classes/debug",
+        "$buildDir/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug"
+    )
+
+    classpath = files(bootCp, jarView, debugJavaCompile.classpath, compiledDebugOut, generatedDirs)
+    destinationDir = file("$buildDir/outputs/javadoc")
+
+    (options as StandardJavadocDocletOptions).apply {
+        setEncoding("UTF-8")
+        setDocEncoding("UTF-8")
+        setCharSet("UTF-8")
+        setLocale("en")
+        setAuthor(true)
+        setVersion(true)
+        setSplitIndex(true)
+        addBooleanOption("Xdoclint:none", true)
+        addBooleanOption("quiet", true)
+        links("https://docs.oracle.com/en/java/javase/11/docs/api/")
+        val sdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        if (sdk != null) {
+            val offlineRef = file("$sdk/docs/reference")
+            if (offlineRef.exists()) {
+                linksOffline("https://developer.android.com/reference/", offlineRef.absolutePath)
+            }
+        }
+    }
+
+    isFailOnError = false
 }
+
+// Configure existing or register if missing
+val existing = tasks.findByName("androidJavadocs")
+if (existing is Javadoc) {
+    existing.configureAndroidJavadocTask()
+} else {
+    tasks.register("androidJavadocs", Javadoc::class.java) {
+        configureAndroidJavadocTask()
+    }
+}
+
+
+
+

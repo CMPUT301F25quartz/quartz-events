@@ -81,12 +81,20 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         this.listener = listener;
     }
 
+    /**
+     * Updates/sets the user list for the adapter.
+     * @param users The full set of User profiles to display
+     */
     public void setUsers(List<User> users) {
         this.userList = new ArrayList<>(users);
         this.userListFull = new ArrayList<>(users);
         notifyDataSetChanged();
     }
 
+    /**
+     * Filters user profiles based on query string (by name or email).
+     * @param query Filter string, case-insensitive
+     */
     public void filter(String query) {
         userList.clear();
         if (query.isEmpty()) {
@@ -103,6 +111,12 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         notifyDataSetChanged();
     }
 
+    /**
+     * Inflates a view and ViewHolder for a user row.
+     * @param parent   Parent ViewGroup
+     * @param viewType Not used
+     * @return A UserViewHolder bound to its views
+     */
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -111,6 +125,11 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         return new UserViewHolder(view);
     }
 
+    /**
+     * Binds the user data and click actions for a single item.
+     * @param holder  The UserViewHolder being bound
+     * @param position Position of the user in the filtered list
+     */
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
@@ -139,6 +158,10 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         });
     }
 
+
+    /**
+     * @return The number of filtered users in the adapter.
+     */
     @Override
     public int getItemCount() {
         return userList.size();
@@ -154,6 +177,10 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         TextView tvUserName;
         ImageButton btnDelete;
 
+        /**
+         * Binds row view references.
+         * @param itemView The user row's root view
+         */
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             ivUserImage = itemView.findViewById(R.id.iv_user_image);

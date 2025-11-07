@@ -42,17 +42,6 @@ import java.util.List;
  */
 
 
-/**
- * OrganizerEventsFragment
- *
- * Purpose: Shows the organizer’s events in a scrollable list. Live-updates from Firestore
- * and routes into ManageEventsFragment when an event is clicked.
- *
- * Pattern: Fragment + RecyclerView adapter (simple list controller).
- *
- */
-
-
 public class OrganizerEventsFragment extends Fragment {
 
     private RecyclerView rv;

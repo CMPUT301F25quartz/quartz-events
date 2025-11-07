@@ -101,6 +101,11 @@ public class CreateEventFragment extends Fragment {
         // Required empty public constructor
     }
 
+    /**
+     * Factory method to build a CreateEventFragment for updating a specific event.
+     * @param eventId Firestore event document ID (nullable for new event)
+     * @return Configured CreateEventFragment instance
+     */
     public static CreateEventFragment newInstance(String eventId){
         CreateEventFragment fragment = new CreateEventFragment();
         Bundle args = new Bundle();
@@ -111,6 +116,10 @@ public class CreateEventFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Initializes the fragment, including poster picking launcher and argument parsing.
+     * @param savedInstanceState Saved bundle
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -485,7 +494,11 @@ public class CreateEventFragment extends Fragment {
         Log.d("CreateEventFragment", "Validation passed, starting upload or save");
 
     }
-
+    /**
+     * Uploads an image to Cloudinary and calls a consumer with the resulting URL.
+     * @param imageUri The picked image's URI.
+     * @param onUrlReady Consumer called with an HTTPS Cloudinary URL on success.
+     */
    private void uploadToCloudinary(Uri imageUri, Consumer<String> onUrlReady){
        MediaManager.get().upload(imageUri)
                .callback(new UploadCallback() {

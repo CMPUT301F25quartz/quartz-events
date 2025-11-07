@@ -8,17 +8,30 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 /**
- * This is the CONCRETE fragment for the main "Events" tab.
- * It shows a general list of events that any user can see.
- * It uses the 'item_event.xml' layout for its list items.
+ * Fragment for the main "Events" tab.
+ * Displays a scrollable, general list of events visible to all users,
+ * using 'item_event.xml' for each list row.
+ * Inherits presentation, adapter, and click behavior from EventsFragment.
  */
 public class GeneralEventsFragment extends EventsFragment {
 
+    /**
+     * Returns the layout resource ID for each event row.
+     * Must match the view IDs expected by the list adapter.
+     *
+     * @return The layout resource for event rows (item_event).
+     */
     @Override protected int getRowLayoutId() {
         // Must match the IDs the adapter binds (ivPoster, tvTitle, tvDate, tvLocation)
         return R.layout.item_event;
     }
 
+    /**
+     * Builds and returns the Firestore query for general events.
+     * This fetches all events ordered by start date (ascending).
+     *
+     * @return Firestore query for the events collection.
+     */
     @Override protected Query getEventsQuery() {
         // Use the same collection you’re writing in CreateEventFragment
         return FirebaseFirestore.getInstance()
@@ -26,6 +39,12 @@ public class GeneralEventsFragment extends EventsFragment {
                 .orderBy("startsAt", Query.Direction.ASCENDING);
     }
 
+    /**
+     * Handles event row clicks by opening the EventDetailsFragment
+     * for the selected event.
+     *
+     * @param row The row that was clicked.
+     */
     @Override protected void onEventClick(@NonNull EventRow row) {
         // Navigate to details
         EventDetailsFragment f = EventDetailsFragment.newInstance(row.id, row.title, /* userId */ "demoUser");

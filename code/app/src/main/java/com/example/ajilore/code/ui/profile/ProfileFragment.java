@@ -11,9 +11,9 @@ import android.view.ViewGroup;
 import com.example.ajilore.code.R;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link com.example.ajilore.code.ui.profile.ProfileFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment representing a user profile screen.
+ * Use the {@link #newInstance(String, String)} factory method to
+ * create an instance with the provided parameters.
  */
 public class ProfileFragment extends Fragment {
 
@@ -26,17 +26,21 @@ public class ProfileFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    /**
+     * Default public constructor for {@link ProfileFragment}.
+     * Required by the Android system for fragment instantiation.
+     */
     public ProfileFragment() {
         // Required empty public constructor
     }
 
     /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
+     * Factory method to create a new instance of {@link ProfileFragment}
+     * using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ProfileFragment.
+     * @param param1 The first initialization parameter.
+     * @param param2 The second initialization parameter.
+     * @return A new instance of fragment {@link ProfileFragment}.
      */
     // TODO: Rename and change types and number of parameters
     public static com.example.ajilore.code.ui.profile.ProfileFragment newInstance(String param1, String param2) {
@@ -48,6 +52,12 @@ public class ProfileFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called to do initial creation of the fragment.
+     *
+     * @param savedInstanceState If the fragment is being re-created from
+     *                           a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +67,14 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     *
+     * @param inflater The LayoutInflater object to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should attach to.
+     * @param savedInstanceState If non-null, this fragment is being re-created from a previous saved state.
+     * @return The View for the fragment's UI, or null.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
