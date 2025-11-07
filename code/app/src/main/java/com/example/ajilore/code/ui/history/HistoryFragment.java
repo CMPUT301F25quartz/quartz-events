@@ -15,6 +15,7 @@ import com.example.ajilore.code.R;
  * Use the {@link com.example.ajilore.code.ui.history.HistoryFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
+//search the events based on the id of the users
 public class HistoryFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
