@@ -21,16 +21,19 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     private Context context;
     private List<NotificationModel> notificationList;
     private OnNotificationActionListener listener;
+    private boolean isArchivedView;
 
     public interface OnNotificationActionListener {
         void onDismiss(NotificationModel item);
         void onAction(NotificationModel item);
     }
 
-    public NotificationAdapter(Context context, List<NotificationModel> notificationList, OnNotificationActionListener listener) {
+    public NotificationAdapter(Context context, List<NotificationModel> notificationList,
+                               OnNotificationActionListener listener, boolean isArchivedView) {
         this.context = context;
         this.notificationList = notificationList;
         this.listener = listener;
+        this.isArchivedView = isArchivedView;
     }
 
     @NonNull
@@ -44,10 +47,15 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         NotificationModel notification = notificationList.get(position);
 
-        // Set content using your XML IDs
         holder.imageProfile.setImageResource(R.drawable.ic_profile);
         holder.textMessage.setText(notification.getMessage());
-        holder.textTime.setText(notification.getTime() != null ? notification.getTime() : "Just now");
+        holder.textTime.setText(
+                notification.getTime() != null && !notification.getTime().isEmpty() ? notification.getTime() : "Just now"
+        );
+        holder.btnAction.setText(notification.getActionText() != null ? notification.getActionText() : "View");
+
+        // Hide dismiss button in archived view
+        holder.btnDismiss.setVisibility(isArchivedView ? View.GONE : View.VISIBLE);
 
         holder.btnDismiss.setOnClickListener(v -> {
             if (listener != null) listener.onDismiss(notification);
@@ -80,8 +88,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
-    public void updateList(List<NotificationModel> newList) {
+    public void updateList(List<NotificationModel> newList, boolean isArchivedView) {
         this.notificationList = newList;
+        this.isArchivedView = isArchivedView;
         notifyDataSetChanged();
     }
 }
