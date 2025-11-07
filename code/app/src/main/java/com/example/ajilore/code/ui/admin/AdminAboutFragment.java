@@ -1,10 +1,13 @@
 package com.example.ajilore.code.ui.admin;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,6 +15,9 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.R;
+import com.example.ajilore.code.utils.AdminAuthManager;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
  * Fragment displaying the admin dashboard with navigation options.
@@ -28,6 +34,11 @@ import com.example.ajilore.code.R;
  */
 public class AdminAboutFragment extends Fragment {
 
+    private static final String TAG = "AdminAboutFragment";
+
+    private TextView tvAdminName;
+    private FirebaseFirestore db;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -35,9 +46,70 @@ public class AdminAboutFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_about, container, false);
 
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
+
+        // Initialize TextView
+        tvAdminName = view.findViewById(R.id.tv_admin_name);
+
+        // Fetch and display admin name
+        fetchAdminName();
+
         setupNavigationButtons(view);
 
         return view;
+    }
+
+    /**
+     * Fetches the admin's name from Firestore based on device ID.
+     * The device ID is used as the document ID in the 'users' collection.
+     */
+    private void fetchAdminName() {
+        // Get the device ID
+        String deviceId = AdminAuthManager.getDeviceId(requireContext());
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            tvAdminName.setText("Admin User");
+            Log.e(TAG, "Device ID is null or empty");
+            return;
+        }
+
+        Log.d(TAG, "Fetching admin name for device ID: " + deviceId);
+
+        // Set loading state
+        tvAdminName.setText("Loading...");
+
+        // Query the 'users' collection using device ID as document ID
+        db.collection("users")
+                .document(deviceId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Get the name field from the document
+                        String name = documentSnapshot.getString("name");
+
+                        if (name != null && !name.isEmpty()) {
+                            tvAdminName.setText(name);
+                            Log.d(TAG, "Successfully loaded admin name: " + name);
+                        } else {
+                            // Fallback: If name is null, show "Admin User"
+                            tvAdminName.setText("Admin User");
+                            Log.w(TAG, "Document exists but name is null");
+                        }
+                    } else {
+                        // Document doesn't exist for this device ID
+                        tvAdminName.setText("Admin User");
+                        Log.w(TAG, "No user document found for device ID: " + deviceId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle error
+                    tvAdminName.setText("Admin User");
+                    Log.e(TAG, "Error fetching admin name from Firestore", e);
+                    Toast.makeText(getContext(),
+                            "Failed to load admin name",
+                            Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**

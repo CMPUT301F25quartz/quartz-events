@@ -1,66 +1,199 @@
 package com.example.ajilore.code.ui.inbox;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link com.example.ajilore.code.ui.inbox.InboxFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class InboxFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView recyclerNotifications;
+    private NotificationAdapter adapter;
+    private List<NotificationModel> notificationList;
+    private List<NotificationModel> archivedList;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
 
-    public InboxFragment() {
-        // Required empty public constructor
-    }
+    private MaterialButton btnMarkAllRead;
+    private MaterialButton btnFilterUnread;
+    private MaterialButton btnViewArchived;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment InboxFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static com.example.ajilore.code.ui.inbox.InboxFragment newInstance(String param1, String param2) {
-        com.example.ajilore.code.ui.inbox.InboxFragment fragment = new com.example.ajilore.code.ui.inbox.InboxFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private boolean showOnlyUnread = false;
+    private boolean showingArchived = false;
 
+    private NotificationAdapter.OnNotificationActionListener listener;
+
+    public InboxFragment() {}
+
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_inbox, container, false);
+
+        recyclerNotifications = view.findViewById(R.id.recyclerNotifications);
+        recyclerNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        btnMarkAllRead = view.findViewById(R.id.btnMarkAllRead);
+        btnFilterUnread = view.findViewById(R.id.btnFilterUnread);
+        btnViewArchived = view.findViewById(R.id.btnViewArchived);
+
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+
+        notificationList = new ArrayList<>();
+        archivedList = new ArrayList<>();
+
+        listener = new NotificationAdapter.OnNotificationActionListener() {
+            @Override
+            public void onDismiss(NotificationModel notification) {
+                // Archive notification in Firestore using the correct doc ID
+                DocumentReference ref = db.collection("org_events")
+                        .document(notification.getEventId())
+                        .collection("waiting_list")
+                        .document("demoUser") // replace with actual userId
+                        .collection("inbox")
+                        .document(notification.getFirestoreDocId());
+
+                ref.update("archived", true).addOnSuccessListener(aVoid -> {
+                    notificationList.remove(notification);
+                    archivedList.add(notification);
+                    adapter.updateList(getCurrentList(), showingArchived);
+                    Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to archive: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+            }
+
+            @Override
+            public void onAction(NotificationModel notification) {
+                Toast.makeText(getContext(),
+                        "Open details for: " + notification.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        adapter = new NotificationAdapter(getContext(), getCurrentList(), listener, showingArchived);
+        recyclerNotifications.setAdapter(adapter);
+
+        btnMarkAllRead.setOnClickListener(v -> markAllRead());
+        btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
+        btnViewArchived.setOnClickListener(v -> toggleArchiveView());
+
+        signInAnonymouslyIfNeeded();
+
+        return view;
+    }
+
+    private void signInAnonymouslyIfNeeded() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            auth.signInAnonymously().addOnSuccessListener(result -> loadUserNotifications())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    );
+        } else {
+            loadUserNotifications();
         }
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_inbox, container, false);
+    private void loadUserNotifications() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        String userId = "demoUser"; // replace with actual user ID
+
+        db.collection("org_events").get().addOnSuccessListener(eventSnapshots -> {
+            for (DocumentSnapshot eventDoc : eventSnapshots) {
+                String eventId = eventDoc.getId();
+
+                eventDoc.getReference()
+                        .collection("waiting_list")
+                        .document(userId)
+                        .collection("inbox")
+                        .orderBy("createdAt", Query.Direction.DESCENDING)
+                        .addSnapshotListener((snapshots, e) -> {
+                            if (e != null || snapshots == null) return;
+
+                            for (DocumentChange change : snapshots.getDocumentChanges()) {
+                                DocumentSnapshot inboxDoc = change.getDocument();
+
+                                String message = inboxDoc.getString("message");
+                                String type = inboxDoc.getString("type") != null ? inboxDoc.getString("type") : "general";
+                                boolean read = inboxDoc.getBoolean("read") != null && inboxDoc.getBoolean("read");
+                                boolean archived = inboxDoc.getBoolean("archived") != null && inboxDoc.getBoolean("archived");
+                                String docId = inboxDoc.getId();
+
+                                if (message != null) {
+                                    NotificationModel notification = new NotificationModel(
+                                            eventId,
+                                            docId, // Firestore document ID
+                                            message,
+                                            "", "", read,
+                                            getString(R.string.see_details),
+                                            type
+                                    );
+
+                                    if (archived) {
+                                        if (!archivedList.contains(notification)) archivedList.add(notification);
+                                    } else {
+                                        if (!notificationList.contains(notification)) notificationList.add(notification);
+                                    }
+                                }
+                            }
+                            adapter.updateList(getCurrentList(), showingArchived);
+                        });
+            }
+        });
+    }
+
+    private void markAllRead() {
+        for (NotificationModel n : notificationList) n.setRead(true);
+        adapter.updateList(getCurrentList(), showingArchived);
+        Toast.makeText(getContext(), "All notifications marked as read", Toast.LENGTH_SHORT).show();
+    }
+
+    private void toggleUnreadFilter() {
+        showOnlyUnread = !showOnlyUnread;
+        adapter.updateList(getCurrentList(), showingArchived);
+        btnFilterUnread.setText(showOnlyUnread ? R.string.show_all : R.string.show_unread);
+    }
+
+    private void toggleArchiveView() {
+        showingArchived = !showingArchived;
+        adapter.updateList(getCurrentList(), showingArchived);
+        btnViewArchived.setText(showingArchived ? R.string.show_inbox : R.string.view_archived);
+    }
+
+    private List<NotificationModel> getCurrentList() {
+        List<NotificationModel> sourceList = showingArchived ? archivedList : notificationList;
+        List<NotificationModel> filteredList = new ArrayList<>();
+        for (NotificationModel n : sourceList) {
+            if (showOnlyUnread && n.isRead()) continue;
+            filteredList.add(n);
+        }
+        return filteredList;
     }
 }
