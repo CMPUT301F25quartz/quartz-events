@@ -25,6 +25,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
@@ -67,6 +68,9 @@ public class EventDetailsFragment extends Fragment {
     private Button btnJoinLeave;
     private ProgressBar progressBar;
     private View layoutWaitingListInfo;
+    private ListenerRegistration eventListener;
+    private ListenerRegistration waitingListStatusListener;
+    private ListenerRegistration waitingListCountListener;
 
     // US 01.01.01 & 01.01.02: Track waiting list status
     private boolean isOnWaitingList = false;
@@ -143,15 +147,17 @@ public class EventDetailsFragment extends Fragment {
     private void loadEventDetails() {
         progressBar.setVisibility(View.VISIBLE);
 
-        db.collection("org_events")
+        eventListener = db.collection("org_events")
                 .document(eventId)
                 .addSnapshotListener((DocumentSnapshot doc, FirebaseFirestoreException e) -> {
                     progressBar.setVisibility(View.GONE);
 
                     if (e != null) {
-                        Toast.makeText(requireContext(),
-                                "Failed to load event: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Failed to load event: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
                         return;
                     }
 
@@ -195,6 +201,7 @@ public class EventDetailsFragment extends Fragment {
                         isRegistrationOpen = isRegistrationOpen(regStartTime, regEndTime, now);
                         updateRegistrationWindow(regStartTime, regEndTime, now);
 
+                        updateJoinLeaveButton();
                         // Set poster
                         if (posterKey != null && !posterKey.isEmpty()) {
                             Glide.with(this)
@@ -218,18 +225,25 @@ public class EventDetailsFragment extends Fragment {
      * US 01.01.01 & 01.01.02: Check if user is on waiting list
      */
     private void checkWaitingListStatus() {
-        db.collection("org_events")
+        waitingListStatusListener = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
                 .document(userId)
                 .addSnapshotListener((DocumentSnapshot doc, FirebaseFirestoreException e) -> {
                     if (e != null) {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Error checking waiting list status",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                         return;
                     }
 
                     isOnWaitingList = (doc != null && doc.exists());
                     // isSelectedForLottery = "chosen".equals(doc.getString("status"));  for accept/decline
-                    updateJoinLeaveButton();
+                    if (eventListener != null) {
+                        updateJoinLeaveButton();
+                    }
                 });
 
     }
@@ -239,17 +253,22 @@ public class EventDetailsFragment extends Fragment {
      * Shows total number of entrants on the waiting list
      */
     private void loadWaitingListCount() {
-        db.collection("org_events")
+        waitingListCountListener = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
                 .addSnapshotListener((QuerySnapshot snapshot, FirebaseFirestoreException e) -> {
                     if (e != null) {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Error loading waiting list count",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                         return;
                     }
 
                     if (snapshot != null) {
                         waitingListCount = snapshot.size();
-                        tvWaitingListCount.setText("Total Entrants: " + waitingListCount);
+                        tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
                 });
@@ -307,15 +326,19 @@ public class EventDetailsFragment extends Fragment {
 
         waitingListRef.set(entrant)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(),
-                            "Successfully joined waiting list!",
-                            Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Successfully joined waiting list!",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
-                            "Failed to join: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to join: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 });
     }
@@ -330,15 +353,19 @@ public class EventDetailsFragment extends Fragment {
                 .document(userId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(),
-                            "Successfully left waiting list",
-                            Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Successfully left waiting list",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
-                            "Failed to leave: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to leave: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
                     btnJoinLeave.setEnabled(true);
                 });
     }
@@ -347,6 +374,14 @@ public class EventDetailsFragment extends Fragment {
      * US 01.01.01 & 01.01.02: Update join/leave button based on status
      */
     private void updateJoinLeaveButton() {
+
+        if (!isRegistrationOpen) {
+            btnJoinLeave.setText("Registration Closed");
+            btnJoinLeave.setEnabled(false);
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
+            btnJoinLeave.setVisibility(View.VISIBLE);
+            return;
+        }
         if (isOnWaitingList) {
             btnJoinLeave.setText("Leave ->");
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
@@ -355,7 +390,7 @@ public class EventDetailsFragment extends Fragment {
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.blue));
         }
 
-        btnJoinLeave.setEnabled(isRegistrationOpen);
+        btnJoinLeave.setEnabled(true);
 
         // Hide button if selected for lottery (prepare for accept/decline buttons)
         if (isSelectedForLottery) {
@@ -387,6 +422,24 @@ public class EventDetailsFragment extends Fragment {
         } else {
             tvRegistrationWindow.setText("Registration closed on: " + endStr);
             tvRegistrationWindow.setTextColor(0xFFFF6B6B); // Red
+        }
+    }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Remove all Firestore listeners to prevent memory leaks
+        if (eventListener != null) {
+            eventListener.remove();
+            eventListener = null;
+        }
+        if (waitingListStatusListener != null) {
+            waitingListStatusListener.remove();
+            waitingListStatusListener = null;
+        }
+        if (waitingListCountListener != null) {
+            waitingListCountListener.remove();
+            waitingListCountListener = null;
         }
     }
 
