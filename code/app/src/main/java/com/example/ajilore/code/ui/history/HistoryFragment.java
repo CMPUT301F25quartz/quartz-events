@@ -24,21 +24,56 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HistoryFragment - Displays all events a user has registered for.
+ * {@code HistoryFragment} displays a list of all events that the currently
+ * signed-in user has registered for.
+ * <p>
+ * This feature supports the user story:
+ * <b>US 01.02.03:</b> “As an entrant, I want to have a history of events
+ * I have registered for, whether I was selected or not.”
+ * </p>
  *
- * US 01.02.03: As an entrant, I want to have a history of events
- * I have registered for, whether I was selected or not.
+ * <p><b>Responsibilities:</b></p>
+ * <ul>
+ *     <li>Fetches registration history from Firestore under
+ *         {@code users/{uid}/registrations}</li>
+ *     <li>Displays the events in reverse chronological order</li>
+ *     <li>Shows a loading indicator while fetching data</li>
+ *     <li>Handles empty states and load failures gracefully</li>
+ * </ul>
+ *
+ * <p><b>Firestore structure used:</b></p>
+ * <pre>
+ * users (collection)
+ *  └── {uid} (document)
+ *       └── registrations (subcollection)
+ *            ├── {eventId} (document)
+ *            │    ├── eventTitle: String
+ *            │    ├── eventId: String
+ *            │    ├── registeredAt: Timestamp
+ * </pre>
+ *
+ * @author
+ * Temi Akindele
  */
 public class HistoryFragment extends Fragment {
 
+    //UI components
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
+    //Adapter
     private HistoryAdapter adapter;
     private List<Map<String, Object>> historyList = new ArrayList<>();
-
+    //firebase
     private FirebaseFirestore db;
     private String uid;
-
+    /**
+            * Inflates the layout for the history screen.
+     *
+             * @param inflater  LayoutInflater used to inflate the fragment layout.
+            * @param container Parent container that holds this fragment’s view.
+            * @param savedInstanceState Previously saved instance state (if any).
+            * @return The root view for the history fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -46,7 +81,13 @@ public class HistoryFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_history, container, false);
     }
-
+    /**
+     * Called when the view is created. Sets up the RecyclerView, adapter,
+     * and begins loading the user’s registration history from Firestore.
+     *
+     * @param v The root view of the fragment.
+     * @param savedInstanceState Saved state bundle, if any.
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -63,7 +104,17 @@ public class HistoryFragment extends Fragment {
 
         loadHistory();
     }
-
+    /**
+     * Loads the user's registration history from Firestore.
+     * <p>
+     * Documents are retrieved from the {@code users/{uid}/registrations}
+     * subcollection and ordered by {@code registeredAt} in descending order.
+     * Results are displayed in a RecyclerView using {@link HistoryAdapter}.
+     * </p>
+     *
+     * <p>Displays a progress bar during data loading and shows an error
+     * message if the request fails.</p>
+     */
     private void loadHistory() {
         progressBar.setVisibility(View.VISIBLE);
         db.collection("users")
