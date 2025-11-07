@@ -2,7 +2,7 @@ name: Generate and Format UML Diagram
 
 on:
   push:
-    branches: [main]
+    branches: [main, Dinma]
 
 permissions:
   contents: write
