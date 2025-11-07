@@ -29,7 +29,29 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
+/**
+ * {@code LoginFragment} handles both the login and signup process for users.
+ * <p>
+ * It allows users to:
+ * <ul>
+ *     <li>Log in using a name (verified in Firestore)</li>
+ *     <li>Sign up with a name, email, and optional phone number</li>
+ *     <li>Automatically authenticate anonymously using FirebaseAuth</li>
+ *     <li>Navigate to the main events screen once authenticated</li>
+ * </ul>
+ *
+ * <p>The fragment connects to Firestore to check or create user records and
+ * ensures that names are unique across the system using the
+ * {@code usersByName} collection.</p>
+ *
+ * <p><b>Outstanding issues:</b>
+ * <ul>
+ *     <li>The sign up button does not do anything</li>
+ * </ul>
+ *
+ * @author
+ *     Temi Akindele
+ */
 public class LoginFragment extends Fragment {
 
     // Views
@@ -45,6 +67,14 @@ public class LoginFragment extends Fragment {
     private boolean authReady = false;
     private BottomNavigationView bottomNavigationView;
 
+    /**
+     * Inflates the layout for this fragment.
+     *
+     * @param inflater  LayoutInflater used to inflate the XML layout.
+     * @param container Parent container that holds this fragment's view.
+     * @param savedInstanceState Previously saved state (if any).
+     * @return The root view for the login screen.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -53,6 +83,13 @@ public class LoginFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
 
+    /**
+     * Called after the view has been created. Initializes Firebase authentication,
+     * sets up validation listeners, and handles both login and signup button logic.
+     *
+     * @param v The fragment’s root view.
+     * @param savedInstanceState Saved state if available.
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -206,7 +243,11 @@ public class LoginFragment extends Fragment {
             );
         });
     }
-
+    /**
+     * Enables or disables all input fields and buttons based on authentication readiness.
+     *
+     * @param enabled true to enable UI interaction, false to disable it.
+     */
     private void setUiEnabled(boolean enabled) {
         if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled && isNonBlank(getText(etNameLogin)));
         if (btnSignup != null)       btnSignup.setEnabled(enabled && isEmailOk(getText(etEmailSignup)) && isNonBlank(getText(etNameLogin)));
@@ -217,6 +258,10 @@ public class LoginFragment extends Fragment {
 
 
     // ---------- navigation ----------
+
+    /**
+     * Navigates to the general events fragment after successful log in or sign up
+     */
     private void navigateToEvents() {
         requireActivity()
                 .getSupportFragmentManager()
@@ -226,18 +271,20 @@ public class LoginFragment extends Fragment {
     }
 
     // ---------- helpers ----------
+
+    /** Returns trimmed text from an EditText, or an empty string if null. */
     private String getText(TextInputEditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
-
+    /** Checks if a string is not null or empty. */
     private boolean isNonBlank(String s) {
         return s != null && s.trim().length() > 0;
     }
-
+    /** Basic validation to ensure email contains '@'. */
     private boolean isEmailOk(String s) {
         return s != null && s.contains("@");
     }
-
+    /** Creates a simplified TextWatcher for live validation. */
     private TextWatcher simpleWatcher(OnChange cb) {
         return new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
@@ -245,12 +292,13 @@ public class LoginFragment extends Fragment {
             @Override public void afterTextChanged(Editable s) {}
         };
     }
+    /** Returns a unique device ID used as a backup identifier for anonymous users. */
     private String getDeviceId() {
         return Settings.Secure.getString(
                 requireContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID
         );
     }
-
+    /** Functional interface used by {@link #simpleWatcher(OnChange)} for text change callbacks. */
     private interface OnChange { void run(String s); }
 }

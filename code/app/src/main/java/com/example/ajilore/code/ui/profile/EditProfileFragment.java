@@ -20,12 +20,44 @@ import com.google.firebase.firestore.SetOptions;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
+/**
+ * {@code EditProfileFragment} allows a signed-in user to update their
+ * personal information such as name, email, and phone number.
+ * <p>
+ * The fragment performs live validation to enable the "Save" button only
+ * when at least one field has been modified. Updated data is written to
+ * Firestore under the {@code users} collection, merged with the existing document.
+ * </p>
+ *
+ * <p><b>Key features:</b></p>
+ * <ul>
+ *     <li>Fetches the current Firebase user</li>
+ *     <li>Enables dynamic validation using a {@link TextWatcher}</li>
+ *     <li>Allows partial profile updates without overwriting unchanged fields</li>
+ *     <li>Updates the Firestore user document with {@link SetOptions#merge()}</li>
+ * </ul>
+ *
+ * <p><b>Limitations:</b></p>
+ * <ul>
+ *     <li>Does not currently re-validate email format</li>
+ *     <li>No profile image editing functionality (future enhancement)</li>
+ * </ul>
+ *
+ * @author
+ *  Temi Akindele
+ */
 public class EditProfileFragment extends Fragment {
 
     private TextInputEditText etName, etEmail, etPhone;
     private MaterialButton btnSave, btnCancel;
-
+    /**
+     * Inflates the layout for this fragment.
+     *
+     * @param inflater  LayoutInflater to inflate the view.
+     * @param container Parent container.
+     * @param savedInstanceState Previously saved instance state (if any).
+     * @return The inflated view for the edit profile screen.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -33,7 +65,17 @@ public class EditProfileFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_edit_profile, container, false);
     }
-
+    /**
+     * Called once the view has been created.
+     * <p>
+     * Binds UI components, adds text watchers for validation, and defines the
+     * save/cancel button actions. Updates are pushed to Firestore when the user
+     * clicks "Save".
+     * </p>
+     *
+     * @param v The root view.
+     * @param savedInstanceState Saved state if available.
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -97,15 +139,29 @@ public class EditProfileFragment extends Fragment {
         // Initial state
         btnSave.setEnabled(false);
     }
-
+    /**
+     * Checks if the given text field contains non-empty input.
+     *
+     * @param et The {@link TextInputEditText} to check.
+     * @return true if not empty, false otherwise.
+     */
     private boolean notEmpty(TextInputEditText et) {
         return et.getText() != null && et.getText().toString().trim().length() > 0;
     }
-
+    /**
+     * Retrieves the trimmed string value from a text field.
+     *
+     * @param et The {@link TextInputEditText} to read.
+     * @return Trimmed text, or an empty string if null.
+     */
     private String get(TextInputEditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
-
+    /**
+     * Simple {@link TextWatcher} helper class used for real-time validation.
+     * <p>Whenever text changes in any input field, the provided {@link Runnable}
+     * is executed (e.g., to enable or disable the Save button).</p>
+     */
     private static class SimpleWatcher implements TextWatcher {
         private final Runnable r;
         SimpleWatcher(Runnable r) { this.r = r; }
