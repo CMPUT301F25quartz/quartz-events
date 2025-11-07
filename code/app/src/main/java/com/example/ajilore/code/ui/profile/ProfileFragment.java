@@ -33,7 +33,6 @@ import org.junit.After;
 
 /**
  * Fragment representing a user profile screen.
- * Use the {@link #newInstance(String, String)} factory method to
  * create an instance with the provided parameters.
  */
 public class ProfileFragment extends Fragment {
