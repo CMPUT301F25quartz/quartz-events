@@ -15,8 +15,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -41,6 +43,7 @@ public class LoginFragment extends Fragment {
     private FirebaseFirestore db;
     private String uid;
     private boolean authReady = false;
+    private BottomNavigationView bottomNavigationView;
 
     @Nullable
     @Override
@@ -129,6 +132,12 @@ public class LoginFragment extends Fragment {
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
                             Toast.makeText(getContext(), "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
+                            //dsiplaying the nav bar
+                            //((MainActivity) requireActivity()).findViewById(R.id.menu_bottom_nav).setVisibility(View.VISIBLE);
+                            bottomNavigationView.setVisibility(View.VISIBLE);
+                            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
+
+
                             navigateToEvents();
                         } else {
                             Toast.makeText(getContext(), "No account found. Please sign up.", Toast.LENGTH_SHORT).show();
@@ -170,8 +179,7 @@ public class LoginFragment extends Fragment {
             user.put("role", "entrant");
             user.put("createdAt", FieldValue.serverTimestamp());
 
-            // 1) Create users/{uid}
-            // 2) Create usersByName/{nameLower} with { uid } — create-only, enforced by rules
+
             db.runTransaction(trx -> {
                 // Ensure name not taken (second layer of safety)
                 var nameDocRef = db.collection("usersByName").document(nameLower);

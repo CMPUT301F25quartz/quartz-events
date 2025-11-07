@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -101,6 +102,10 @@ public class MainActivity extends AppCompatActivity {
 //        }
         setContentView(R.layout.activity_main);
 
+        //hide the nav bar
+        findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
+
+
         // Apply window insets (should be right after setContentView)
         // Apply window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -122,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
         }
         // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
-        bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
+        // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
     }

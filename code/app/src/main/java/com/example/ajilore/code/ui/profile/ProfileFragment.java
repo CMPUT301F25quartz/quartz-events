@@ -1,5 +1,6 @@
 package com.example.ajilore.code.ui.profile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -14,11 +15,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.admin.AdminAboutFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
+import com.example.ajilore.code.utils.AdminAuthManager;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,6 +38,8 @@ public class ProfileFragment extends Fragment {
     private ImageView imgProfile;
     private TextView tvName, tvEmail, tvPhone, tvProfileHeader;
     private MaterialButton btnEditProfile, btnDeleteProfile;
+    private BottomNavigationView bottomNavigationView;
+
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -51,6 +58,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
+        AdminAuthManager.addCurrentDeviceAsAdmin(requireContext());
 
         // Bind views
         toolbar        = v.findViewById(R.id.profileToolbar);
@@ -61,6 +69,9 @@ public class ProfileFragment extends Fragment {
         btnEditProfile = v.findViewById(R.id.btnEditProfile);
         btnDeleteProfile = v.findViewById(R.id.btnDeleteProfile);
         tvProfileHeader = v.findViewById(R.id.tvProfileHeader);
+
+        bottomNavigationView = requireActivity().findViewById(R.id.menu_bottom_nav);
+
 
 
         auth = FirebaseAuth.getInstance();
@@ -96,15 +107,15 @@ public class ProfileFragment extends Fragment {
                             new OrganizerEventsFragment())
                     .addToBackStack(null)
                     .commit();
+            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
             return true;
         } else if (id == R.id.action_switch_admin) {
-            Toast.makeText(getContext(), "Switch to Admin", Toast.LENGTH_SHORT).show();
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.nav_host_fragment,
-                            new AdminAboutFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (AdminAuthManager.isAdmin(requireContext())) {
+                Intent intent = new Intent(requireActivity(), AdminActivity.class);
+                startActivity(intent);
+            } else {
+                Toast.makeText(getContext(), "Access Denied: Admin privileges required", Toast.LENGTH_SHORT).show();
+            }
             return true;
         } else if (id == R.id.action_sign_out) {
             Toast.makeText(getContext(), "Signed out", Toast.LENGTH_SHORT).show();
