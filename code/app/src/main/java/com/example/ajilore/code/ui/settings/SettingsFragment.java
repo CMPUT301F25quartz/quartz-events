@@ -16,18 +16,32 @@ import com.example.ajilore.code.R;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Fragment for managing user settings related to notifications.
+ * Allows users to toggle notification preferences which are saved in Firestore.
+ */
 public class SettingsFragment extends Fragment {
 
     private SwitchMaterial switchNotifications;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * Initializes the notification switch and loads/saves user preferences from Firestore.
+     *
+     * @param inflater LayoutInflater to inflate views
+     * @param container Optional parent view
+     * @param savedInstanceState Saved state bundle
+     * @return The root view for this fragment
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
+        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
         // Initialize views and Firebase
@@ -35,17 +49,17 @@ public class SettingsFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Use demoUser if not signed in
+
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "demoUser";
 
-        // Load current preference from Firestore
+        // Load the current notification preference from Firestore
         db.collection("users")
                 .document(userId)
                 .collection("preferences")
                 .document("notifications")
                 .get()
                 .addOnSuccessListener(doc -> {
-                    boolean enabled = true; // default
+                    boolean enabled = true; // default to enabled
                     if (doc.exists()) {
                         Boolean pref = doc.getBoolean("enabled");
                         enabled = pref != null ? pref : true;
@@ -53,7 +67,7 @@ public class SettingsFragment extends Fragment {
                     switchNotifications.setChecked(enabled);
                 });
 
-        // Listen for toggle changes
+        // Listen for toggle changes and save preference to Firestore
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Map<String, Object> data = new HashMap<>();
             data.put("enabled", isChecked);
