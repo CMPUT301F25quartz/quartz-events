@@ -6,4 +6,9 @@
     </style>
 
     <style name="Theme.Code" parent="Base.Theme.Code" />
+
+    <!-- Correct -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/my_purple</item>
+    </style>
 </resources>

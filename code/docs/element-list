@@ -1,0 +1,13 @@
+com.example.ajilore.code
+com.example.ajilore.code.adapters
+com.example.ajilore.code.controllers
+com.example.ajilore.code.models
+com.example.ajilore.code.ui.admin
+com.example.ajilore.code.ui.events
+com.example.ajilore.code.ui.events.data
+com.example.ajilore.code.ui.events.list
+com.example.ajilore.code.ui.events.model
+com.example.ajilore.code.ui.history
+com.example.ajilore.code.ui.inbox
+com.example.ajilore.code.ui.profile
+com.example.ajilore.code.utils
