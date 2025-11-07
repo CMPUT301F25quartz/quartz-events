@@ -96,6 +96,31 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">EditProfileFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
+<div class="block"><code>EditProfileFragment</code> allows a signed-in user to update their
+ personal information such as name, email, and phone number.
+ <p>
+ The fragment performs live validation to enable the "Save" button only
+ when at least one field has been modified. Updated data is written to
+ Firestore under the <code>users</code> collection, merged with the existing document.
+ </p>
+
+ <p><b>Key features:</b></p>
+ <ul>
+     <li>Fetches the current Firebase user</li>
+     <li>Enables dynamic validation using a <code>TextWatcher</code></li>
+     <li>Allows partial profile updates without overwriting unchanged fields</li>
+     <li>Updates the Firestore user document with <code>SetOptions.merge()</code></li>
+ </ul>
+
+ <p><b>Limitations:</b></p>
+ <ul>
+     <li>Does not currently re-validate email format</li>
+     <li>No profile image editing functionality (future enhancement)</li>
+ </ul></div>
+<dl class="notes">
+<dt>Author:</dt>
+<dd>Temi Akindele</dd>
+</dl>
 </div>
 </section>
 <section class="summary">
@@ -146,11 +171,15 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Inflates the layout for this fragment.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Called once the view has been created.</div>
+</div>
 </div>
 </div>
 </div>
@@ -198,9 +227,16 @@ loadScripts(document, 'script');</script>
  android.view.ViewGroup&nbsp;container,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
+<div class="block">Inflates the layout for this fragment.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>inflater</code> - LayoutInflater to inflate the view.</dd>
+<dd><code>container</code> - Parent container.</dd>
+<dd><code>savedInstanceState</code> - Previously saved instance state (if any).</dd>
+<dt>Returns:</dt>
+<dd>The inflated view for the edit profile screen.</dd>
 </dl>
 </div>
 </section>
@@ -213,9 +249,18 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
+<div class="block">Called once the view has been created.
+ <p>
+ Binds UI components, adds text watchers for validation, and defines the
+ save/cancel button actions. Updates are pushed to Firestore when the user
+ clicks "Save".
+ </p></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>v</code> - The root view.</dd>
+<dd><code>savedInstanceState</code> - Saved state if available.</dd>
 </dl>
 </div>
 </section>

@@ -97,14 +97,28 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">ProfileFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">Fragment representing a user profile screen.
- Use the 
-<details class="invalid-tag">
-<summary>invalid reference</summary>
-<pre><code>#newInstance(String, String)</code></pre>
-</details>
- factory method to
- create an instance with the provided parameters.</div>
+<div class="block"><code>ProfileFragment</code> displays and manages a user's profile information
+ <p>
+     It allows users to:
+     <ul>
+         <li>View their profile information including name, email and phone number</li>
+         <li>Edit their profile information</li>
+         <li>Delete their account</li>
+         <li>switch to organizer or admin mode if allowed</li>
+         <li>sign out of their account</li>
+     </ul>
+ </p>
+ <p>
+     The fragment also interacts with Firebase Authentication and Firestore to handle user identity and data persistence.
+ </p><b>Outstanding issues:</b>
+ <ul>
+     <li> There are no profile pictures for the users</li>
+     <li> When you go to the profile page as an existing user, your profile information is not displayed properly</li>
+ </ul></div>
+<dl class="notes">
+<dt>Author:</dt>
+<dd>Temi Akindele</dd>
+</dl>
 </div>
 </section>
 <section class="summary">
@@ -137,7 +151,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E()" class="member-name-link">ProfileFragment</a>()</code></div>
 <div class="col-last even-row-color">
-<div class="block">Default public constructor for <a href="ProfileFragment.html" title="class in com.example.ajilore.code.ui.profile"><code>ProfileFragment</code></a>.</div>
+<div class="block">Default constructor required for Fragment instantiation.</div>
 </div>
 </div>
 </section>
@@ -157,15 +171,19 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Inflates the layout for the ProfileFragment.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onResume()" class="member-name-link">onResume</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Refreshes profile information whenever the fragment becomes visible again.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Called to have the fragment instantiate its user interface view.</div>
+<div class="block">Initializes Firebase, binds UI elements, and loads user profile information.</div>
 </div>
 </div>
 </div>
@@ -192,8 +210,7 @@ loadScripts(document, 'script');</script>
 <h3>ProfileFragment</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ProfileFragment</span>()</div>
-<div class="block">Default public constructor for <a href="ProfileFragment.html" title="class in com.example.ajilore.code.ui.profile"><code>ProfileFragment</code></a>.
- Required by the Android system for fragment instantiation.</div>
+<div class="block">Default constructor required for Fragment instantiation.</div>
 </div>
 </section>
 </li>
@@ -216,9 +233,16 @@ loadScripts(document, 'script');</script>
  android.view.ViewGroup&nbsp;container,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
+<div class="block">Inflates the layout for the ProfileFragment.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>inflater</code> - LayoutInflater used to inflate XML layout</dd>
+<dd><code>container</code> - Parent view group</dd>
+<dd><code>savedInstanceState</code> - Previously saved instance state (if any)</dd>
+<dt>Returns:</dt>
+<dd>The root view of the fragment</dd>
 </dl>
 </div>
 </section>
@@ -231,13 +255,13 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Called to have the fragment instantiate its user interface view.</div>
+<div class="block">Initializes Firebase, binds UI elements, and loads user profile information.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>v</code> - The LayoutInflater object to inflate any views in the fragment.</dd>
-<dd><code>savedInstanceState</code> - If non-null, this fragment is being re-created from a previous saved state.</dd>
+<dd><code>v</code> - Root view after layout inflation</dd>
+<dd><code>savedInstanceState</code> - Previously saved state (if any)</dd>
 </dl>
 </div>
 </section>
@@ -247,6 +271,7 @@ loadScripts(document, 'script');</script>
 <h3>onResume</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onResume</span>()</div>
+<div class="block">Refreshes profile information whenever the fragment becomes visible again.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onResume</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
