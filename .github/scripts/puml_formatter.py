@@ -110,6 +110,18 @@ if __name__ == "__main__":
             
         # Run the conversion
         converted_content = convert_puml_formatting(content)
+
+        skinparams = (
+            "\nskinparam monochrome true"
+            "\nskinparam classAttributeIconSize 0\n"
+        )
+        # Use re.sub to add the lines right after the first @startuml
+        converted_content = re.sub(
+            r"(@startuml)", 
+            r"\1" + skinparams, 
+            converted_content, 
+            1
+        )
         
         # Write to the output file
         output_file = input_file.replace('.puml', '_formatted.puml')
