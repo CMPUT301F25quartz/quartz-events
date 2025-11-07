@@ -79,5 +79,6 @@
     <string name="view_archived">View Archived</string>
     <string name="show_inbox">Show Inbox</string>
     <string name="dismiss">Dismiss</string>
+    <string name="settings">Settings</string>
 
 </resources>
