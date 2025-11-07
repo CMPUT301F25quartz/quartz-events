@@ -1,187 +1,176 @@
 package com.example.ajilore.code.ui.inbox;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
-import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InboxFragment extends Fragment {
 
-    private RecyclerView recyclerNotifications;
+    private RecyclerView recyclerView;
     private NotificationAdapter adapter;
-    private List<NotificationModel> notificationList;
-    private List<NotificationModel> archivedList;
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
+    private List<NotificationModel> allNotifications = new ArrayList<>();
 
-    private MaterialButton btnMarkAllRead;
-    private MaterialButton btnFilterUnread;
-    private MaterialButton btnViewArchived;
-
-    private boolean showOnlyUnread = false;
+    private boolean showingUnread = false;
     private boolean showingArchived = false;
 
-    public InboxFragment() {}
+    private Button btnMarkAllRead, btnFilterUnread, btnViewArchived;
 
-    @Nullable
+    private SharedPreferences prefs;
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_inbox, container, false);
 
-        recyclerNotifications = view.findViewById(R.id.recyclerNotifications);
-        recyclerNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView = view.findViewById(R.id.recyclerNotifications);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         btnMarkAllRead = view.findViewById(R.id.btnMarkAllRead);
         btnFilterUnread = view.findViewById(R.id.btnFilterUnread);
-        btnViewArchived = view.findViewById(R.id.btnViewArchived); // new button in layout
+        btnViewArchived = view.findViewById(R.id.btnViewArchived);
 
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
-        notificationList = new ArrayList<>();
-        archivedList = new ArrayList<>();
+        prefs = requireContext().getSharedPreferences("inbox_prefs", Context.MODE_PRIVATE);
 
-        adapter = new NotificationAdapter(getContext(), notificationList,
+        loadNotifications();
+
+        adapter = new NotificationAdapter(
+                getContext(),
+                getFilteredNotifications(),
                 new NotificationAdapter.OnNotificationActionListener() {
                     @Override
-                    public void onDismissClicked(NotificationModel notification) {
-                        // Move to archived
-                        notificationList.remove(notification);
-                        archivedList.add(notification);
-                        adapter.notifyDataSetChanged();
-                        Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
+                    public void onDismiss(NotificationModel item) {
+                        item.setArchived(true);
+                        saveNotifications();
+                        adapter.updateList(getFilteredNotifications());
                     }
 
                     @Override
-                    public void onDetailsClicked(NotificationModel notification) {
-                        Toast.makeText(getContext(),
-                                "Open details for: " + notification.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                    public void onAction(NotificationModel item) {
+                        // Future action handling (e.g., open details)
                     }
-                });
-        recyclerNotifications.setAdapter(adapter);
+                }
+        );
+
+        recyclerView.setAdapter(adapter);
 
         btnMarkAllRead.setOnClickListener(v -> markAllRead());
         btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
         btnViewArchived.setOnClickListener(v -> toggleArchiveView());
 
-        // Ensure Firebase user is available
-        signInAnonymouslyIfNeeded();
+        updateButtonText();
 
         return view;
     }
 
-    private void signInAnonymouslyIfNeeded() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) {
-            auth.signInAnonymously().addOnSuccessListener(result -> {
-                Toast.makeText(getContext(), "Signed in anonymously", Toast.LENGTH_SHORT).show();
-                loadUserNotifications();
-            }).addOnFailureListener(e ->
-                    Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
-        } else {
-            loadUserNotifications();
-        }
-    }
+    private void loadNotifications() {
+        String json = prefs.getString("notifications", null);
+        allNotifications.clear();
 
-    private void loadUserNotifications() {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) return;
-
-        String userId = "demoUser"; // temporary user ID
-
-        db.collection("org_events").get().addOnSuccessListener(eventSnapshots -> {
-            for (DocumentSnapshot eventDoc : eventSnapshots) {
-                String eventId = eventDoc.getId();
-
-                eventDoc.getReference()
-                        .collection("waiting_list")
-                        .document(userId)
-                        .collection("inbox")
-                        .orderBy("createdAt", Query.Direction.DESCENDING)
-                        .addSnapshotListener((snapshots, e) -> {
-                            if (e != null || snapshots == null) return;
-
-                            for (DocumentChange change : snapshots.getDocumentChanges()) {
-                                DocumentSnapshot inboxDoc = change.getDocument();
-
-                                String message = inboxDoc.getString("message");
-                                String eventTitle = inboxDoc.getString("eventTitle");
-                                String type = inboxDoc.getString("type") != null ? inboxDoc.getString("type") : "general";
-                                boolean read = inboxDoc.getBoolean("read") != null && inboxDoc.getBoolean("read");
-
-                                if (message != null && eventTitle != null) {
-                                    NotificationModel notification = new NotificationModel(
-                                            eventId,
-                                            eventTitle + ": " + message,
-                                            read,
-                                            type
-                                    );
-
-                                    if (!notificationList.contains(notification)) {
-                                        notificationList.add(0, notification);
-                                    }
-                                }
-                            }
-                            adapter.notifyDataSetChanged();
-                        });
+        if (json != null) {
+            try {
+                JSONArray arr = new JSONArray(json);
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    NotificationModel n = new NotificationModel();
+                    n.setId(obj.optString("id"));
+                    n.setMessage(obj.optString("message"));
+                    n.setTime(obj.optString("time", "Just now"));
+                    n.setType(obj.optString("type", "general"));
+                    n.setRead(obj.optBoolean("isRead", false));
+                    n.setArchived(obj.optBoolean("isArchived", false));
+                    allNotifications.add(n);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Error loading inbox: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-        );
+        } else {
+            // Dummy data for first-time use
+            allNotifications.add(
+                    new NotificationModel(
+                            "1",
+                            "A virtual night of Jazz: Congrats, you're chosen!",
+                            "Just now",
+                            null,
+                            false,
+                            "View Details",
+                            "lottery_winner",
+                            false
+                    )
+            );
+        }
     }
 
-    private void markAllRead() {
-        for (NotificationModel n : notificationList) {
-            n.setRead(true);
+    private void saveNotifications() {
+        JSONArray arr = new JSONArray();
+        for (NotificationModel n : allNotifications) {
+            JSONObject obj = new JSONObject();
+            try {
+                obj.put("id", n.getId());
+                obj.put("message", n.getMessage());
+                obj.put("time", n.getTime());
+                obj.put("isRead", n.isRead());
+                obj.put("isArchived", n.isArchived());
+                obj.put("type", n.getType());
+                arr.put(obj);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
-        adapter.notifyDataSetChanged();
-        Toast.makeText(getContext(), "All notifications marked as read", Toast.LENGTH_SHORT).show();
+        prefs.edit().putString("notifications", arr.toString()).apply();
+    }
+
+    private List<NotificationModel> getFilteredNotifications() {
+        List<NotificationModel> filtered = new ArrayList<>();
+        for (NotificationModel n : allNotifications) {
+            if (showingArchived) {
+                if (n.isArchived()) filtered.add(n);
+            } else if (showingUnread) {
+                if (!n.isRead() && !n.isArchived()) filtered.add(n);
+            } else {
+                if (!n.isArchived()) filtered.add(n);
+            }
+        }
+        return filtered;
     }
 
     private void toggleUnreadFilter() {
-        showOnlyUnread = !showOnlyUnread;
-        applyFilters();
-        btnFilterUnread.setText(showOnlyUnread ? R.string.show_all : R.string.show_unread);
+        showingUnread = !showingUnread;
+        adapter.updateList(getFilteredNotifications());
+        btnFilterUnread.setText(showingUnread ? R.string.show_all : R.string.show_unread);
     }
 
     private void toggleArchiveView() {
         showingArchived = !showingArchived;
-        applyFilters();
-        btnViewArchived.setText(showingArchived ? R.string.show_inbox : R.string.view_archived);
+        adapter.updateList(getFilteredNotifications());
+        updateButtonText();
     }
 
-    private void applyFilters() {
-        List<NotificationModel> sourceList = showingArchived ? archivedList : notificationList;
-        List<NotificationModel> filteredList = new ArrayList<>();
-
-        for (NotificationModel n : sourceList) {
-            if (showOnlyUnread && n.isRead()) continue;
-            filteredList.add(n);
+    private void markAllRead() {
+        for (NotificationModel n : allNotifications) {
+            if (!n.isArchived()) n.setRead(true);
         }
+        saveNotifications();
+        adapter.updateList(getFilteredNotifications());
+    }
 
-        adapter = new NotificationAdapter(getContext(), filteredList, adapter.getListener());
-        recyclerNotifications.setAdapter(adapter);
+    private void updateButtonText() {
+        btnViewArchived.setText(showingArchived ? R.string.show_inbox : R.string.view_archived);
     }
 }

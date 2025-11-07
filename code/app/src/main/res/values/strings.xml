@@ -78,5 +78,6 @@
     <string name="show_all">Show All</string>
     <string name="view_archived">View Archived</string>
     <string name="show_inbox">Show Inbox</string>
+    <string name="dismiss">Dismiss</string>
 
 </resources>

@@ -77,6 +77,8 @@ dependencies {
     // Image loading library - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.register<Javadoc>("javadoc") {

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,17 +18,16 @@ import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
-    private final Context context;
-    private final List<NotificationModel> notificationList;
-    private final OnNotificationActionListener listener;
+    private Context context;
+    private List<NotificationModel> notificationList;
+    private OnNotificationActionListener listener;
 
     public interface OnNotificationActionListener {
-        void onDismissClicked(NotificationModel notification);
-        void onDetailsClicked(NotificationModel notification);
+        void onDismiss(NotificationModel item);
+        void onAction(NotificationModel item);
     }
 
-    public NotificationAdapter(Context context, List<NotificationModel> notificationList,
-                               OnNotificationActionListener listener) {
+    public NotificationAdapter(Context context, List<NotificationModel> notificationList, OnNotificationActionListener listener) {
         this.context = context;
         this.notificationList = notificationList;
         this.listener = listener;
@@ -43,23 +44,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         NotificationModel notification = notificationList.get(position);
 
+        // Set content using your XML IDs
+        holder.imageProfile.setImageResource(R.drawable.ic_profile);
         holder.textMessage.setText(notification.getMessage());
-        holder.textTime.setText(notification.getTime());
-        holder.btnAction.setText(
-                notification.getActionText() != null ?
-                        notification.getActionText() :
-                        context.getString(R.string.notif_details)
-        );
+        holder.textTime.setText(notification.getTime() != null ? notification.getTime() : "Just now");
 
         holder.btnDismiss.setOnClickListener(v -> {
-            if (listener != null) listener.onDismissClicked(notification);
+            if (listener != null) listener.onDismiss(notification);
         });
 
         holder.btnAction.setOnClickListener(v -> {
-            if (listener != null) listener.onDetailsClicked(notification);
+            if (listener != null) listener.onAction(notification);
         });
-
-        holder.itemView.setAlpha(notification.isRead() ? 0.5f : 1f);
     }
 
     @Override
@@ -67,18 +63,25 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         return notificationList != null ? notificationList.size() : 0;
     }
 
-    public OnNotificationActionListener getListener() { return listener; }
-
-    static class NotificationViewHolder extends RecyclerView.ViewHolder {
+    public static class NotificationViewHolder extends RecyclerView.ViewHolder {
+        ImageView imageProfile;
         TextView textMessage, textTime;
+        LinearLayout buttonContainer;
         MaterialButton btnDismiss, btnAction;
 
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
+            imageProfile = itemView.findViewById(R.id.imageProfile);
             textMessage = itemView.findViewById(R.id.textMessage);
             textTime = itemView.findViewById(R.id.textTime);
+            buttonContainer = itemView.findViewById(R.id.buttonContainer);
             btnDismiss = itemView.findViewById(R.id.btnDismiss);
             btnAction = itemView.findViewById(R.id.btnAction);
         }
+    }
+
+    public void updateList(List<NotificationModel> newList) {
+        this.notificationList = newList;
+        notifyDataSetChanged();
     }
 }
