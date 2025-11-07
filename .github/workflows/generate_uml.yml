@@ -1,0 +1,110 @@
+name: Generate and Format UML Diagram
+
+on:
+  push:
+    branches: [main, Dinma]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-commit-uml:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Checkout
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2) JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      # 3) Python (for your formatter)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # 4) Download the v0.0.5 bundle (libs + plugin; we only need libs)
+      - name: Download plantuml-parser libs
+        run: |
+          mkdir -p tools/plantuml-parser
+          cd tools/plantuml-parser
+          wget -q https://github.com/shuzijun/plantuml-parser/releases/download/v0.0.5/plantuml-parser-0.0.5.zip -O plantuml-parser.zip
+          unzip -q plantuml-parser.zip
+          # Jars land in plantuml-parser/lib: commons-io-2.8.0.jar, javaparser-core-3.23.1.jar,
+          # plantuml-parser-core-0.0.7.jar, plantuml-parser-plugin-0.0.5.jar
+          # We only need the core+deps; keep all in lib for classpath simplicity.
+
+      # 5) Compile a tiny Java runner that uses the core API
+      - name: Build UML generator (tiny driver over core API)
+        run: |
+          cat > tools/plantuml-parser/UmlGen.java << 'EOF'
+          import java.io.File;
+          import com.shuzijun.plantumlparser.core.ParserConfig;
+          import com.shuzijun.plantumlparser.core.ParserProgram;
+
+          public class UmlGen {
+              public static void main(String[] args) throws Exception {
+                  if (args.length < 2) {
+                      System.err.println("Usage: java UmlGen <sourceDirOrFile> <outPumlPath>");
+                      System.exit(2);
+                  }
+                  String source = args[0];
+                  String outPuml = args[1];
+
+                  ParserConfig cfg = new ParserConfig();
+                  cfg.addFilePath(source);                  // directory or single file
+                  cfg.setOutFilePath(outPuml);              // where to write .puml
+
+                  // Visibility filters – adjust as you like
+                  cfg.addMethodModifier("public");
+                  cfg.addMethodModifier("protected");
+                  cfg.addFieldModifier("public");
+
+                  new ParserProgram(cfg).execute();
+                  System.out.println("Wrote: " + outPuml);
+              }
+          }
+          EOF
+
+          # Compile against core + deps (plugin jar not required but harmless on classpath)
+          javac -cp "tools/plantuml-parser/plantuml-parser/lib/*" tools/plantuml-parser/UmlGen.java
+
+      # 6) Generate the raw PlantUML file
+      - name: Generate raw PlantUML file
+        run: |
+          mkdir -p code
+          # Run with classpath including compiled class + all libs
+          java -cp "tools/plantuml-parser:tools/plantuml-parser/plantuml-parser/lib/*" UmlGen \
+            "code/app/src/main/java" \
+            "code/UMLDiagram.puml"
+
+          echo "--- Raw UMLDiagram.puml generated ---"
+          sed -n '1,120p' code/UMLDiagram.puml || true
+
+      # 7) Format with your Python script (unchanged)
+      - name: Format the PlantUML file
+        run: |
+          python .github/scripts/puml_formatter.py code/UMLDiagram.puml
+          mv code/UMLDiagram_formatted.puml code/UMLDiagram.puml
+
+          echo "--- Formatted UMLDiagram.puml created ---"
+          sed -n '1,120p' code/UMLDiagram.puml || true
+
+      # 8) Commit & push if changed (unchanged)
+      - name: Commit and push if changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add code/UMLDiagram.puml
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: Auto-generate UML diagram [ci skip]"
+            git push
+          else
+            echo "No changes to UML diagram. Skipping commit."
+          fi
