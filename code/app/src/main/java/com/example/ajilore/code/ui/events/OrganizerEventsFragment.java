@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -70,6 +71,10 @@ public class OrganizerEventsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
+
+        // back button navigation
+        ImageButton btnBack = v.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(view -> requireActivity().onBackPressed());
 
         db = FirebaseFirestore.getInstance();
 

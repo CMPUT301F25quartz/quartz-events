@@ -11,6 +11,4 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/my_purple</item>
     </style>
-
-
 </resources>

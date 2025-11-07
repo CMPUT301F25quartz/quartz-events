@@ -168,8 +168,7 @@ public class EntrantEventsFragment extends Fragment {
     private void onEventClick(EventRow item) {
         Fragment detailsFragment = EventDetailsFragment.newInstance(
                 item.id, // eventId
-                item.title,
-                currentUserId
+                item.title // eventTitle
         );
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
