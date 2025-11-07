@@ -107,7 +107,6 @@ public class ProfileFragment extends Fragment {
                             new OrganizerEventsFragment())
                     .addToBackStack(null)
                     .commit();
-            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
             return true;
         } else if (id == R.id.action_switch_admin) {
             if (AdminAuthManager.isAdmin(requireContext())) {

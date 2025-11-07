@@ -75,6 +75,9 @@ public class LoginFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
+        ((MainActivity) requireActivity()).hideBottomNav();
+
+
         // Disable interactions until auth is ready
         setUiEnabled(false);
 
@@ -134,10 +137,9 @@ public class LoginFragment extends Fragment {
                             Toast.makeText(getContext(), "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
                             //dsiplaying the nav bar
                             //((MainActivity) requireActivity()).findViewById(R.id.menu_bottom_nav).setVisibility(View.VISIBLE);
-                            bottomNavigationView.setVisibility(View.VISIBLE);
-                            bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
-
-
+                            //bottomNavigationView.setVisibility(View.VISIBLE);
+                           // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
+                            ((MainActivity) requireActivity()).showBottomNav();
                             navigateToEvents();
                         } else {
                             Toast.makeText(getContext(), "No account found. Please sign up.", Toast.LENGTH_SHORT).show();
@@ -197,6 +199,7 @@ public class LoginFragment extends Fragment {
                 return null;
             }).addOnSuccessListener(x -> {
                 Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                ((MainActivity) requireActivity()).showBottomNav();
                 navigateToEvents();
             }).addOnFailureListener(err ->
                     Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
