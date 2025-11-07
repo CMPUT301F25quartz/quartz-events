@@ -63,7 +63,7 @@
                 android:id="@+id/tv_admin_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="David Silbia"
+                android:text="Admin User"
                 android:textSize="26sp"
                 android:textStyle="bold"
                 android:textColor="#1F2937"
