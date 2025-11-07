@@ -1,4 +1,7 @@
 @startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+
 class com.example.ajilore.code.ui.events.data.Entrant {
 + uid : String
 + nameOrUid : String
