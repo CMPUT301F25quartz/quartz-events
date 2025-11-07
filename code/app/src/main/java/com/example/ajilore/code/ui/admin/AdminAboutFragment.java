@@ -6,14 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import android.content.Intent;
 
 import com.example.ajilore.code.AdminActivity;
+import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.utils.AdminAuthManager;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -56,6 +59,14 @@ public class AdminAboutFragment extends Fragment {
         fetchAdminName();
 
         setupNavigationButtons(view);
+
+        ImageButton btnBack = view.findViewById(R.id.btn_back);
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(requireActivity(), MainActivity.class);
+            intent.putExtra("navigate_to", "profile");
+            startActivity(intent);
+            requireActivity().finish();
+        });
 
         return view;
     }
