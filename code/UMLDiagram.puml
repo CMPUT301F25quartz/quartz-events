@@ -163,6 +163,7 @@ class NotificationPreferencesFragment {
 }
 class MainActivity {
 # onCreate(arg0 : Bundle) : void
+# onNewIntent(arg0 : Intent) : void
 + showBottomNav() : void
 + hideBottomNav() : void
 + onCreateOptionsMenu(arg0 : Menu) : boolean
