@@ -60,8 +60,14 @@ public class MainActivity extends AppCompatActivity {
         config.put("cloud_name", "dswduwd5v");
         config.put("api_key","494611986897794");
         config.put("api_secret","dIx5IJLF94eA5Cqcoo8g90IvaA8");
-        MediaManager.init(this, config);
-
+        // Prevent reinitialization crash
+        try {
+            MediaManager.init(this, config);
+            Log.d("MainActivity", "MediaManager initialized successfully");
+        } catch (IllegalStateException e) {
+            Log.d("MainActivity", "MediaManager already initialized");
+            // Already initialized, no action needed
+        }
 
         setContentView(R.layout.activity_main);
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
@@ -107,22 +113,50 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleNavigationIntent() {
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("navigate_to")) {
-            String destination = intent.getStringExtra("navigate_to");
+        if (intent != null) {
+            // Handle explicit bottom nav show request
+            if (intent.getBooleanExtra("show_bottom_nav", false)) {
+                if (bottomNavigationView != null) {
+                    bottomNavigationView.setVisibility(View.VISIBLE);
+                    Log.d("MainActivity", "Bottom nav shown via intent flag");
+                }
+            }
 
-            if ("profile".equals(destination)) {
-                // Show bottom nav
-                showBottomNav();
+            // Handle navigation destination
+            if (intent.hasExtra("navigate_to")) {
+                String destination = intent.getStringExtra("navigate_to");
 
-                // Navigate to profile fragment
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, new ProfileFragment())
-                        .commit();
+                if ("profile".equals(destination)) {
+                    // Ensure bottom nav is visible
+                    if (bottomNavigationView != null) {
+                        bottomNavigationView.setVisibility(View.VISIBLE);
+                    }
 
-                // Highlight profile tab in bottom nav
-                bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+                    // Navigate to profile fragment
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.nav_host_fragment, new ProfileFragment())
+                            .commit();
+
+                    // Highlight profile tab in bottom nav
+                    if (bottomNavigationView != null) {
+                        bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+                    }
+
+                    Log.d("MainActivity", "Navigated to ProfileFragment with bottom nav visible");
+                }
             }
         }
+    }
+
+    /**
+     * Handle new intents when activity is reused (FLAG_ACTIVITY_SINGLE_TOP)
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);  // Update the intent
+        handleNavigationIntent();  // Process the new intent
+        Log.d("MainActivity", "onNewIntent called - processing navigation");
     }
 
     public void showBottomNav() {

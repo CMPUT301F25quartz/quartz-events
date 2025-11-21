@@ -71,9 +71,14 @@ public class AdminAboutFragment extends Fragment {
 
         ImageButton btnBack = view.findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> {
+            Log.d(TAG, "Back button clicked - returning to MainActivity");
+
             Intent intent = new Intent(requireActivity(), MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             intent.putExtra("navigate_to", "profile");
+            intent.putExtra("show_bottom_nav", true);
             startActivity(intent);
+
             requireActivity().finish();
         });
 
