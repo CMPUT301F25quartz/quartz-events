@@ -21,9 +21,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-
 import java.util.ArrayList;
 import java.util.List;
+/**
+ * Fragment representing an inbox screen.
+ * Use the {@link #newInstance(String, String)} factory method to
+ * create an instance with specific parameters.
+ */
+
 
 public class InboxFragment extends Fragment {
 
@@ -38,14 +43,28 @@ public class InboxFragment extends Fragment {
     private MaterialButton btnMarkAllRead;
     private MaterialButton btnFilterUnread;
     private MaterialButton btnViewArchived;
-
     private boolean showOnlyUnread = false;
     private boolean showingArchived = false;
 
     private NotificationAdapter.OnNotificationActionListener listener;
 
-    public InboxFragment() {}
+    /**
+     * Default public constructor for {@link InboxFragment}.
+     * Required by the Android system for fragment instantiation.
+     */
+    public InboxFragment() {
+        // Required empty public constructor
+    }
 
+
+    /**
+     * Factory method to create a new instance of {@link InboxFragment}
+     * using the provided parameters.
+     *
+     * @param inflater The first initialization parameter.
+     * @param savedInstanceState The second initialization parameter.
+     * @return A new instance of fragment {@link InboxFragment}.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,

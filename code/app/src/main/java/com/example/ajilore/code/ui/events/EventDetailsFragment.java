@@ -29,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -36,13 +37,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Fragment for displaying event details and managing waiting list membership
- * US 01.01.01: Join waiting list
- * US 01.01.02: Leave waiting list
- * US 01.01.03: View list of events (handled by EntrantEventsFragment)
- * US 01.05.04: View total entrants count
- * US 01.06.02: Sign up from event details
- * US 01.05.05: View lottery selection criteria
+ * Fragment for displaying event details and managing waiting list membership:
+ * <ul>
+ *   <li>Join/leave waiting list</li>
+ *   <li>View total entrants count</li>
+ *   <li>Sign up from event details</li>
+ *   <li>View lottery selection process</li>
+ * </ul>
  */
 public class EventDetailsFragment extends Fragment {
 
@@ -81,6 +82,13 @@ public class EventDetailsFragment extends Fragment {
     private int waitingListCount = 0;
     private int capacity = 0;
 
+    /**
+     * Factory for creating a new instance of this fragment for a specific event and user.
+     *
+     * @param eventId   The unique event document ID.
+     * @param title     The event title (for display).
+     * @return Configured EventDetailsFragment instance.
+     */
     public static EventDetailsFragment newInstance(String eventId, String title) {
         EventDetailsFragment fragment = new EventDetailsFragment();
         Bundle args = new Bundle();
@@ -90,7 +98,9 @@ public class EventDetailsFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
+    /**
+     * Inflate the event details layout.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -99,6 +109,9 @@ public class EventDetailsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_event_details, container, false);
     }
 
+    /**
+     * Initializes fields, fetches arguments, sets up click handlers and loads event data.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -139,19 +152,18 @@ public class EventDetailsFragment extends Fragment {
         // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // US 01.06.02: Load event details for sign up
+        // Load event details
         loadEventDetails();
         btnJoinLeave.setVisibility(View.VISIBLE);
         // US 01.01.01 & 01.01.02: Check waiting list status
         checkWaitingListStatus();
 
-        // US 01.01.01 & 01.01.02: Setup join/leave button
+        // Setup button click
         btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
     }
 
     /**
-     * US 01.06.02: Load event details from Firestore
-     * Displays event information so entrants can make informed decision to sign up
+     * Handles toggling user waiting list membership, calling the join/leave method as needed.
      */
     private void loadEventDetails() {
         progressBar.setVisibility(View.VISIBLE);
@@ -224,14 +236,14 @@ public class EventDetailsFragment extends Fragment {
                         // US 01.05.05: Display lottery selection criteria
                         displayLotteryInfo();
 
-                        // US 01.05.04: Load waiting list count
+                        // Load waiting list count
                         loadWaitingListCount();
                     }
                 });
     }
 
     /**
-     * US 01.01.01 & 01.01.02: Check if user is on waiting list
+     * Checks if the current user is on the waiting list and updates the button.
      */
     private void checkWaitingListStatus() {
         waitingListStatusListener = db.collection("org_events")
@@ -258,8 +270,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.05.04: Load and display waiting list count
-     * Shows total number of entrants on the waiting list
+     * Loads and updates the displayed waiting list count.
      */
     private void loadWaitingListCount() {
         waitingListCountListener = db.collection("org_events")
@@ -284,7 +295,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.01.01 & US 01.01.02: Handle join/leave waiting list
+     * Handles toggling user waiting list membership, calling the join/leave method as needed.
      */
     private void handleWaitingListAction() {
         if (!isRegistrationOpen) {
@@ -319,8 +330,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.01.01: Join waiting list
-     * US 01.06.02: Sign up for event from event details
+     * Writes the current user to the event's waiting list in Firestore.
      */
     private void joinWaitingList() {
         DocumentReference waitingListRef = db.collection("org_events")
@@ -332,6 +342,10 @@ public class EventDetailsFragment extends Fragment {
         entrant.put("userId", userId);
         entrant.put("joinedAt", FieldValue.serverTimestamp());
         entrant.put("status", "waiting");
+
+        // Log the registration to the history collection
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
 
         waitingListRef.set(entrant)
                 .addOnSuccessListener(aVoid -> {
@@ -353,7 +367,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.01.02: Leave waiting list
+     * Removes the current user from the event's waiting list in Firestore.
      */
     private void leaveWaitingList() {
         db.collection("org_events")
@@ -380,7 +394,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.01.01 & 01.01.02: Update join/leave button based on status
+     * Updates the join/leave button text and enabled state based on user registration and waiting list status.
      */
     private void updateJoinLeaveButton() {
 
@@ -410,7 +424,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * Display registration window information
+     * Updates registration window message and color based on status and timing.
      */
     private void updateRegistrationWindow(Timestamp regStart, Timestamp regEnd, Date now) {
         if (regStart == null || regEnd == null) {
@@ -453,8 +467,7 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * US 01.05.05: Display lottery selection criteria and guidelines
-     * Informs entrants about the lottery process
+     * Sets the UI text for the lottery information section.
      */
     private void displayLotteryInfo() {
         String lotteryText = "Lottery Selection Process:\n\n" +
@@ -468,7 +481,12 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * Check if registration is open
+     * Checks if event registration is currently open according to window.
+     *
+     * @param regStart Registration window start timestamp.
+     * @param regEnd   Registration window end timestamp.
+     * @param now      Current date/time.
+     * @return true if now falls within [regStart, regEnd], or always open if inputs are null.
      */
     private boolean isRegistrationOpen(Timestamp regStart, Timestamp regEnd, Date now) {
         if (regStart == null || regEnd == null) {
@@ -497,4 +515,26 @@ public class EventDetailsFragment extends Fragment {
         // Will be implemented when lottery system is ready
     }
     */
+    //method to log the history of the events that the user has registered for in registrations collection
+    private void logRegistrationToHistory(@NonNull String userId,
+                                          @NonNull String eventId,
+                                          @NonNull String eventTitle) {
+        Map<String, Object> reg = new HashMap<>();
+        reg.put("userId", userId);
+        reg.put("eventId", eventId);
+        reg.put("eventTitle", eventTitle);
+        reg.put("registeredAt", FieldValue.serverTimestamp());
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .collection("registrations")
+                .document(eventId)
+                .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(),
+                                "Failed to save registration history: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show()
+                );
+    }
 }

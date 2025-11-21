@@ -48,11 +48,28 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
     private final List<Event> eventListFull;
     private final OnEventActionListener listener;
 
+    /**
+     * Interface for admin interaction callbacks on events.
+     */
     public interface OnEventActionListener {
+        /**
+         * Called when delete button is pressed for an event.
+         * @param event Event to delete.
+         */
         void onDeleteClick(Event event);
+
+        /**
+         * Called when event row is clicked for details.
+         * @param event Event to view.
+         */
         void onEventClick(Event event);
     }
 
+    /**
+     * Constructs a new AdminEventsAdapter.
+     * @param context Context used for layout inflation and Glide.
+     * @param listener Callback interface for admin event actions.
+     */
     public AdminEventsAdapter(Context context, OnEventActionListener listener) {
         this.context = context;
         this.eventList = new ArrayList<>();
@@ -60,6 +77,10 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         this.listener = listener;
     }
 
+    /**
+     * Replaces the adapter's event list with new events and refreshes UI.
+     * @param events List of events to display.
+     */
     public void setEvents(List<Event> events) {
         this.eventList = new ArrayList<>(events);
         this.eventListFull.clear();
@@ -67,6 +88,10 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         notifyDataSetChanged();
     }
 
+    /**
+     * Filters the event list by matching query against title, description, or location.
+     * @param query Query string, case-insensitive.
+     */
     public void filter(String query) {
         eventList.clear();
         if (query.isEmpty()) {
@@ -85,6 +110,12 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         notifyDataSetChanged();
     }
 
+    /**
+     * Inflates the event item view and creates a ViewHolder.
+     * @param parent The parent ViewGroup.
+     * @param viewType View type (not used).
+     * @return A new EventViewHolder.
+     */
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -93,6 +124,11 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         return new EventViewHolder(view);
     }
 
+    /**
+     * Binds event data and click listeners to a ViewHolder.
+     * @param holder The ViewHolder.
+     * @param position Position of the event in the list.
+     */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
@@ -132,11 +168,17 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         });
     }
 
+    /**
+     * @return Number of events being displayed.
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
     }
 
+    /**
+     * ViewHolder for an event item row.
+     */
     static class EventViewHolder extends RecyclerView.ViewHolder {
         ImageView ivEventPoster;
         TextView tvEventDate;
@@ -145,6 +187,10 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         TextView tvEventLocation;
         ImageButton btnDelete;
 
+        /**
+         * Binds view references from inflated layout.
+         * @param itemView Root view of this event list item.
+         */
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             ivEventPoster = itemView.findViewById(R.id.iv_event_poster);

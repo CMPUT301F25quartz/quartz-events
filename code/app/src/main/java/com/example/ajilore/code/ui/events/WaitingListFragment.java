@@ -29,9 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link WaitingListFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment displaying the waiting list for an event.
+ * Use the {@link #newInstance(String)} factory method to create an instance with the given event ID.
  */
 public class WaitingListFragment extends Fragment {
     private static final String ARG_EVENT_ID = "eventId";
@@ -46,9 +45,20 @@ public class WaitingListFragment extends Fragment {
 
     private ImageButton btnBack;
 
-
+    /**
+     * Default public constructor for {@link WaitingListFragment}.
+     * Required by the system for fragment instantiation.
+     */
     public WaitingListFragment() {}
 
+
+    /**
+     * Factory method to create a new instance of {@link WaitingListFragment}
+     * using the provided event ID parameter.
+     *
+     * @param eventId The unique identifier for the event.
+     * @return A new instance of fragment {@link WaitingListFragment}.
+     */
     public static WaitingListFragment newInstance(String eventId) {
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
@@ -57,12 +67,27 @@ public class WaitingListFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called to inflate the fragment's view hierarchy.
+     *
+     * @param inflater The LayoutInflater object for inflating views.
+     * @param container The parent view (if any).
+     * @param savedInstanceState Previous saved state (if any).
+     * @return The root view of the fragment's layout.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_waiting_list, container, false);
     }
 
+    /**
+     * Called when the fragment's view has been created.
+     * Initializes UI components, sets up listeners, and populates the waiting list.
+     *
+     * @param view The root view returned by {@link #onCreateView}.
+     * @param savedInstanceState Previous saved state (if any).
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -142,6 +167,12 @@ public class WaitingListFragment extends Fragment {
                 });
 
         etSearch.addTextChangedListener(new TextWatcher() {
+            /**
+             * Called after the text is changed in the search EditText.
+             * Filters the entrants list based on the query.
+             *
+             * @param s The text after it has changed.
+             */
             @Override
             public void afterTextChanged(Editable s) {
                 filterEntrants(s.toString());
@@ -151,6 +182,12 @@ public class WaitingListFragment extends Fragment {
         });
     }
 
+
+    /**
+     * Filters {@link #entrantList} based on the search query and updates the adapter.
+     *
+     * @param query The search string to filter entrants by.
+     */
     private void filterEntrants(String query) {
         List<Entrant> filtered = new ArrayList<>();
         for (Entrant e : entrantList) {

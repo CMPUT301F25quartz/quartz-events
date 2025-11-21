@@ -227,8 +227,19 @@ public final class EventNotifier {
                 .addOnFailureListener(cb::onError);
     }
 
-    // Internal batching helper
-// collects per-batch sizes so delivered count is accurate
+    /**
+     * Batch-write inbox notifications to entrants in chunks.
+     * @param db Firestore instance
+     * @param uids List of user IDs to notify
+     * @param eventId Event document ID
+     * @param eventTitle Event title in the inbox
+     * @param message Message body
+     * @param includePoster Whether to show a poster in UI
+     * @param linkUrl Optional link
+     * @param targetStatus Audience label
+     * @param broadcastId Written to inbox docs for correlation
+     * @param cb Completion callback
+     */
     private static void writeInboxInChunks(@NonNull FirebaseFirestore db,
                                            @NonNull List<String> uids,
                                            @NonNull String eventId,
@@ -290,7 +301,15 @@ public final class EventNotifier {
     }
 
 
-    // WriteBatch commits to compute an accurate delivered count.
+    /**
+     * Recursively commits batches, updating delivered count for the callback.
+     * @param batches List of WriteBatch objects to commit
+     * @param batchSizes List of delivered counts per batch
+     * @param index Current batch index
+     * @param deliveredSoFar Cumulative delivered count
+     * @param broadcastId Broadcast audit document ID
+     * @param cb Callback for completion/failure
+     */
     private static void commitChain(@NonNull List<WriteBatch> batches,
                                     @NonNull List<Integer> batchSizes,
                                     int index,

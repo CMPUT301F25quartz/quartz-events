@@ -82,7 +82,11 @@ public class ManageEventsFragment extends Fragment {
     private FirebaseFirestore db;
 
     /**
-     * Inflates the “manage event” layout.
+     * Inflates the manage event layout for the notification and control panel.
+     * @param inflater LayoutInflater for the fragment
+     * @param container The root container if attached
+     * @param savedInstanceState Saved state if exists
+     * @return Root view for the fragment
      */
 
     @Nullable
@@ -94,10 +98,11 @@ public class ManageEventsFragment extends Fragment {
     }
 
     /**
-     * Wires UI elements, restores args, sets up pill behavior, and hooks the Send button
-     * to call {@link EventNotifier#notifyAudience(FirebaseFirestore, String, String, String, boolean, String, String, EventNotifier.Callback)}.
+     * Wires UI elements, restores args, sets up pill behavior, routes top bar buttons, and hooks the Send button.
+     * Sends messages to audience by delegating to {@link EventNotifier}.
+     * @param v Root view
+     * @param s Saved instance state
      */
-
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);

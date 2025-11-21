@@ -38,7 +38,7 @@ public class EventDetailsFragmentTests {
         try (ActivityScenario<MainActivity> sc = ActivityScenario.launch(MainActivity.class)) {
             sc.onActivity(a -> a.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment,
-                            EventDetailsFragment.newInstance("evt_123", "Sample Event", "user_abc"))
+                            EventDetailsFragment.newInstance("evt_123", "Sample Event")) // Now with 2 arguments
                     .commit());
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
@@ -62,7 +62,7 @@ public class EventDetailsFragmentTests {
 
             sc.onActivity(a -> a.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment,
-                            EventDetailsFragment.newInstance("evt_456", "Back Test", "user_abc"))
+                            EventDetailsFragment.newInstance("evt_456", "Back Test"))
                     .addToBackStack("details")
                     .commit());
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
@@ -86,7 +86,7 @@ public class EventDetailsFragmentTests {
         try (ActivityScenario<MainActivity> sc = ActivityScenario.launch(MainActivity.class)) {
             sc.onActivity(a -> a.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment,
-                            EventDetailsFragment.newInstance("evt_789", "Click Test", "user_xyz"))
+                            EventDetailsFragment.newInstance("evt_789", "Click Test"))
                     .commit());
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
@@ -99,7 +99,7 @@ public class EventDetailsFragmentTests {
         try (ActivityScenario<MainActivity> sc = ActivityScenario.launch(MainActivity.class)) {
             sc.onActivity(a -> a.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment,
-                            EventDetailsFragment.newInstance("evt_789", "Click Test", "user_xyz"))
+                            EventDetailsFragment.newInstance("evt_789", "Click Test"))
                     .commit());
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             onView(withId(R.id.ivEventPoster)).check(matches(isDisplayed()));
@@ -113,7 +113,7 @@ public class EventDetailsFragmentTests {
         try (ActivityScenario<MainActivity> sc = ActivityScenario.launch(MainActivity.class)) {
             sc.onActivity(a -> a.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment,
-                            EventDetailsFragment.newInstance("evt_789", "Click Test", "user_xyz"))
+                            EventDetailsFragment.newInstance("evt_789", "Click Test"))
                     .commit());
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             onView(withId(R.id.tvLotteryInfo)).check(matches(isDisplayed()));
