@@ -40,6 +40,7 @@ public class InboxFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
+
     private MaterialButton btnMarkAllRead;
     private MaterialButton btnFilterUnread;
     private MaterialButton btnViewArchived;
