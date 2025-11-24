@@ -201,10 +201,14 @@ public class SelectEntrantsFragment extends Fragment {
                     }
 
                     // Shuffle and pick the first N
+
+// Shuffle and pick the first N
                     List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
                     Collections.shuffle(waiting, new Random());
-                    List<DocumentSnapshot> winners =
-                            waiting.subList(0, Math.min(numberOfWinners, waiting.size()));
+
+                    int maxWinners = Math.min(numberOfWinners, waiting.size());
+                    List<DocumentSnapshot> winners    = waiting.subList(0, maxWinners);
+                    List<DocumentSnapshot> nonWinners = waiting.subList(maxWinners, waiting.size());
 
                     WriteBatch batch = db.batch();
                     for (DocumentSnapshot d : winners) {
@@ -219,7 +223,6 @@ public class SelectEntrantsFragment extends Fragment {
                         batch.set(ref, upd, SetOptions.merge());
                     }
 
-                    // COMMIT ONLY ONCE
                     batch.commit()
                             .addOnSuccessListener(v -> {
                                 Toast.makeText(requireContext(),
@@ -227,17 +230,14 @@ public class SelectEntrantsFragment extends Fragment {
                                         Toast.LENGTH_SHORT).show();
                                 btnRunDraw.setEnabled(true);
 
-                                // 🔥 AUTOMATIC NOTIFICATIONS (correct location)
+                                // 1) Notify winners (lottery winners)
+                                String chosenMsgTemplate =
+                                        "You’ve been chosen in the lottery for "
+                                                + (eventTitle != null ? eventTitle : "this event")
+                                                + ". Please open the app to accept or decline your spot.";
+
                                 for (DocumentSnapshot d : winners) {
                                     String uid = d.getId();
-                                    String name = d.getString("name");
-                                    String firstName = (name != null && !name.trim().isEmpty())
-                                            ? name.trim().split(" ")[0]
-                                            : null;
-
-                                    String msg = "You’ve been chosen in the lottery for "
-                                            + (eventTitle != null ? eventTitle : "this event")
-                                            + ". Please open the app to accept or decline your spot.";
 
                                     EventNotifier.notifySingle(
                                             db,
@@ -245,25 +245,56 @@ public class SelectEntrantsFragment extends Fragment {
                                             eventTitle != null ? eventTitle : "",
                                             uid,
                                             "chosen",
-                                            msg,
+                                            chosenMsgTemplate,
                                             /* includePoster */ true,
                                             /* linkUrl */ null,
                                             new EventNotifier.Callback() {
                                                 @Override
                                                 public void onSuccess(int delivered, @NonNull String broadcastId) {
-                                                    // optional: log
+                                                    // optional log
                                                 }
 
                                                 @Override
                                                 public void onError(@NonNull Exception e) {
-                                                    // optional: log
+                                                    // optional log
                                                 }
                                             }
                                     );
+                                }
 
+                                // 2) Notify non-winners (still on waiting list)
+                                if (!nonWinners.isEmpty()) {
+                                    String notChosenMsgTemplate =
+                                            "You were not selected in this lottery draw for "
+                                                    + (eventTitle != null ? eventTitle : "this event")
+                                                    + ", but you are still on the waiting list. "
+                                                    + "If a spot opens up or another draw is run, you may be selected.";
+
+                                    for (DocumentSnapshot d : nonWinners) {
+                                        String uid = d.getId();
+
+                                        EventNotifier.notifySingle(
+                                                db,
+                                                eventId,
+                                                eventTitle != null ? eventTitle : "",
+                                                uid,
+                                                "waiting",   // they remain waiting
+                                                notChosenMsgTemplate,
+                                                /* includePoster */ true,
+                                                /* linkUrl */ null,
+                                                new EventNotifier.Callback() {
+                                                    @Override
+                                                    public void onSuccess(int delivered, @NonNull String broadcastId) { }
+
+                                                    @Override
+                                                    public void onError(@NonNull Exception e) { }
+                                                }
+                                        );
+                                    }
                                 }
 
                             })
+
                             .addOnFailureListener(e -> {
                                 Toast.makeText(requireContext(), "Draw failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                 btnRunDraw.setEnabled(true);
