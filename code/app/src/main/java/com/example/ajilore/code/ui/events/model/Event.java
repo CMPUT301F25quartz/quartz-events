@@ -49,7 +49,7 @@ public class Event {
      * Optional key that identifies a poster image.
      * Could be a Storage path, filename, or logical key used by the app.
      */
-    public String   posterKey;     // optional: key to Storage path later
+    public String   posterUrl;     // optional: key to Storage path later
 
     /** Publication state; commonly "draft" or "published". */
     public String   status;        // “draft” | “published”
@@ -60,9 +60,4 @@ public class Event {
 
     /** Server timestamp set at creation time in Firestore. */
     public Timestamp createdAt;    // serverTimestamp() on write
-
-
-
-
-
 }
