@@ -68,11 +68,11 @@ public class AdminController {
                                 }
                             }
                             callback.onSuccess(events);
-                            Log.d(TAG, "✅ Successfully fetched " + events.size() + " events");
+                            Log.d(TAG, "Successfully fetched " + events.size() + " events");
                         } else {
                             Exception e = task.getException();
                             callback.onError(e != null ? e : new Exception("Unknown error"));
-                            Log.e(TAG, "❌ Error fetching events", task.getException());
+                            Log.e(TAG, "Error fetching events", task.getException());
                         }
                     }
                 });
@@ -106,11 +106,11 @@ public class AdminController {
                                 }
                             }
                             callback.onSuccess(users);
-                            Log.d(TAG, "✅ Successfully fetched " + users.size() + " users");
+                            Log.d(TAG, "Successfully fetched " + users.size() + " users");
                         } else {
                             Exception e = task.getException();
                             callback.onError(e != null ? e : new Exception("Unknown error"));
-                            Log.e(TAG, "❌ Error fetching users", task.getException());
+                            Log.e(TAG, "Error fetching users", task.getException());
                         }
                     }
                 });
@@ -139,7 +139,7 @@ public class AdminController {
                         db.collection(EVENTS_COLLECTION).document(eventId)
                                 .delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "✅ Event removed: " + eventId);
+                                    Log.d(TAG, "Event removed: " + eventId);
 
                                     // If there's an image, delete it from Storage
                                     if (imageURL != null && !imageURL.isEmpty() && !imageURL.equals("\"\"")) {
@@ -149,7 +149,7 @@ public class AdminController {
                                     callback.onSuccess();
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.e(TAG, "❌ Error removing event", e);
+                                    Log.e(TAG, " Error removing event", e);
                                     callback.onError(e);
                                 });
                     } else {
@@ -158,7 +158,7 @@ public class AdminController {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error fetching event", e);
+                    Log.e(TAG, "Error fetching event", e);
                     callback.onError(e);
                 });
     }
@@ -176,11 +176,11 @@ public class AdminController {
         db.collection(USERS_COLLECTION).document(userId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ User removed: " + userId);
+                    Log.d(TAG, "User removed: " + userId);
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error removing user", e);
+                    Log.e(TAG, "Error removing user", e);
                     callback.onError(e);
                 });
     }
@@ -196,11 +196,11 @@ public class AdminController {
             StorageReference imageRef = storage.getReferenceFromUrl(imageURL);
             imageRef.delete()
                     .addOnSuccessListener(aVoid ->
-                            Log.d(TAG, "✅ Image deleted from storage"))
+                            Log.d(TAG, " Image deleted from storage"))
                     .addOnFailureListener(e ->
-                            Log.e(TAG, "⚠️ Error deleting image (may not exist)", e));
+                            Log.e(TAG, "⚠Error deleting image (may not exist)", e));
         } catch (Exception e) {
-            Log.e(TAG, "⚠️ Invalid storage URL: " + imageURL, e);
+            Log.e(TAG, "⚠ Invalid storage URL: " + imageURL, e);
         }
     }
 

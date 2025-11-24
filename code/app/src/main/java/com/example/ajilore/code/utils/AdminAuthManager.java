@@ -67,6 +67,6 @@ public class AdminAuthManager {
     public static void addCurrentDeviceAsAdmin(Context context) {
         String deviceId = getDeviceId(context);
         ADMIN_DEVICE_IDS.add(deviceId);
-        Log.d(TAG, "⚠️ Added current device as admin (TESTING ONLY): " + deviceId);
+        Log.d(TAG, "⚠ Added current device as admin (TESTING ONLY): " + deviceId);
     }
 }

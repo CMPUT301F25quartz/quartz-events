@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Show notification if admin mode is active
         if (isAdmin) {
-            Toast.makeText(this, "👑 Admin Mode Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, " Admin Mode Enabled", Toast.LENGTH_LONG).show();
             // Recreate options menu to show admin items
             invalidateOptionsMenu();
         }
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         // Only show menu if user is admin
         if (isAdmin) {
             getMenuInflater().inflate(R.menu.menu_admin, menu);
-            Log.d("ADMIN_MENU", "✅ Admin menu inflated");
+            Log.d("ADMIN_MENU", " Admin menu inflated");
             return true;
         }
         return super.onCreateOptionsMenu(menu);
@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(querySnapshot -> {
                     int count = querySnapshot.size();
 
-                    Log.d("Firebase", "✅ SUCCESS! Connected to Firestore");
+                    Log.d("Firebase", " SUCCESS! Connected to Firestore");
                     Log.d("Firebase", "Found " + count + " events");
 
                     // Log each event
@@ -355,14 +355,14 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     Toast.makeText(this,
-                            "✅ Firebase connected! Found " + count + " events",
+                            "Firebase connected! Found " + count + " events",
                             Toast.LENGTH_LONG).show();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("Firebase", "❌ FAILED: " + e.getMessage());
+                    Log.e("Firebase", " FAILED: " + e.getMessage());
 
                     Toast.makeText(this,
-                            "❌ Firebase error: " + e.getMessage(),
+                            "Firebase error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 });
     }
