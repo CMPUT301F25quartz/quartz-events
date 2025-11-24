@@ -16,6 +16,7 @@ import com.example.ajilore.code.R;
 import com.google.firebase.firestore.*;
 
 import java.util.*;
+import com.example.ajilore.code.ui.events.EventNotifier;
 
 /**
  * SelectEntrantsFragment
@@ -185,7 +186,7 @@ public class SelectEntrantsFragment extends Fragment {
         }
 
         btnRunDraw.setEnabled(false);
-        final int numberofWinners = n;
+        final int numberOfWinners = n;
 
         // Get everyone still on the waiting list
         db.collection("org_events").document(eventId)
@@ -202,7 +203,8 @@ public class SelectEntrantsFragment extends Fragment {
                     // Shuffle and pick the first N
                     List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
                     Collections.shuffle(waiting, new Random());
-                    List<DocumentSnapshot> winners = waiting.subList(0, Math.min(numberofWinners, waiting.size()));
+                    List<DocumentSnapshot> winners =
+                            waiting.subList(0, Math.min(numberOfWinners, waiting.size()));
 
                     WriteBatch batch = db.batch();
                     for (DocumentSnapshot d : winners) {
@@ -211,13 +213,13 @@ public class SelectEntrantsFragment extends Fragment {
                                         .collection("waiting_list").document(d.getId());
 
                         Map<String, Object> upd = new HashMap<>();
-                        upd.put("status", "chosen");              // was "selected"
-                        upd.put("responded", "pending");          // waiting on accept
+                        upd.put("status", "chosen");
+                        upd.put("responded", "pending");
                         upd.put("selectedAt", FieldValue.serverTimestamp());
                         batch.set(ref, upd, SetOptions.merge());
                     }
 
-
+                    // COMMIT ONLY ONCE
                     batch.commit()
                             .addOnSuccessListener(v -> {
                                 Toast.makeText(requireContext(),
@@ -225,12 +227,42 @@ public class SelectEntrantsFragment extends Fragment {
                                         Toast.LENGTH_SHORT).show();
                                 btnRunDraw.setEnabled(true);
 
-                                // Optional: jump to your Notify screen
-                                // requireActivity().getSupportFragmentManager().popBackStack();
-                                // requireActivity().getSupportFragmentManager().beginTransaction()
-                                //     .replace(R.id.nav_host_fragment,
-                                //         ManageEventsFragment.newInstance(eventId, eventTitle))
-                                //     .addToBackStack(null).commit();
+                                // 🔥 AUTOMATIC NOTIFICATIONS (correct location)
+                                for (DocumentSnapshot d : winners) {
+                                    String uid = d.getId();
+                                    String name = d.getString("name");
+                                    String firstName = (name != null && !name.trim().isEmpty())
+                                            ? name.trim().split(" ")[0]
+                                            : null;
+
+                                    String msg = "You’ve been chosen in the lottery for "
+                                            + (eventTitle != null ? eventTitle : "this event")
+                                            + ". Please open the app to accept or decline your spot.";
+
+                                    EventNotifier.notifySingle(
+                                            db,
+                                            eventId,
+                                            eventTitle != null ? eventTitle : "",
+                                            uid,
+                                            "chosen",
+                                            msg,
+                                            /* includePoster */ true,
+                                            /* linkUrl */ null,
+                                            new EventNotifier.Callback() {
+                                                @Override
+                                                public void onSuccess(int delivered, @NonNull String broadcastId) {
+                                                    // optional: log
+                                                }
+
+                                                @Override
+                                                public void onError(@NonNull Exception e) {
+                                                    // optional: log
+                                                }
+                                            }
+                                    );
+
+                                }
+
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(requireContext(), "Draw failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -243,6 +275,7 @@ public class SelectEntrantsFragment extends Fragment {
                     btnRunDraw.setEnabled(true);
                 });
     }
+
 
     /**
      * Lightweight model for a single entrant row in the list.
