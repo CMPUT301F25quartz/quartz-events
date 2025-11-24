@@ -298,7 +298,7 @@ class Event {
 + startsAt : Timestamp
 + regOpens : Timestamp
 + regCloses : Timestamp
-+ posterKey : String
++ posterUrl : String
 + status : String
 + createdByUid : String
 + createdAt : Timestamp
