@@ -1,5 +1,7 @@
 package com.example.ajilore.code.ui.profile;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
@@ -9,17 +11,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,15 +65,19 @@ public class LoginFragment extends Fragment {
     // Views
     private TextInputLayout tilNameLogin, tilEmailSignup, tilPhoneSignup;
     private TextInputEditText etNameLogin, etEmailSignup, etPhoneSignup;
-    private MaterialButton btnContinueLogin, btnSignup;
+    private MaterialButton btnContinueLogin, btnSignup, btnShowSignup;
     private LinearLayout groupSignup;
 
     // Firestore
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String uid;
     private boolean authReady = false;
-    private BottomNavigationView bottomNavigationView;
+    // Location
+    private FusedLocationProviderClient fusedLocationClient;
+    private String deviceId;
+    private static final int LOCATION_REQUEST_CODE = 101;
+    private MaterialSwitch switchLocation;
+
 
     /**
      * Inflates the layout for this fragment.
@@ -98,6 +110,8 @@ public class LoginFragment extends Fragment {
         tilNameLogin   = v.findViewById(R.id.tilNameLogin);
         etNameLogin    = v.findViewById(R.id.etNameLogin);
         btnContinueLogin = v.findViewById(R.id.btnContinueLogin);
+        btnShowSignup = v.findViewById(R.id.btnShowSignup);
+
 
         groupSignup    = v.findViewById(R.id.groupSignup);
         tilEmailSignup = v.findViewById(R.id.tilEmailSignup);
@@ -106,151 +120,178 @@ public class LoginFragment extends Fragment {
         etPhoneSignup  = v.findViewById(R.id.etPhoneSignup);
         btnSignup      = v.findViewById(R.id.btnSignup);
 
+        switchLocation = v.findViewById(R.id.switchLocation);
+
+
         // Hide signup section initially
         groupSignup.setVisibility(View.GONE);
 
+        //Firebase initialization
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        ((MainActivity) requireActivity()).hideBottomNav();
+        // Location provider
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
+        // Get stable device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
+
+        //Hide bottom nav during login
+        ((MainActivity) requireActivity()).hideBottomNav();
 
         // Disable interactions until auth is ready
         setUiEnabled(false);
 
-        // Ensure we have a UID
+        // Firebase anonymous auth (used only to allow Firestore access)
         if (auth.getCurrentUser() == null) {
-            Log.d("AuthTest", "Starting anonymous sign-in…");
             auth.signInAnonymously().addOnSuccessListener(res -> {
-                uid = res.getUser().getUid();
                 authReady = true;
-                Log.d("AuthTest", "Anonymous sign-in success. UID=" + uid);
                 setUiEnabled(true);
-            }).addOnFailureListener(e -> {
-                authReady = false;
-                Log.e("AuthTest", "Anonymous sign-in FAILED: " + e.getMessage(), e);
-                Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            });
+            }).addOnFailureListener(e ->
+                    Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
         } else {
-            uid = auth.getCurrentUser().getUid();
             authReady = true;
-            Log.d("AuthTest", "Already signed in. UID=" + uid);
             setUiEnabled(true);
         }
 
-        // Live validation for login name
-        etNameLogin.addTextChangedListener(simpleWatcher(s -> {
-            boolean ok = isNonBlank(getText(etNameLogin));
-            tilNameLogin.setError(ok ? null : "Name required");
-            btnContinueLogin.setEnabled(authReady && ok);
-        }));
+        //enable sign up only when fields are valid
+        TextWatcher signupWatcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Live validation for signup (email required, phone optional)
-        TextWatcher signupWatcher = simpleWatcher(s -> {
-            boolean okEmail = isEmailOk(getText(etEmailSignup));
-            tilEmailSignup.setError(okEmail ? null : "Must contain @");
-            btnSignup.setEnabled(okEmail && isNonBlank(getText(etNameLogin)));
-        });
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String name = getText(etNameLogin);
+                String email = getText(etEmailSignup);
+                btnSignup.setEnabled(isNonBlank(name) && isEmailOk(email));
+            }
+
+            @Override public void afterTextChanged(Editable s) {}
+        };
+
+        etNameLogin.addTextChangedListener(signupWatcher);
         etEmailSignup.addTextChangedListener(signupWatcher);
-        etPhoneSignup.addTextChangedListener(signupWatcher);
 
-        // LOGIN: check if user exists by nameLower; if yes -> navigate; if no -> show signup
-        btnContinueLogin.setOnClickListener(view -> {
-            if (!authReady) {
-                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String name = getText(etNameLogin);
-            if (!isNonBlank(name)) {
-                tilNameLogin.setError("Name required");
-                return;
-            }
-            String nameLower = name.toLowerCase(Locale.ROOT).trim();
-
-            db.collection("usersByName").document(nameLower)
-                    .get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists()) {
-                            Toast.makeText(getContext(), "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
-                            //dsiplaying the nav bar
-                            //((MainActivity) requireActivity()).findViewById(R.id.menu_bottom_nav).setVisibility(View.VISIBLE);
-                            //bottomNavigationView.setVisibility(View.VISIBLE);
-                           // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
-                            ((MainActivity) requireActivity()).showBottomNav();
-                            navigateToEvents();
-                        } else {
-                            Toast.makeText(getContext(), "No account found. Please sign up.", Toast.LENGTH_SHORT).show();
-                            groupSignup.setVisibility(View.VISIBLE);
-                        }
-                    })
-                    .addOnFailureListener(err ->
-                            Toast.makeText(getContext(), "Login check failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
-                    );
+        //show sign up form
+        btnShowSignup.setOnClickListener(v2 -> {
+            groupSignup.setVisibility(View.VISIBLE);
         });
 
-        // SIGNUP: create user doc then navigate
-        btnSignup.setOnClickListener(view -> {
-            if (!authReady) {
-                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String name  = getText(etNameLogin);
-            String email = getText(etEmailSignup);
-            String phone = getText(etPhoneSignup);
 
-            if (!isNonBlank(name)) {
-                tilNameLogin.setError("Name required");
-                return;
-            }
-            if (!isEmailOk(email)) {
-                tilEmailSignup.setError("Must contain @");
-                return;
-            }
+        // LOGIN
+        btnContinueLogin.setOnClickListener(view -> {
+                    if (!authReady) {
+                        Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-            String nameLower = name.toLowerCase(Locale.ROOT).trim();
-            String deviceId  = getDeviceId();
-
-            Map<String, Object> user = new HashMap<>();
-            user.put("name", name.trim());
-            user.put("nameLower", nameLower);
-            user.put("email", email.trim());
-            user.put("phone", phone.trim());
-            user.put("role", "entrant");
-            user.put("createdAt", FieldValue.serverTimestamp());
+                    //checking if the device id already exists in firestore
+                    db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
+                                if (doc.exists()) {
+                                    //device already exists
+                                    groupSignup.setVisibility(View.GONE);
+                                    Toast.makeText(getContext(), "Welcome back!", Toast.LENGTH_SHORT).show();
+                                    ((MainActivity) requireActivity()).showBottomNav();
+                                    navigateToEvents();
+                                } else {
+                                    //device not recognized
+                                    Toast.makeText(getContext(), "New device. Please sign up.", Toast.LENGTH_SHORT).show();
+                                    groupSignup.setVisibility(View.VISIBLE);
+                                }
+                            })
+                            .addOnFailureListener(err ->
+                                    Toast.makeText(getContext(), "Error" + err.getMessage(), Toast.LENGTH_LONG).show()
+                            );
+                });
 
 
-            db.runTransaction(trx -> {
-                // Ensure name not taken (second layer of safety)
-                var nameDocRef = db.collection("usersByName").document(nameLower);
-                var nameDoc = trx.get(nameDocRef);
-                if (nameDoc.exists()) {
-                    throw new RuntimeException("That name is already taken.");
+            // SIGNUP: create user doc then navigate
+            btnSignup.setOnClickListener(view -> {
+                if (!authReady) {
+                    Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                // Write profile
-                trx.set(db.collection("users").document(uid), user);
-                // Reserve name
-                Map<String,Object> idx = new HashMap<>();
-                idx.put("uid", uid);
-                idx.put("createdAt", FieldValue.serverTimestamp());
-                trx.set(nameDocRef, idx);
-                return null;
-            }).addOnSuccessListener(x -> {
-                Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
-                ((MainActivity) requireActivity()).showBottomNav();
-                navigateToEvents();
-            }).addOnFailureListener(err ->
-                    Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
-            );
+                String name = getText(etNameLogin);
+                String email = getText(etEmailSignup);
+                String phone = getText(etPhoneSignup);
+
+                if (!isNonBlank(name)) {
+                    tilNameLogin.setError("Name required");
+                    return;
+                }
+                if (!isEmailOk(email)) {
+                    tilEmailSignup.setError("Invalid email address");
+                    return;
+                }
+
+                Map<String, Object> user = new HashMap<>();
+                user.put("name", name);
+                user.put("email", email);
+                user.put("phone", phone);
+                user.put("role", "entrant");
+                user.put("createdAt", FieldValue.serverTimestamp());
+                user.put("preferences", "yes");
+                user.put("profilepicture", "url link");
+                user.put("locationEnabled", switchLocation.isChecked());
+
+                if(!switchLocation.isChecked()){
+                    saveUserToFirestore(user);
+                    return;
+                }
+
+                requestCurrentLocation(user);
+            });
+        }
+
+    private void requestCurrentLocation(Map<String, Object> user) {
+        if (ActivityCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            return;
+        }
+
+        fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                null
+        ).addOnSuccessListener(location -> {
+            if (location != null) {
+                user.put("latitude", location.getLatitude());
+                user.put("longitude", location.getLongitude());
+            }
+
+            saveUserToFirestore(user);
+
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Couldn't get location", Toast.LENGTH_SHORT).show();
+            saveUserToFirestore(user);
         });
     }
+
+    private void saveUserToFirestore(Map<String, Object> user) {
+        db.collection("users")
+                .document(deviceId)
+                .set(user)
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                    ((MainActivity) requireActivity()).showBottomNav();
+                    navigateToEvents();
+                })
+                .addOnFailureListener(err ->
+                        Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
     /**
      * Enables or disables all input fields and buttons based on authentication readiness.
      *
      * @param enabled true to enable UI interaction, false to disable it.
      */
     private void setUiEnabled(boolean enabled) {
-        if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled && isNonBlank(getText(etNameLogin)));
-        if (btnSignup != null)       btnSignup.setEnabled(enabled && isEmailOk(getText(etEmailSignup)) && isNonBlank(getText(etNameLogin)));
+        if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled);
+        if (btnSignup != null)       btnSignup.setEnabled(false);
         if (etNameLogin != null)     etNameLogin.setEnabled(true); // allow typing anytime
         if (etEmailSignup != null)   etEmailSignup.setEnabled(enabled);
         if (etPhoneSignup != null)   etPhoneSignup.setEnabled(enabled);
@@ -284,21 +325,16 @@ public class LoginFragment extends Fragment {
     private boolean isEmailOk(String s) {
         return s != null && s.contains("@");
     }
-    /** Creates a simplified TextWatcher for live validation. */
-    private TextWatcher simpleWatcher(OnChange cb) {
-        return new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { cb.run(String.valueOf(s)); }
-            @Override public void afterTextChanged(Editable s) {}
-        };
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_REQUEST_CODE &&
+                grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            Toast.makeText(getContext(), "Location permission granted", Toast.LENGTH_SHORT).show();
+        }
     }
-    /** Returns a unique device ID used as a backup identifier for anonymous users. */
-    private String getDeviceId() {
-        return Settings.Secure.getString(
-                requireContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID
-        );
-    }
-    /** Functional interface used by {@link #simpleWatcher(OnChange)} for text change callbacks. */
-    private interface OnChange { void run(String s); }
 }

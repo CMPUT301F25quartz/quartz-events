@@ -1,6 +1,7 @@
 package com.example.ajilore.code.ui.profile;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.*;
@@ -50,6 +51,8 @@ public class EditProfileFragment extends Fragment {
 
     private TextInputEditText etName, etEmail, etPhone;
     private MaterialButton btnSave, btnCancel;
+    private FirebaseFirestore db;
+    private String deviceId;
     /**
      * Inflates the layout for this fragment.
      *
@@ -86,6 +89,12 @@ public class EditProfileFragment extends Fragment {
         btnSave = v.findViewById(R.id.btnSave);
         btnCancel = v.findViewById(R.id.btnCancel);
 
+        db = FirebaseFirestore.getInstance();
+
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
 
 
         TextWatcher watcher = new SimpleWatcher(() -> {
@@ -99,45 +108,35 @@ public class EditProfileFragment extends Fragment {
 
         btnCancel.setOnClickListener(v1 -> requireActivity().onBackPressed());
 
-        btnSave.setOnClickListener(v12 -> {
-            var user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user == null) {
-                Toast.makeText(getContext(), "Not signed in", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String uid = user.getUid();
-
-            Map<String, Object> patch = new HashMap<>();
-            String name  = get(etName);
-            String email = get(etEmail);
-            String phone = get(etPhone);
-
-            if (!name.isEmpty()) {
-                patch.put("name", name);
-                patch.put("nameLower", name.toLowerCase(Locale.ROOT));
-            }
-            if (!email.isEmpty()) patch.put("email", email);
-            if (!phone.isEmpty()) patch.put("phone", phone);
-
-            if (patch.isEmpty()) {
-                Toast.makeText(getContext(), "Nothing to update", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            FirebaseFirestore.getInstance()
-                    .collection("users").document(uid)
-                    .set(patch, SetOptions.merge())
-                    .addOnSuccessListener(x -> {
-                        Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show();
-                        requireActivity().getSupportFragmentManager().popBackStack();
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                    );
-        });
+        btnSave.setOnClickListener(v1 -> saveChanges());
 
         // Initial state
         btnSave.setEnabled(false);
+    }
+
+    private void saveChanges() {
+        Map<String, Object> patch = new HashMap<>();
+
+        if (notEmpty(etName)) patch.put("name", get(etName));
+        if (notEmpty(etEmail)) patch.put("email", get(etEmail));
+        if (notEmpty(etPhone)) patch.put("phone", get(etPhone));
+
+        if (patch.isEmpty()) {
+            Toast.makeText(getContext(), "Nothing to update", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(deviceId)
+                .set(patch, SetOptions.merge())
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show();
+                    requireActivity().onBackPressed();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Update failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show()
+                );
     }
     /**
      * Checks if the given text field contains non-empty input.
