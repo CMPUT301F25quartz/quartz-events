@@ -120,7 +120,7 @@
                 android:id="@+id/switchLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Share my location for event maps"
+                android:text="Share my location"
                 android:layout_marginTop="12dp"/>
 
             <com.google.android.material.button.MaterialButton
