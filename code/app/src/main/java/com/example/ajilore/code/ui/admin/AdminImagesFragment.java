@@ -2,10 +2,13 @@ package com.example.ajilore.code.ui.admin;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -45,13 +48,14 @@ import java.util.List;
  * <p>Features:</p>
  * <ul>
  *   <li>Display all uploaded event poster images in a grid layout</li>
+ *   <li>Search images by event name</li>
  *   <li>Remove inappropriate or policy-violating images</li>
  *   <li>View image with associated event name</li>
  *   <li>Clean, non-cluttered UI with only actual images (no defaults/nulls)</li>
  * </ul>
  *
  * @author Dinma (Team Quartz)
- * @version 1.1
+ * @version 1.2
  * @since 2025-11-01
  */
 public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.OnImageActionListener {
@@ -62,6 +66,7 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
     private LinearLayout layoutEmptyState;
     private ProgressBar progressBar;
     private ImageButton btnBack;
+    private EditText etSearchImages;
 
     /**
      * Creates and returns the view hierarchy for the images browsing interface.
@@ -81,6 +86,7 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
         initializeViews(view);
         adminController = new AdminController();
         setupRecyclerView();
+        setupSearch();
         setupBackButton();
         loadImages();
 
@@ -96,6 +102,7 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
         progressBar = view.findViewById(R.id.progress_bar);
         btnBack = view.findViewById(R.id.btn_back);
+        etSearchImages = view.findViewById(R.id.et_search_images);
     }
 
     /**
@@ -108,6 +115,33 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
         GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(), 2);
         rvImages.setLayoutManager(gridLayoutManager);
         rvImages.setAdapter(adapter);
+    }
+
+    /**
+     * Sets up the search EditText with TextWatcher to filter images in real-time.
+     * Filters images by event name as user types.
+     */
+    private void setupSearch() {
+        if (etSearchImages != null) {
+            etSearchImages.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // Not needed
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Filter the adapter as user types
+                    adapter.filter(s.toString());
+                    updateEmptyState();
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Not needed
+                }
+            });
+        }
     }
 
     /**

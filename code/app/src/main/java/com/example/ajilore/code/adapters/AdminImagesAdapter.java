@@ -39,6 +39,7 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
 
     private final Context context;
     private List<ImageItem> imageList;
+    private final List<ImageItem> imageListFull;  // Store unfiltered list for search
     private final OnImageActionListener listener;
 
     /**
@@ -66,6 +67,7 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
     public AdminImagesAdapter(Context context, OnImageActionListener listener) {
         this.context = context;
         this.imageList = new ArrayList<>();
+        this.imageListFull = new ArrayList<>();
         this.listener = listener;
     }
 
@@ -75,6 +77,34 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
      */
     public void setImages(List<ImageItem> images) {
         this.imageList = new ArrayList<>(images);
+        this.imageListFull.clear();
+        this.imageListFull.addAll(images);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Filters the image list by event title.
+     * Searches through event names to match the query.
+     *
+     * @param query The search query to filter by (case-insensitive)
+     */
+    public void filter(String query) {
+        imageList.clear();
+
+        if (query == null || query.isEmpty()) {
+            // If query is empty, show all images
+            imageList.addAll(imageListFull);
+        } else {
+            // Filter by event title (case-insensitive)
+            String lowerCaseQuery = query.toLowerCase().trim();
+            for (ImageItem imageItem : imageListFull) {
+                if (imageItem.title != null &&
+                        imageItem.title.toLowerCase().contains(lowerCaseQuery)) {
+                    imageList.add(imageItem);
+                }
+            }
+        }
+
         notifyDataSetChanged();
     }
 

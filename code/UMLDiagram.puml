@@ -241,6 +241,7 @@ class NotificationAdapter$NotificationViewHolder {
 }
 class AdminImagesAdapter {
 + setImages(arg0 : List<ImageItem>) : void
++ filter(arg0 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ImageViewHolder
 + onBindViewHolder(arg0 : ImageViewHolder, arg1 : int) : void
 + getItemCount() : int
