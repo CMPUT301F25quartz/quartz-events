@@ -499,6 +499,8 @@ public class EventDetailsFragment extends Fragment {
 
 
 
+
+
     // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
     // Commented out for later sprints
 

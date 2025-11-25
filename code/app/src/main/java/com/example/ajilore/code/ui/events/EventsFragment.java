@@ -24,6 +24,8 @@ import com.google.firebase.firestore.Query;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -114,7 +116,8 @@ public abstract class EventsFragment extends Fragment {
 
                     List<EventRow> rows = new ArrayList<>();
                     if (snap != null) {
-                        for (DocumentSnapshot d : snap.getDocuments()) {
+                        for (DocumentSnapshot doc : snap.getDocuments()) {
+                            /*
                             String id        = d.getId();
                             String title     = safe(d.getString("title"), "(Untitled)");
                             String location  = safe(d.getString("location"), "TBA");
@@ -124,18 +127,20 @@ public abstract class EventsFragment extends Fragment {
                             String dateText  = (ts != null)
                                     ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
                                     : "";
-
-                            rows.add(new EventRow(
-                                    id,
-                                    title,
-                                    location,
-                                    dateText,
-                                    mapPoster(posterKey),
-                                    posterKey,
-                                    status
-                            ));
+                              */
+                            rows.add(toEventRow(doc)
+                            );
                         }
                     }
+                    //I'm trying to sort then to show the events in order (Open -> Published -> Closed)
+                    Collections.sort(rows, (a,b) ->{
+                        int rankA = statusRank(a.status);
+                        int rankB = statusRank(b.status);
+                        int cmp = Integer.compare(rankA, rankB);
+                        if (cmp != 0) return cmp;
+                        return 0;
+                    });
+
                     adapter.replaceAll(rows);
                     emptyView.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
                 });
@@ -153,6 +158,22 @@ public abstract class EventsFragment extends Fragment {
         return (s == null || s.trim().isEmpty()) ? def:s;
 
     }
+
+    /**
+     * Helper function to sort the events based on their status
+     * @param status
+     * @return the rank of the status
+     */
+    private int statusRank(String status){
+        if(status == null) return 3;
+        String s = status.trim().toLowerCase();
+        if("open".equals(s)) return 1;
+        if("published".equals(s)) return 2;
+        if("closed".equals(s)) return 3;
+        return 4; //anything else but we shouldnt have this
+    }
+
+
 
     /**
      * Shows or hides the progress view.
@@ -177,4 +198,50 @@ public abstract class EventsFragment extends Fragment {
             default: return R.drawable.jazz;
         }
     }
+
+    /**
+     * Helper function to compute the "Upcoming"/"Open"/"Closed" based on registration window
+     */
+    private String computeStatus(Timestamp regStartTime, Timestamp regEndTime, Date now){
+        if (regStartTime == null || regEndTime == null) {
+            return "Open";
+        }
+        Date start = regStartTime.toDate();
+        Date end = regEndTime.toDate();
+        if (now.before(start)) {
+            return "Upcoming";
+        } else if (now.after(end)) {
+            return "Closed";
+        } else {
+            return "Open";
+        }
+
+    }
+
+    private EventRow toEventRow(DocumentSnapshot doc) {
+        String id = doc.getId();
+        String title = doc.getString("title");
+        String location = doc.getString("location");
+        String posterUrl = doc.getString("posterUrl");
+
+        Timestamp startsAt = doc.getTimestamp("startsAt");
+        Timestamp regStartTime = doc.getTimestamp("regOpens");
+        Timestamp regEndTime = doc.getTimestamp("regCloses");
+
+        String dateText;
+        if (startsAt != null) {
+            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+            dateText = df.format(startsAt.toDate());
+
+        } else {
+            dateText = "Date TBA";
+        }
+
+        Date now = new Date();
+        String status = computeStatus(regStartTime, regEndTime, now);
+
+        return new EventRow(id, title, location, dateText, R.drawable.jazz, posterUrl, status);
+
+    }
+
 }
