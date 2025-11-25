@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -71,6 +72,7 @@ public class CreateEventFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private TextInputEditText etTitle, etLocation, etDate, etRegOpens, etRegCloses;
+    private TextView tvHeader;
     private MaterialAutoCompleteTextView actCapacity, actEventType;
     private Button btnSave, btnCancel;
     private ImageButton btnBack;
@@ -371,7 +373,7 @@ public class CreateEventFragment extends Fragment {
 
         Log.d("CreateEventFragment", "validateAndSave() called");
 
-        // Step 1: Retrieve all user input as strings
+        //Retrieve all user input as strings
         String title = etTitle.getText().toString().trim();
         String eventType = actEventType.getText().toString().trim();
         String location = etLocation.getText().toString().trim();
@@ -380,7 +382,7 @@ public class CreateEventFragment extends Fragment {
         String regOpensStr = etRegOpens.getText().toString().trim();
         String regClosesStr = etRegCloses.getText().toString().trim();
 
-        // Step 2: Validate input fields and set errors on invalid/empty
+        // Validate input fields and set errors on invalid/empty
         boolean valid = true;
         if (title.isEmpty()) {
             etTitle.setError("Title is required");
@@ -415,7 +417,7 @@ public class CreateEventFragment extends Fragment {
             return;
         }
 
-        // Step 3: Parse capacity to number
+        // Parse capacity to number
         long capacityVal;
         try {
             capacityVal = Long.parseLong(capacityStr);
@@ -426,7 +428,7 @@ public class CreateEventFragment extends Fragment {
             return;
         }
 
-        // Step 4: Prepare database event creation logic
+        // Prepare database event creation logic
         btnSave.setEnabled(false);
 
         Consumer<String> saveEventWithPosterUrl = (posterUrl) -> {
@@ -466,6 +468,8 @@ public class CreateEventFragment extends Fragment {
                         });
 
             }else {
+                //Update the header to say Edit Event not Create Event
+                tvHeader.setText("Edit Event");
                 // update existing event
                 db.collection("org_events").document(eventId)
                         .update(event)
