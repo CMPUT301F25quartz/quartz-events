@@ -307,6 +307,104 @@ public class SelectEntrantsFragment extends Fragment {
                 });
     }
 
+    /**
+     * Draws a single replacement from the waiting pool:
+     * - Finds one WAITING entrant at random,
+     * - Promotes them to CHOSEN (responded = pending),
+     * - Sends them a notification.
+     *
+     * US 02.05.03: As an organizer I want to be able to draw a replacement
+     * applicant from the pooling system when a previously selected applicant
+     * cancels or rejects the invitation.
+     */
+    private void drawReplacementsFromWaitingList(int numSlots) {
+
+        if (numSlots <= 0) return;
+
+        db.collection("org_events").document(eventId)
+                .collection("waiting_list")
+                .whereEqualTo("status", "waiting")
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap == null || snap.isEmpty()) {
+                        Toast.makeText(requireContext(),
+                                "No one left on the waiting list.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
+                    Collections.shuffle(waiting, new Random());
+
+                    int winnersCount = Math.min(numSlots, waiting.size());
+                    List<DocumentSnapshot> replacements = waiting.subList(0, winnersCount);
+
+                    WriteBatch batch = db.batch();
+                    for (DocumentSnapshot d : replacements) {
+                        String uid = d.getId();
+                        DocumentReference ref = db.collection("org_events")
+                                .document(eventId)
+                                .collection("waiting_list")
+                                .document(uid);
+
+                        Map<String, Object> upd = new HashMap<>();
+                        upd.put("status", "chosen");
+                        upd.put("responded", "pending");
+                        upd.put("selectedAt", FieldValue.serverTimestamp());
+                        batch.set(ref, upd, SetOptions.merge());
+                    }
+
+                    batch.commit()
+                            .addOnSuccessListener(v -> {
+                                Toast.makeText(requireContext(),
+                                        "Selected " + replacements.size() + " replacement entrant(s).",
+                                        Toast.LENGTH_SHORT).show();
+
+                                // Notify each replacement
+                                String msg = "A spot has opened up for "
+                                        + (eventTitle != null ? eventTitle : "this event")
+                                        + ". You have been selected from the waiting list. "
+                                        + "Please open the app to accept or decline.";
+
+                                for (DocumentSnapshot d : replacements) {
+                                    String uid = d.getId();
+
+                                    EventNotifier.notifySingle(
+                                            db,
+                                            eventId,
+                                            eventTitle != null ? eventTitle : "",
+                                            uid,
+                                            "chosen",
+                                            msg,
+                                            /* includePoster */ true,
+                                            /* linkUrl */ null,
+                                            new EventNotifier.Callback() {
+                                                @Override
+                                                public void onSuccess(int delivered, @NonNull String broadcastId) { }
+
+                                                @Override
+                                                public void onError(@NonNull Exception e) { }
+                                            }
+                                    );
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(),
+                                        "Failed to pick replacement(s): " + e.getMessage(),
+                                        Toast.LENGTH_LONG).show();
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(),
+                            "Failed to load waiting pool: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
+    }
+
+
+
+
 
     /**
      * Lightweight model for a single entrant row in the list.
