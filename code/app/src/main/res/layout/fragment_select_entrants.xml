@@ -19,7 +19,7 @@
 
             <ImageButton
                 android:id="@+id/btnBack"
-                android:src="@android:drawable/ic_media_previous"
+                android:src="@drawable/ic_back"
                 android:background="@android:color/transparent"
                 android:contentDescription="Back"
                 android:layout_width="32dp"
