@@ -33,22 +33,6 @@ enum Audience {
 +  SELECTED
 +  CANCELLED
 }
-class User {
-+ getUserId() : String
-+ setUserId(arg0 : String) : void
-+ getName() : String
-+ setName(arg0 : String) : void
-+ getEmail() : String
-+ setEmail(arg0 : String) : void
-+ getPhone() : String
-+ setPhone(arg0 : String) : void
-+ getRole() : String
-+ setRole(arg0 : String) : void
-+ getProfileImageUrl() : String
-+ setProfileImageUrl(arg0 : String) : void
-+ isNotificationsEnabled() : boolean
-+ setNotificationsEnabled(arg0 : boolean) : void
-}
 class OrganizerEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
@@ -287,29 +271,6 @@ class WaitingListAdapter$VH {
 class EntrantEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
-}
-class Event {
-+ getEventId() : String
-+ setEventId(arg0 : String) : void
-+ getOrganiserDeviceId() : String
-+ setOrganiserDeviceId(arg0 : String) : void
-+ getCapacity() : int
-+ setCapacity(arg0 : int) : void
-+ getDate() : String
-+ setDate(arg0 : String) : void
-+ getDescription() : String
-+ setDescription(arg0 : String) : void
-+ getImageURL() : String
-+ setImageURL(arg0 : String) : void
-+ getLocation() : String
-+ setLocation(arg0 : String) : void
-+ getPrice() : int
-+ setPrice(arg0 : int) : void
-+ getTime() : String
-+ setTime(arg0 : String) : void
-+ getTitle() : String
-+ setTitle(arg0 : String) : void
-+ getFormattedDateTime() : String
 }
 class Event {
 + id : String
