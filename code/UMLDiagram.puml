@@ -92,6 +92,13 @@ class GeneralEventsFragment {
 # getEventsQuery() : Query
 # onEventClick(arg0 : EventRow) : void
 }
+class ImageItem {
++ imageUrl : String
++ eventId : String
++ title : String
++ type : String
++ uploadedAt : long
+}
 class ManageEventQRFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : ManageEventQRFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -121,6 +128,8 @@ class AdminProfilesFragment {
 }
 class AdminImagesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onImageClick(arg0 : ImageItem) : void
++ onDeleteClick(arg0 : ImageItem) : void
 }
 abstract class EventsFragment {
 # getRowLayoutId() : {abstract}int
@@ -206,6 +215,8 @@ class AdminController {
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
++ fetchAllImages(arg0 : DataCallback<List<com.example.ajilore.code.models.ImageItem>>) : void
++ removeImage(arg0 : com.example.ajilore.code.models.ImageItem, arg1 : OperationCallback) : void
 }
 interface AdminController$DataCallback {
 }
@@ -227,6 +238,16 @@ class NotificationAdapter {
 interface NotificationAdapter$OnNotificationActionListener {
 }
 class NotificationAdapter$NotificationViewHolder {
+}
+class AdminImagesAdapter {
++ setImages(arg0 : List<ImageItem>) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ImageViewHolder
++ onBindViewHolder(arg0 : ImageViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+interface AdminImagesAdapter$OnImageActionListener {
+}
+class AdminImagesAdapter$ImageViewHolder {
 }
 class LoginFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -298,7 +319,7 @@ class Event {
 + startsAt : Timestamp
 + regOpens : Timestamp
 + regCloses : Timestamp
-+ posterKey : String
++ posterUrl : String
 + status : String
 + createdByUid : String
 + createdAt : Timestamp
@@ -353,6 +374,7 @@ EditProfileFragment +.. EditProfileFragment$SimpleWatcher
 TextWatcher <|.. EditProfileFragment$SimpleWatcher
 OnUserActionListener <|.. AdminProfilesFragment
 Fragment <|-- AdminProfilesFragment
+OnImageActionListener <|.. AdminImagesFragment
 Fragment <|-- AdminImagesFragment
 Fragment <|-- EventsFragment
 Fragment <|-- SelectEntrantsFragment
@@ -372,6 +394,10 @@ Adapter <|-- NotificationAdapter
 NotificationAdapter +.. NotificationAdapter$OnNotificationActionListener
 NotificationAdapter +.. NotificationAdapter$NotificationViewHolder
 ViewHolder <|-- NotificationAdapter$NotificationViewHolder
+Adapter <|-- AdminImagesAdapter
+AdminImagesAdapter +.. AdminImagesAdapter$OnImageActionListener
+AdminImagesAdapter +.. AdminImagesAdapter$ImageViewHolder
+ViewHolder <|-- AdminImagesAdapter$ImageViewHolder
 Fragment <|-- LoginFragment
 LoginFragment +.. LoginFragment$OnChange
 Fragment <|-- HistoryFragment
