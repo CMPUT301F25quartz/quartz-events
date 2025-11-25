@@ -25,6 +25,7 @@ import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminImagesAdapter;
 import com.example.ajilore.code.controllers.AdminController;
 import com.example.ajilore.code.models.ImageItem;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
@@ -229,9 +230,13 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
      */
     @Override
     public void onDeleteClick(ImageItem imageItem) {
-        showDeleteDialog(imageItem);
+        DeleteDialogHelper.showDeleteDialog(
+                requireContext(),
+                "Image",
+                imageItem.title,
+                () -> deleteImage(imageItem)
+        );
     }
-
     /**
      * Shows a confirmation dialog before deleting an image.
      * @param imageItem The image item to delete
