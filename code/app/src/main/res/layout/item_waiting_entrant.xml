@@ -47,4 +47,13 @@
         android:background="@drawable/bg_status_badge"
         android:paddingLeft="16dp"
         android:paddingRight="16dp" />
+
+    <!--CANCEL BUTTON-->
+    <ImageView
+        android:id="@+id/ivCancel"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/cancel"
+        android:contentDescription="Cancel entrant"/>
 </LinearLayout>
