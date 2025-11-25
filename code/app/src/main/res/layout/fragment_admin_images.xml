@@ -68,7 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:hint="@string/search_images"
+        android:hint="Search images..."
         android:padding="12dp"
         android:background="@drawable/search_bar_background"
         android:drawableStart="@drawable/ic_search"
@@ -76,38 +76,61 @@
         android:textSize="14sp"
         android:textColorHint="@color/gray" />
 
-    <!-- RecyclerView for images grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_images"
+    <!-- FrameLayout to overlay ProgressBar on RecyclerView -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp"
-        android:clipToPadding="false" />
+        android:layout_weight="1">
 
-    <!-- Empty state view -->
-    <LinearLayout
-        android:id="@+id/layout_empty_state"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone">
+        <!-- RecyclerView for images grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_images"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false" />
 
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@drawable/ic_empty_images"
-            android:alpha="0.3" />
-
-        <TextView
+        <!-- ProgressBar for loading state -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No images found"
-            android:textSize="16sp"
-            android:textColor="@color/gray" />
-    </LinearLayout>
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <!-- Empty state view -->
+        <LinearLayout
+            android:id="@+id/layout_empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_empty_images"
+                android:alpha="0.3"
+                android:contentDescription="No images" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="No images found"
+                android:textSize="16sp"
+                android:textColor="@color/gray" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Event posters will appear here"
+                android:textSize="14sp"
+                android:textColor="@color/gray" />
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>
