@@ -60,8 +60,14 @@ public class MainActivity extends AppCompatActivity {
         config.put("cloud_name", "dswduwd5v");
         config.put("api_key","494611986897794");
         config.put("api_secret","dIx5IJLF94eA5Cqcoo8g90IvaA8");
-        MediaManager.init(this, config);
-
+        // Prevent reinitialization crash
+        try {
+            MediaManager.init(this, config);
+            Log.d("MainActivity", "MediaManager initialized successfully");
+        } catch (IllegalStateException e) {
+            Log.d("MainActivity", "MediaManager already initialized");
+            // Already initialized, no action needed
+        }
 
         setContentView(R.layout.activity_main);
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
@@ -107,22 +113,50 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleNavigationIntent() {
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("navigate_to")) {
-            String destination = intent.getStringExtra("navigate_to");
+        if (intent != null) {
+            // Handle explicit bottom nav show request
+            if (intent.getBooleanExtra("show_bottom_nav", false)) {
+                if (bottomNavigationView != null) {
+                    bottomNavigationView.setVisibility(View.VISIBLE);
+                    Log.d("MainActivity", "Bottom nav shown via intent flag");
+                }
+            }
 
-            if ("profile".equals(destination)) {
-                // Show bottom nav
-                showBottomNav();
+            // Handle navigation destination
+            if (intent.hasExtra("navigate_to")) {
+                String destination = intent.getStringExtra("navigate_to");
 
-                // Navigate to profile fragment
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, new ProfileFragment())
-                        .commit();
+                if ("profile".equals(destination)) {
+                    // Ensure bottom nav is visible
+                    if (bottomNavigationView != null) {
+                        bottomNavigationView.setVisibility(View.VISIBLE);
+                    }
 
-                // Highlight profile tab in bottom nav
-                bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+                    // Navigate to profile fragment
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.nav_host_fragment, new ProfileFragment())
+                            .commit();
+
+                    // Highlight profile tab in bottom nav
+                    if (bottomNavigationView != null) {
+                        bottomNavigationView.setSelectedItemId(R.id.profileFragment);
+                    }
+
+                    Log.d("MainActivity", "Navigated to ProfileFragment with bottom nav visible");
+                }
             }
         }
+    }
+
+    /**
+     * Handle new intents when activity is reused (FLAG_ACTIVITY_SINGLE_TOP)
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);  // Update the intent
+        handleNavigationIntent();  // Process the new intent
+        Log.d("MainActivity", "onNewIntent called - processing navigation");
     }
 
     public void showBottomNav() {
@@ -165,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Show notification if admin mode is active
         if (isAdmin) {
-            Toast.makeText(this, "👑 Admin Mode Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, " Admin Mode Enabled", Toast.LENGTH_LONG).show();
             // Recreate options menu to show admin items
             invalidateOptionsMenu();
         }
@@ -185,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         // Only show menu if user is admin
         if (isAdmin) {
             getMenuInflater().inflate(R.menu.menu_admin, menu);
-            Log.d("ADMIN_MENU", "✅ Admin menu inflated");
+            Log.d("ADMIN_MENU", " Admin menu inflated");
             return true;
         }
         return super.onCreateOptionsMenu(menu);
@@ -310,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(querySnapshot -> {
                     int count = querySnapshot.size();
 
-                    Log.d("Firebase", "✅ SUCCESS! Connected to Firestore");
+                    Log.d("Firebase", " SUCCESS! Connected to Firestore");
                     Log.d("Firebase", "Found " + count + " events");
 
                     // Log each event
@@ -321,14 +355,14 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     Toast.makeText(this,
-                            "✅ Firebase connected! Found " + count + " events",
+                            "Firebase connected! Found " + count + " events",
                             Toast.LENGTH_LONG).show();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("Firebase", "❌ FAILED: " + e.getMessage());
+                    Log.e("Firebase", " FAILED: " + e.getMessage());
 
                     Toast.makeText(this,
-                            "❌ Firebase error: " + e.getMessage(),
+                            "Firebase error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 });
     }

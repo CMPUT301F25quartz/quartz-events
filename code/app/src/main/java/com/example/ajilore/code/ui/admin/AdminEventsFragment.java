@@ -23,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminEventsAdapter;
 import com.example.ajilore.code.controllers.AdminController;
-import com.example.ajilore.code.models.Event;
+import com.example.ajilore.code.ui.events.model.Event;
 
 import java.util.List;
 
@@ -191,7 +191,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
     @Override
     public void onEventClick(Event event) {
         Toast.makeText(requireContext(),
-                event.getTitle() + "\n$" + event.getPrice(),
+                event.title + "\nCapacity: " + event.capacity,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -220,7 +220,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         TextView messageText = dialogView.findViewById(R.id.tv_dialog_message);
         String confirmationMessage = requireContext().getString(
                 R.string.delete_confirmation_message, // The string resource ID
-                event.getTitle() // The argument to replace %1$s
+                event.title // The argument to replace %1$s - use public field
         );
         messageText.setText(confirmationMessage);
 
@@ -244,7 +244,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
      * @param event Event to delete.
      */
     private void deleteEvent(Event event) {
-        adminController.removeEvent(event.getEventId(), new AdminController.OperationCallback() {
+        adminController.removeEvent(event.id, new AdminController.OperationCallback() {  // Use public 'id' field
             @Override
             public void onSuccess() {
                 if (isAdded()) {
