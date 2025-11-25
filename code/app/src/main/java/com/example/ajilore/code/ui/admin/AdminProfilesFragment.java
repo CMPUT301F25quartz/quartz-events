@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminUsersAdapter;
 import com.example.ajilore.code.controllers.AdminController;
-import com.example.ajilore.code.models.User;
 
 import java.util.List;
 

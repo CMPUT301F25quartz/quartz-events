@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
-import com.example.ajilore.code.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
