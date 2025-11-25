@@ -338,6 +338,7 @@ class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onResume() : void
 + onDestroyView() : void
 }
 class AdminUsersAdapter {
