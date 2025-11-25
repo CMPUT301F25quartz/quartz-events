@@ -178,6 +178,8 @@ public class CreateEventFragment extends Fragment {
         btnSave = view.findViewById(R.id.btnSave);
         btnCancel = view.findViewById(R.id.btnCancel);
 
+        //Header
+        tvHeader = view.findViewById(R.id.tvHeader);
 
         etTitle = view.findViewById(R.id.etTitle);
         etLocation = view.findViewById(R.id.etLocation);
@@ -245,6 +247,7 @@ public class CreateEventFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         if(eventId != null) {
+            tvHeader.setText("Edit Event");
             db.collection("org_events").document(eventId).get()
                     .addOnSuccessListener(doc ->{
                         if(doc != null && doc.exists()){
@@ -469,7 +472,7 @@ public class CreateEventFragment extends Fragment {
 
             }else {
                 //Update the header to say Edit Event not Create Event
-                tvHeader.setText("Edit Event");
+                //tvHeader.setText("Edit Event");
                 // update existing event
                 db.collection("org_events").document(eventId)
                         .update(event)
