@@ -341,6 +341,9 @@ class EventDetailsFragment {
 + onResume() : void
 + onDestroyView() : void
 }
+class DeleteDialogHelper {
++ {static} showDeleteDialog(arg0 : Context, arg1 : String, arg2 : String, arg3 : Runnable) : void
+}
 class AdminUsersAdapter {
 + setUsers(arg0 : List<User>) : void
 + filter(arg0 : String) : void
