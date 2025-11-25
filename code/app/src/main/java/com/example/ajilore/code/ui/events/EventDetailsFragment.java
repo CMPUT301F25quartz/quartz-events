@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -148,6 +149,11 @@ public class EventDetailsFragment extends Fragment {
         btnJoinLeave = view.findViewById(R.id.btnJoinLeaveWaitingList);
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
+
+        //Adding this to see if i can fix the bug by using an initial default state
+        isRegistrationOpen = false;
+        isOnWaitingList = false;
+        updateJoinLeaveButton();
 
         // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
@@ -447,9 +453,22 @@ public class EventDetailsFragment extends Fragment {
             tvRegistrationWindow.setTextColor(0xFFFF6B6B); // Red
         }
     }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (getActivity() instanceof MainActivity){
+            ((MainActivity) getActivity()).hideBottomNav();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        if (getActivity() instanceof MainActivity){
+            ((MainActivity) getActivity()).showBottomNav();
+        }
 
         // Remove all Firestore listeners to prevent memory leaks
         if (eventListener != null) {
