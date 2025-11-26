@@ -215,6 +215,8 @@ class AdminController {
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
++ deactivateOrganizer(arg0 : String, arg1 : OperationCallback) : void
++ getOrganizerEvents(arg0 : String, arg1 : DataCallback<List<Event>>) : void
 + fetchAllImages(arg0 : DataCallback<List<com.example.ajilore.code.models.ImageItem>>) : void
 + removeImage(arg0 : com.example.ajilore.code.models.ImageItem, arg1 : OperationCallback) : void
 }
@@ -346,7 +348,7 @@ class DeleteDialogHelper {
 }
 class AdminUsersAdapter {
 + setUsers(arg0 : List<User>) : void
-+ filter(arg0 : String) : void
++ filter(arg0 : String, arg1 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : UserViewHolder
 + onBindViewHolder(arg0 : UserViewHolder, arg1 : int) : void
 + getItemCount() : int
