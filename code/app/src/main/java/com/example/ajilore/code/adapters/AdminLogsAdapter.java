@@ -71,7 +71,8 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvSender.setText("Sent by: " + log.getSenderId());
             holder.tvSender.setVisibility(View.VISIBLE);
         } else {
-            holder.tvSender.setVisibility(View.GONE);        }
+            holder.tvSender.setVisibility(View.GONE);
+        }
 
         if (log.getTimestamp() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault());
