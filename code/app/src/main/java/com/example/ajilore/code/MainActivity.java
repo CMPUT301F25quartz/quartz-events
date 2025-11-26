@@ -1,10 +1,11 @@
 package com.example.ajilore.code;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -76,8 +79,6 @@ public class MainActivity extends AppCompatActivity {
         //hide the nav bar
         //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
 
-
-
         // Apply window insets (should be right after setContentView)
         // Apply window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -95,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         // Check if we should navigate to a specific fragment
         handleNavigationIntent();
 
-
         // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -106,6 +106,18 @@ public class MainActivity extends AppCompatActivity {
         // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
+
+        // K NEW: TO REQUEST NOTIFICATION PERMISSION
+        checkNotificationPermission();
+    }
+
+    // K NEW: METHOD FOR ANDROID 13+ NOTIFICATION PERMISSION
+    private void checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     /**
@@ -172,8 +184,6 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setVisibility(View.GONE);
         }
     }
-
-
 
     /**
      * Check if the current device is an admin device
@@ -270,8 +280,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("NAVIGATION", "Navigated to: " + tag);
     }
-
-
 
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
