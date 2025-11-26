@@ -17,7 +17,6 @@ public class User {
 
     /** User's phone number. */
     private String phone;
-
     /** User's role in the system. */
     private String role;
 
