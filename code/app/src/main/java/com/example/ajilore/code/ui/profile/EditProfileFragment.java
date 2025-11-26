@@ -53,6 +53,8 @@ public class EditProfileFragment extends Fragment {
     private MaterialButton btnSave, btnCancel;
     private FirebaseFirestore db;
     private String deviceId;
+
+
     /**
      * Inflates the layout for this fragment.
      *

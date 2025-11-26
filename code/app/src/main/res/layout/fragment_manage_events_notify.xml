@@ -99,7 +99,7 @@
             <!-- Row 2 -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:weightSum="2"
+                android:weightSum="3"
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -125,10 +125,25 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
                     android:minWidth="0dp"
                     android:paddingHorizontal="12dp"
                     android:backgroundTint="#BDBDBD"
                     android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnMap"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#BDBDBD"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="Map"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white" />
+
+
             </LinearLayout>
         </LinearLayout>
 
