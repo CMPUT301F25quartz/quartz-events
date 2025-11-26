@@ -66,7 +66,6 @@ public class ProfileFragment extends Fragment {
     private BottomNavigationView bottomNavigationView;
 
     //firebase
-    private FirebaseAuth auth;
     private FirebaseFirestore db;
     private String deviceId;
     /** Default constructor required for Fragment instantiation. */

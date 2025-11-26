@@ -63,15 +63,12 @@ import java.util.Map;
 public class LoginFragment extends Fragment {
 
     // Views
-    private TextInputLayout tilNameLogin, tilEmailSignup, tilPhoneSignup;
-    private TextInputEditText etNameLogin, etEmailSignup, etPhoneSignup;
-    private MaterialButton btnContinueLogin, btnSignup, btnShowSignup;
+    private TextInputLayout tilNameSignup, tilEmailSignup, tilPhoneSignup;
+    private TextInputEditText etNameSignup, etEmailSignup, etPhoneSignup;
+    private MaterialButton btnContinueLogin, btnSignup;
     private LinearLayout groupSignup;
 
-    // Firestore
-    private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private boolean authReady = false;
     // Location
     private FusedLocationProviderClient fusedLocationClient;
     private String deviceId;
@@ -107,10 +104,9 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(v, savedInstanceState);
 
         // Bind views
-        tilNameLogin   = v.findViewById(R.id.tilNameLogin);
-        etNameLogin    = v.findViewById(R.id.etNameLogin);
+        tilNameSignup   = v.findViewById(R.id.tilNameSignup);
+        etNameSignup    = v.findViewById(R.id.etNameSignup);
         btnContinueLogin = v.findViewById(R.id.btnContinueLogin);
-        btnShowSignup = v.findViewById(R.id.btnShowSignup);
 
 
         groupSignup    = v.findViewById(R.id.groupSignup);
@@ -128,7 +124,6 @@ public class LoginFragment extends Fragment {
 
         //Firebase initialization
         db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
 
         // Location provider
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
@@ -143,27 +138,13 @@ public class LoginFragment extends Fragment {
         //Hide bottom nav during login
         ((MainActivity) requireActivity()).hideBottomNav();
 
-        // Disable interactions until auth is ready
-        setUiEnabled(false);
-
-        // Firebase anonymous auth (used only to allow Firestore access)
-        if (auth.getCurrentUser() == null) {
-            auth.signInAnonymously().addOnSuccessListener(res -> {
-                authReady = true;
-                setUiEnabled(true);
-            }).addOnFailureListener(e ->
-                    Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
-        } else {
-            authReady = true;
-            setUiEnabled(true);
-        }
 
         //enable sign up only when fields are valid
         TextWatcher signupWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String name = getText(etNameLogin);
+                String name = getText(etNameSignup);
                 String email = getText(etEmailSignup);
                 btnSignup.setEnabled(isNonBlank(name) && isEmailOk(email));
             }
@@ -171,22 +152,11 @@ public class LoginFragment extends Fragment {
             @Override public void afterTextChanged(Editable s) {}
         };
 
-        etNameLogin.addTextChangedListener(signupWatcher);
+        etNameSignup.addTextChangedListener(signupWatcher);
         etEmailSignup.addTextChangedListener(signupWatcher);
-
-        //show sign up form
-        btnShowSignup.setOnClickListener(v2 -> {
-            groupSignup.setVisibility(View.VISIBLE);
-        });
-
 
         // LOGIN
         btnContinueLogin.setOnClickListener(view -> {
-                    if (!authReady) {
-                        Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
                     //checking if the device id already exists in firestore
                     db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
                                 if (doc.exists()) {
@@ -209,16 +179,12 @@ public class LoginFragment extends Fragment {
 
             // SIGNUP: create user doc then navigate
             btnSignup.setOnClickListener(view -> {
-                if (!authReady) {
-                    Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                String name = getText(etNameLogin);
+                String name = getText(etNameSignup);
                 String email = getText(etEmailSignup);
                 String phone = getText(etPhoneSignup);
 
                 if (!isNonBlank(name)) {
-                    tilNameLogin.setError("Name required");
+                    tilNameSignup.setError("Name required");
                     return;
                 }
                 if (!isEmailOk(email)) {
@@ -284,21 +250,6 @@ public class LoginFragment extends Fragment {
                 );
     }
 
-    /**
-     * Enables or disables all input fields and buttons based on authentication readiness.
-     *
-     * @param enabled true to enable UI interaction, false to disable it.
-     */
-    private void setUiEnabled(boolean enabled) {
-        if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled);
-        if (btnSignup != null)       btnSignup.setEnabled(false);
-        if (etNameLogin != null)     etNameLogin.setEnabled(true); // allow typing anytime
-        if (etEmailSignup != null)   etEmailSignup.setEnabled(enabled);
-        if (etPhoneSignup != null)   etPhoneSignup.setEnabled(enabled);
-    }
-
-
-    // ---------- navigation ----------
 
     /**
      * Navigates to the general events fragment after successful log in or sign up
@@ -311,7 +262,6 @@ public class LoginFragment extends Fragment {
                 .commit();
     }
 
-    // ---------- helpers ----------
 
     /** Returns trimmed text from an EditText, or an empty string if null. */
     private String getText(TextInputEditText et) {
