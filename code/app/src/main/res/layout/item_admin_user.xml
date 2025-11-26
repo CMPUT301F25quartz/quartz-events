@@ -8,14 +8,14 @@
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    android:background="@android:color/white">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- User profile image -->
         <ImageView
             android:id="@+id/iv_user_image"
             android:layout_width="60dp"
@@ -26,24 +26,6 @@
             android:scaleType="centerCrop"
             android:contentDescription="User Image" />
 
-        <!-- User name -->
-        <TextView
-            android:id="@+id/tv_user_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/iv_user_image"
-            android:layout_toStartOf="@id/btn_delete"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="12dp"
-            android:text="User Name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:maxLines="1"
-            android:ellipsize="end" />
-
-        <!-- Delete button -->
         <ImageButton
             android:id="@+id/btn_delete"
             android:layout_width="48dp"
@@ -55,6 +37,43 @@
             android:contentDescription="Delete User"
             app:tint="#2196F3" />
 
-    </RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/iv_user_image"
+            android:layout_toStartOf="@id/btn_delete"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
+            <TextView
+                android:id="@+id/tv_user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Name"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_role_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Organizer"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="@drawable/badge_organizer"
+                android:textColor="#E65100" />
+        </LinearLayout>
+
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>
