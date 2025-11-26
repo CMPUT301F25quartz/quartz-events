@@ -199,7 +199,7 @@ public class LoginFragment extends Fragment {
                 user.put("role", "entrant");
                 user.put("createdAt", FieldValue.serverTimestamp());
                 user.put("preferences", "yes");
-                user.put("profilepicture", "url link");
+                user.put("profilepicture", null);
                 user.put("locationEnabled", switchLocation.isChecked());
 
                 if(!switchLocation.isChecked()){

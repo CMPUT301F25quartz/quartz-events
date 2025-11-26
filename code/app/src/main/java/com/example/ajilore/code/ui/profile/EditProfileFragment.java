@@ -5,12 +5,14 @@ import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.*;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -50,9 +52,12 @@ import java.util.Map;
 public class EditProfileFragment extends Fragment {
 
     private TextInputEditText etName, etEmail, etPhone;
-    private MaterialButton btnSave, btnCancel;
+    private MaterialButton btnSave, btnCancel, btnRandomPhoto;
     private FirebaseFirestore db;
     private String deviceId;
+
+    private String chosenImageUrl = null;
+    private ImageView ivProfile;
 
 
     /**
@@ -90,6 +95,8 @@ public class EditProfileFragment extends Fragment {
         etPhone = v.findViewById(R.id.etPhone);
         btnSave = v.findViewById(R.id.btnSave);
         btnCancel = v.findViewById(R.id.btnCancel);
+        ivProfile = v.findViewById(R.id.ivProfile);
+        btnRandomPhoto = v.findViewById(R.id.btnRandomPhoto);
 
         db = FirebaseFirestore.getInstance();
 
@@ -101,7 +108,7 @@ public class EditProfileFragment extends Fragment {
 
         TextWatcher watcher = new SimpleWatcher(() -> {
             // Enable save if at least one field has some text
-            boolean any = notEmpty(etName) || notEmpty(etEmail) || notEmpty(etPhone);
+            boolean any = notEmpty(etName) || notEmpty(etEmail) || notEmpty(etPhone) || chosenImageUrl != null;
             btnSave.setEnabled(any);
         });
         etName.addTextChangedListener(watcher);
@@ -112,9 +119,23 @@ public class EditProfileFragment extends Fragment {
 
         btnSave.setOnClickListener(v1 -> saveChanges());
 
+        // Random Photo button (Pravatar)
+        btnRandomPhoto.setOnClickListener(v1 -> {
+            int num = (int) (Math.random() * 70) + 1;  // 1–70
+            chosenImageUrl = "https://i.pravatar.cc/150?img=" + num;
+
+            // Show preview
+            Glide.with(this)
+                    .load(chosenImageUrl)
+                    .circleCrop()
+                    .into(ivProfile);
+
+            btnSave.setEnabled(true);
+        });
         // Initial state
         btnSave.setEnabled(false);
     }
+
 
     private void saveChanges() {
         Map<String, Object> patch = new HashMap<>();
@@ -122,6 +143,11 @@ public class EditProfileFragment extends Fragment {
         if (notEmpty(etName)) patch.put("name", get(etName));
         if (notEmpty(etEmail)) patch.put("email", get(etEmail));
         if (notEmpty(etPhone)) patch.put("phone", get(etPhone));
+
+        // Only update profile picture if user picked one
+        if (chosenImageUrl != null) {
+            patch.put("profilepicture", chosenImageUrl);
+        }
 
         if (patch.isEmpty()) {
             Toast.makeText(getContext(), "Nothing to update", Toast.LENGTH_SHORT).show();
