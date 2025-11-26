@@ -7,9 +7,12 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +25,7 @@ import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminUsersAdapter;
 import com.example.ajilore.code.controllers.AdminController;
 import com.example.ajilore.code.models.User;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
@@ -42,18 +46,16 @@ import java.util.List;
  *   <li>US 03.02.01 - As an administrator, I want to be able to remove profiles</li>
  * </ul>
  *
- * <p>Note: This fragment is accessed via the "Profiles" button in the admin dashboard
- * and displays the comprehensive list of all user accounts in the system.</p>
- *
- * <p>Outstanding Issues:</p>
+ * <p>Features:</p>
  * <ul>
- *   <li>Consider renaming class to AdminUsersFragment for clarity</li>
- *   <li>Implement undo functionality for accidental deletions</li>
- *   <li>Add loading states while fetching user data</li>
+ *   <li>Search users by name or email</li>
+ *   <li>Real-time filtering as user types</li>
+ *   <li>Delete users with confirmation</li>
+ *   <li>Loading and empty states</li>
  * </ul>
  *
  * @author Dinma (Team Quartz)
- * @version 1.0
+ * @version 1.1
  * @since 2025-11-01
  */
 public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter.OnUserActionListener {
@@ -63,8 +65,8 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     private AdminController adminController;
     private EditText etSearch;
     private LinearLayout layoutEmptyState;
+    private ProgressBar progressBar;
     private ImageButton btnBack;
-
 
     /**
      * Inflates the admin profiles fragment view and initializes core UI and data elements.
@@ -98,6 +100,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         rvUsers = view.findViewById(R.id.rv_users);
         etSearch = view.findViewById(R.id.et_search_users);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
+        progressBar = view.findViewById(R.id.progress_bar);
         btnBack = view.findViewById(R.id.btn_back);
     }
 
@@ -112,28 +115,38 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
 
     /**
      * Sets up the user search EditText to filter adapter contents live.
+     * Searches by name or email as user types.
      */
     private void setupSearch() {
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        if (etSearch != null) {
+            etSearch.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // Not needed
+                }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filter(s.toString());
-                updateEmptyState();
-            }
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Filter the adapter as user types
+                    adapter.filter(s.toString());
+                    updateEmptyState();
+                }
 
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Not needed
+                }
+            });
+        }
     }
 
     /**
      * Sets up the back navigation button on the toolbar.
      */
     private void setupBackButton() {
-        btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
+        }
     }
 
     /**
@@ -150,9 +163,11 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
                     showLoading(false);
                     adapter.setUsers(users);
                     updateEmptyState();
-                    Toast.makeText(requireContext(),
-                            "Loaded " + users.size() + " users",
-                            Toast.LENGTH_SHORT).show();
+
+                    String message = users.isEmpty() ?
+                            "No users found" :
+                            "Loaded " + users.size() + " users";
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -161,7 +176,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
                 if (isAdded()) {
                     showLoading(false);
                     Toast.makeText(requireContext(),
-                            "Error: " + e.getMessage(),
+                            "Error loading users: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                     updateEmptyState();
                 }
@@ -170,10 +185,13 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Shows or hides the loading indicator (by toggling visibility of the RecyclerView).
-     * @param show True to show (hide list), false to hide (show list).
+     * Shows or hides the loading indicator.
+     * @param show True to show loading, false to hide
      */
     private void showLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
         rvUsers.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
@@ -203,21 +221,42 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
      */
     @Override
     public void onDeleteClick(User user) {
-        showDeleteDialog(user);
+        DeleteDialogHelper.showDeleteDialog(
+                requireContext(),
+                "Profile",
+                user.getName(),
+                () -> deleteUser(user)
+        );
     }
 
     /**
      * Displays a dialog to confirm permanent user deletion.
+     * Uses custom dialog layout for consistency with other admin screens.
      * @param user The User record to delete.
      */
     private void showDeleteDialog(User user) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Delete User?")
-                .setMessage("Are you sure you want to remove \"" + user.getName() +
-                        "\"? This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> deleteUser(user))
-                .setNegativeButton("Cancel", null)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_delete_confirmation, null);
+
+        TextView messageText = dialogView.findViewById(R.id.tv_dialog_message);
+        messageText.setText("Are you sure you want to remove \"" + user.getName() +
+                "\"? This action cannot be undone.");
+
+        Button deleteButton = dialogView.findViewById(R.id.btn_delete);
+        Button cancelButton = dialogView.findViewById(R.id.btn_cancel);
+
+        AlertDialog dialog = builder.setView(dialogView).create();
+
+        deleteButton.setOnClickListener(v -> {
+            deleteUser(user);
+            dialog.dismiss();
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     /**
@@ -240,7 +279,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
             public void onError(Exception e) {
                 if (isAdded()) {
                     Toast.makeText(requireContext(),
-                            "Error deleting: " + e.getMessage(),
+                            "Error deleting user: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 }
             }
