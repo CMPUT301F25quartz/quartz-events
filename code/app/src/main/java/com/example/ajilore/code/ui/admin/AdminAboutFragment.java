@@ -10,6 +10,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,7 +67,9 @@ public class AdminAboutFragment extends Fragment {
 
         // Initialize Views
         tvAdminName = view.findViewById(R.id.tv_admin_name);
-        ivAdminProfile = view.findViewById(R.id.iv_profile_image);  // NEW: Add this to your layout!
+        ivAdminProfile = view.findViewById(R.id.iv_profile_image);
+        ImageButton btnOptions = view.findViewById(R.id.btn_options_menu);
+        btnOptions.setOnClickListener(this::showOptionsMenu);
 
         // Fetch and display admin name + profile picture
         fetchAdminProfile();
@@ -87,6 +90,21 @@ public class AdminAboutFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void showOptionsMenu(View v) {
+        PopupMenu popup = new PopupMenu(requireContext(), v);
+        popup.getMenu().add(0, 1, 0, "Notification Logs");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                // Navigate to logs
+                ((AdminActivity)requireActivity()).loadFragment(new AdminNotificationLogsFragment());
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     /**

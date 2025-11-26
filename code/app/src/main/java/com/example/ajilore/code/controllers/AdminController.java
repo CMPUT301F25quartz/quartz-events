@@ -568,6 +568,37 @@ public class AdminController {
                 });
     }
 
+
+    /**
+     * Fetches all notification logs for the admin review.
+     * US 03.08.01
+     */
+    public void fetchNotificationLogs(final DataCallback<List<com.example.ajilore.code.models.NotificationLog>> callback) {
+        Log.d(TAG, "Fetching notification logs...");
+
+        db.collection("admin_notification_logs")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING) // Newest first
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        List<com.example.ajilore.code.models.NotificationLog> logs = new ArrayList<>();
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot document : task.getResult()) {
+                            try {
+                                com.example.ajilore.code.models.NotificationLog log =
+                                        document.toObject(com.example.ajilore.code.models.NotificationLog.class);
+                                log.setLogId(document.getId());
+                                logs.add(log);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing log", e);
+                            }
+                        }
+                        callback.onSuccess(logs);
+                    } else {
+                        callback.onError(task.getException());
+                    }
+                });
+    }
+
     // Callback interfaces
     /**
      * Generic data fetch callback with type and error reporting.

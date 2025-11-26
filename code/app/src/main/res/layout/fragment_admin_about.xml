@@ -37,6 +37,16 @@
                 android:textStyle="bold"
                 android:textColor="#1F2937" />
 
+            <ImageButton
+                android:id="@+id/btn_options_menu"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_more_vert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Options" />
+
         </RelativeLayout>
 
         <!-- Profile Section -->
