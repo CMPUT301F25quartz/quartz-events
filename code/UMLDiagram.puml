@@ -338,7 +338,11 @@ class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onResume() : void
 + onDestroyView() : void
+}
+class DeleteDialogHelper {
++ {static} showDeleteDialog(arg0 : Context, arg1 : String, arg2 : String, arg3 : Runnable) : void
 }
 class AdminUsersAdapter {
 + setUsers(arg0 : List<User>) : void

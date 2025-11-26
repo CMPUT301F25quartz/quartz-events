@@ -11,7 +11,7 @@
     <string name="a_virtual_evening_of_smooth_jazz">A virtual evening of smooth jazz</string>
     <string name="location">Location</string>
     <string name="delete_event">Delete Event?</string>
-    <string name="delete_confirmation_message">Are you sure you want to remove event "%1$s"? This will remove this event from the list. This action cannot be undone</string>
+    <string name="delete_confirmation_message">Are you sure you want to remove "%1$s"? This will remove it from the list. This action cannot be undone</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>

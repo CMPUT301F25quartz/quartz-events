@@ -25,6 +25,7 @@ import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminUsersAdapter;
 import com.example.ajilore.code.controllers.AdminController;
 import com.example.ajilore.code.models.User;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
@@ -220,7 +221,12 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
      */
     @Override
     public void onDeleteClick(User user) {
-        showDeleteDialog(user);
+        DeleteDialogHelper.showDeleteDialog(
+                requireContext(),
+                "Profile",
+                user.getName(),
+                () -> deleteUser(user)
+        );
     }
 
     /**

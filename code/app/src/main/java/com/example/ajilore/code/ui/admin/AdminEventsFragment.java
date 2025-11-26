@@ -24,6 +24,7 @@ import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminEventsAdapter;
 import com.example.ajilore.code.controllers.AdminController;
 import com.example.ajilore.code.ui.events.model.Event;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
@@ -202,7 +203,13 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
      */
     @Override
     public void onDeleteClick(Event event) {
-        showDeleteDialog(event);
+        // Usage: Context, Type, Specific Name, The Action
+        DeleteDialogHelper.showDeleteDialog(
+                requireContext(),
+                "Event",
+                event.title,
+                () -> deleteEvent(event) // This is the Runnable/Action
+        );
     }
 
 
