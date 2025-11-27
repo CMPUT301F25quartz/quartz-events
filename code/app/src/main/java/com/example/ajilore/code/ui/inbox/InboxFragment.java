@@ -155,6 +155,7 @@ public class InboxFragment extends Fragment {
                         .orderBy("createdAt", Query.Direction.DESCENDING)
                         .addSnapshotListener((snapshots, e) -> {
                             if (e != null || snapshots == null) return;
+                            if(!isAdded()) return; //Added by Precious
 
                             for (DocumentChange change : snapshots.getDocumentChanges()) {
                                 DocumentSnapshot inboxDoc = change.getDocument();

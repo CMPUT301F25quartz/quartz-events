@@ -151,6 +151,7 @@ public class ManageEventQRFragment extends Fragment {
      * @return Event deep link URL for QR encoding.
      */
     private String buildDeepLink() {
+
         return "https://quartz-events.page.link/event/" + eventId;
     }
 

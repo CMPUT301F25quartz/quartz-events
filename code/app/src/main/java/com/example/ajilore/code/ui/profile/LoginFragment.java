@@ -175,7 +175,7 @@ public class LoginFragment extends Fragment {
                             //dsiplaying the nav bar
                             //((MainActivity) requireActivity()).findViewById(R.id.menu_bottom_nav).setVisibility(View.VISIBLE);
                             //bottomNavigationView.setVisibility(View.VISIBLE);
-                           // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
+                            // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
                             ((MainActivity) requireActivity()).showBottomNav();
                             navigateToEvents();
                         } else {

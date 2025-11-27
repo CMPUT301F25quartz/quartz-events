@@ -174,13 +174,32 @@ public class SelectEntrantsFragment extends Fragment {
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            String name = d.getString("name");        // or "displayName" if that’s what you saved
+                            //String name = d.getString("name");        // or "displayName" if that’s what you saved
                             String responded = d.getString("responded"); // pending/accepted/declined
-                            selectedList.add(new Entrant(uid, name, responded));
-                        }
+                            //selectedList.add(new Entrant(uid, name, responded));
+                            db.collection("users")
+                                    .document(uid)
+                                    .get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        String userName = userDoc.getString("name");
+                                        if(userName == null || userName.isEmpty()){
+                                            userName = uid; // just use the device id
+                                            }
+                                        selectedList.add(new Entrant(uid, userName, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+
+                                    }).addOnFailureListener(e1 -> {
+                                        selectedList.add(new Entrant(uid, uid, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+                                    });
+                                    }
+                        } else {
+                            //no chosen entrants
+                            adapter.notifyDataSetChanged();
+                            tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                     }
-                    adapter.notifyDataSetChanged();
-                    tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                 });
 
 
