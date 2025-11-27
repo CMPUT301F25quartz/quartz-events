@@ -126,7 +126,7 @@ public class WaitingListFragment extends Fragment {
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            String name = d.getString("name");
+                            //String name = d.getString("name");
                             String status = d.getString("status");
                             String responded = d.getString("responded");
 
@@ -143,7 +143,7 @@ public class WaitingListFragment extends Fragment {
                                 // fallback if anything else
                                 displayStatus = responded != null ? responded : "Pending";
                             }
-                            entrantList.add(new Entrant(uid, name, displayStatus));
+                           // entrantList.add(new Entrant(uid, name, displayStatus));
 
                             total++;
                             String safeResponded = responded != null ? responded.toLowerCase() : "pending";
@@ -155,6 +155,19 @@ public class WaitingListFragment extends Fragment {
                                     pending++; break;
                                 default: pending++; break;
                             }
+                            //Fetch the user's name from the "user" collection
+                            db.collection("users")
+                                    .document(uid)
+                                    .get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        String userName = userDoc.getString("name");
+                                        if(userName == null || userName.isEmpty()){
+                                            userName = uid; // just use the device id
+                                        }
+                                        entrantList.add(new Entrant(uid, userName, displayStatus));
+                                        adapter.updateList(new ArrayList<>(entrantList));
+                                        tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
+                                    });
                         }
                     }
 

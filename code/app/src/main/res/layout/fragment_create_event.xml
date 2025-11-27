@@ -22,7 +22,7 @@
             android:layout_height="24dp"
             android:background="@android:color/transparent"
             android:contentDescription="@string/back"
-            app:srcCompat="@android:drawable/ic_media_previous"
+            app:srcCompat="@drawable/ic_back"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
