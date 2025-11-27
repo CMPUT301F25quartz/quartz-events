@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
@@ -183,16 +184,31 @@ public class ProfileFragment extends Fragment {
                         tvName.setText("Name: —");
                         tvEmail.setText("Email: —");
                         tvPhone.setText("Phone: —");
+                        // Default profile picture
+                        //imgProfile.setImageResource(R.drawable.circle_placeholder);
                         return;
                     }
                     String name = doc.getString("name");
                     String email = doc.getString("email");
                     String phone = doc.getString("phone");
+                    String profileUrl = doc.getString("profilepicture");
 
                     tvProfileHeader.setText((name != null && !name.isEmpty()) ? "Hi " + name : "Hi User");
                     tvName.setText("Name: " + (name == null || name.isEmpty() ? "—" : name));
                     tvEmail.setText("Email: " + (email == null || email.isEmpty() ? "—" : email));
                     tvPhone.setText("Phone: " + (phone == null || phone.isEmpty() ? "—" : phone));
+
+                    if (profileUrl != null && !profileUrl.isEmpty()) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .error(android.R.drawable.sym_def_app_icon)
+                                .into(imgProfile);
+                    } else {
+                        // Keep your default icon from XML
+                        imgProfile.setImageResource(android.R.drawable.sym_def_app_icon);
+                    }
+
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show()
