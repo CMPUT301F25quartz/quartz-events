@@ -115,7 +115,10 @@ public class EditProfileFragment extends Fragment {
         etEmail.addTextChangedListener(watcher);
         etPhone.addTextChangedListener(watcher);
 
-        btnCancel.setOnClickListener(v1 -> requireActivity().onBackPressed());
+        btnCancel.setOnClickListener(v1 -> requireActivity()
+                .getSupportFragmentManager()
+                .popBackStack());
+        ;
 
         btnSave.setOnClickListener(v1 -> saveChanges());
 
@@ -158,7 +161,10 @@ public class EditProfileFragment extends Fragment {
                 .set(patch, SetOptions.merge())
                 .addOnSuccessListener(x -> {
                     Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show();
-                    requireActivity().onBackPressed();
+                    requireActivity()
+                            .getSupportFragmentManager()
+                            .popBackStack();
+                    ;
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(),
