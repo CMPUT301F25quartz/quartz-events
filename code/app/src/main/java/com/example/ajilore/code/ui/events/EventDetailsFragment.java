@@ -87,8 +87,8 @@ public class EventDetailsFragment extends Fragment {
     /**
      * Factory for creating a new instance of this fragment for a specific event and user.
      *
-     * @param eventId   The unique event document ID.
-     * @param title     The event title (for display).
+     * @param eventId The unique event document ID.
+     * @param title   The event title (for display).
      * @return Configured EventDetailsFragment instance.
      */
     public static EventDetailsFragment newInstance(String eventId, String title) {
@@ -100,6 +100,7 @@ public class EventDetailsFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     /**
      * Inflate the event details layout.
      */
@@ -213,6 +214,22 @@ public class EventDetailsFragment extends Fragment {
                         Timestamp startsAt = doc.getTimestamp("startsAt");
                         Timestamp regStartTime = doc.getTimestamp("regOpens");
                         Timestamp regEndTime = doc.getTimestamp("regCloses");
+
+                        //geolocation
+                        Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                        Button btnViewMap = getView().findViewById(R.id.btnMap);
+
+                        if (btnViewMap != null) {
+                            if (geoRequired != null && !geoRequired) {
+                                // Geolocation disabled → hide button
+                                btnViewMap.setVisibility(View.GONE);
+                            } else {
+                                // Geolocation enabled → show button
+                                btnViewMap.setVisibility(View.VISIBLE);
+                            }
+                        }
+
 
                         // Update UI
                         tvTitle.setText(title != null ? title : "Untitled Event");
@@ -494,9 +511,9 @@ public class EventDetailsFragment extends Fragment {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
-        if (getActivity() instanceof MainActivity){
+        if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideBottomNav();
         }
     }
@@ -505,7 +522,7 @@ public class EventDetailsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (getActivity() instanceof MainActivity){
+        if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showBottomNav();
         }
 
@@ -556,9 +573,6 @@ public class EventDetailsFragment extends Fragment {
     }
 
 
-
-
-
     // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
     // Commented out for later sprints
 
@@ -579,22 +593,35 @@ public class EventDetailsFragment extends Fragment {
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,
                                           @NonNull String eventTitle) {
-        Map<String, Object> reg = new HashMap<>();
-        reg.put("userId", userId);
-        reg.put("eventId", eventId);
-        reg.put("eventTitle", eventTitle);
-        reg.put("registeredAt", FieldValue.serverTimestamp());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(userId)
-                .collection("registrations")
-                .document(eventId)
-                .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+        db.collection("org_events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+                    if (!eventDoc.exists()) return;
+
+                    Map<String, Object> reg = new HashMap<>();
+                    reg.put("userId", userId);
+                    reg.put("eventId", eventId);
+                    reg.put("eventTitle", eventDoc.getString("title"));
+                    reg.put("posterUrl", eventDoc.getString("posterUrl"));
+                    reg.put("location", eventDoc.getString("location"));
+                    reg.put("startsAt", eventDoc.getTimestamp("startsAt"));
+                    reg.put("registeredAt", FieldValue.serverTimestamp());
+
+
+                    db.collection("users")
+                            .document(userId)
+                            .collection("registrations")
+                            .document(eventId)
+                            .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Failed to save registration history: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show());
+                })
                 .addOnFailureListener(e ->
                         Toast.makeText(requireContext(),
-                                "Failed to save registration history: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show()
-                );
+                                "Failed to fetch event info: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
     }
 }
+

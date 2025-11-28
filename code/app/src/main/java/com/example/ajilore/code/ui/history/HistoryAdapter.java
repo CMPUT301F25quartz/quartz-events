@@ -1,18 +1,24 @@
 package com.example.ajilore.code.ui.history;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 
+import com.google.firebase.Timestamp;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -38,16 +44,34 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Map<String, Object> data = items.get(position);
         String title = (String) data.get("eventTitle");
-        Object ts = data.get("registeredAt");
+        String location = (String) data.get("location");
+        String posterUrl = (String) data.get("posterUrl");
+        Timestamp ts = (Timestamp) data.get("startsAt");
 
         holder.tvTitle.setText(title != null ? title : "Untitled Event");
+        holder.tvLocation.setText(location != null ? location : "Location unavailable");
 
-        if (ts != null && ts instanceof com.google.firebase.Timestamp) {
-            Date date = ((com.google.firebase.Timestamp) ts).toDate();
-            holder.tvDate.setText(DateFormat.getDateTimeInstance().format(date));
+
+
+        if (ts != null) {
+            Date d = ts.toDate();
+            SimpleDateFormat fmt = new SimpleDateFormat("EEE, MMM d • h:mm a", Locale.ENGLISH);
+            holder.tvDate.setText(fmt.format(d));
         } else {
-            holder.tvDate.setText("");
+            holder.tvDate.setText("Date TBD");
         }
+
+        // Load poster image
+        if (posterUrl != null && !posterUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(posterUrl)
+                    .centerCrop()
+                    .placeholder(R.drawable.image_placeholder)
+                    .into(holder.imgPoster);
+        } else {
+            holder.imgPoster.setImageResource(R.drawable.image_placeholder);
+        }
+
     }
 
     @Override
@@ -56,11 +80,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDate;
+        ImageView imgPoster;
+        TextView tvTitle, tvDate, tvLocation;
+
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tvHistoryTitle);
-            tvDate = itemView.findViewById(R.id.tvHistoryDate);
+
+            imgPoster   = itemView.findViewById(R.id.imgPoster);
+            tvTitle     = itemView.findViewById(R.id.tvEventTitle);
+            tvDate      = itemView.findViewById(R.id.tvEventDate);
+            tvLocation  = itemView.findViewById(R.id.tvEventLocation);
         }
     }
 }
