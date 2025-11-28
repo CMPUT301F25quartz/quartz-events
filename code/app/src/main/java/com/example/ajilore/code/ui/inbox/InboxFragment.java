@@ -139,12 +139,13 @@ public class InboxFragment extends Fragment {
 
                 batch.commit()
                         .addOnSuccessListener(aVoid -> {
-                            // Move item in local lists
+                            // Just remove from current inbox list.
+                            // Snapshot listener will add it to archivedList when 'archived' becomes true.
                             notificationList.remove(notification);
-                            archivedList.add(notification);
                             adapter.updateList(getCurrentList(), showingArchived);
                             Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
                         })
+
                         .addOnFailureListener(e ->
                                 Toast.makeText(getContext(),
                                         "Failed to archive: " + e.getMessage(),
