@@ -34,6 +34,7 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.example.ajilore.code.R;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -90,6 +91,8 @@ public class CreateEventFragment extends Fragment {
 
     private String eventId = null;
     private String existingPosterUrl = null;
+    private SwitchMaterial geolocationSwitch;
+
 
 
 
@@ -198,6 +201,10 @@ public class CreateEventFragment extends Fragment {
         ivPosterPreview = view.findViewById(R.id.ivPosterPreview);
         ivPlusBig = view.findViewById(R.id.ivPlusBig);
 
+        //geolocation toggle
+        geolocationSwitch = view.findViewById(R.id.geolocation);
+
+
         //Adding poster logic
 
         ivPlusBig.setOnClickListener(v-> {
@@ -293,6 +300,13 @@ public class CreateEventFragment extends Fragment {
                                 regCloseCal.setTime(regCloses.toDate());
                                 etRegCloses.setText(DateFormat.getDateInstance().format(regCloseCal.getTime()));
                             }
+
+                            //geolocation
+                            Boolean geo = doc.getBoolean("geolocationRequired");
+                            if (geo != null) {
+                                geolocationSwitch.setChecked(geo);
+                            }
+
                         }
                     });
         }
@@ -433,6 +447,8 @@ public class CreateEventFragment extends Fragment {
 
         // Prepare database event creation logic
         btnSave.setEnabled(false);
+        boolean geoRequired = geolocationSwitch != null &&geolocationSwitch.isChecked();
+
 
         Consumer<String> saveEventWithPosterUrl = (posterUrl) -> {
             Map<String, Object> event = new HashMap<>();
@@ -448,6 +464,8 @@ public class CreateEventFragment extends Fragment {
             event.put("createdByUid", "precious"); // Replace with actual user ID in production
             event.put("createdAt", FieldValue.serverTimestamp());
             event.put("updatedAt", FieldValue.serverTimestamp());
+            event.put("geolocationRequired", geoRequired);
+
 
             if(posterUrl != null){
                 event.put("posterUrl", posterUrl);

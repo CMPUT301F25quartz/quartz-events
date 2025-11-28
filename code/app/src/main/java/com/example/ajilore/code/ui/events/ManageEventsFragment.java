@@ -217,13 +217,30 @@ public class ManageEventsFragment extends Fragment {
 
         //Map, once clicked navigates to map screen
         btnMap.setOnClickListener(view -> {
-            Fragment f = EntrantMapFragment.newInstance(eventId);
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.nav_host_fragment, f)
-                    .addToBackStack(null)
-                    .commit();
-        });
+                    db.collection("org_events")
+                            .document(eventId)
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                                // If organizer disbaled geolocation do not open the map
+                                if (geoRequired != null && !geoRequired) {
+                                    Toast.makeText(requireContext(), "Geolocation is disabled for this event.", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                Fragment f = EntrantMapFragment.newInstance(eventId);
+                                requireActivity().getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .replace(R.id.nav_host_fragment, f)
+                                        .addToBackStack(null)
+                                        .commit();
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Failed to check geolocation setting.",
+                                            Toast.LENGTH_SHORT).show()
+                            );
+                });
 
 
         //QR Page/Generator

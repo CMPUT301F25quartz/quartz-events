@@ -215,6 +215,22 @@ public class EventDetailsFragment extends Fragment {
                         Timestamp regStartTime = doc.getTimestamp("regOpens");
                         Timestamp regEndTime = doc.getTimestamp("regCloses");
 
+                        //geolocation
+                        Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                        Button btnViewMap = getView().findViewById(R.id.btnMap);
+
+                        if (btnViewMap != null) {
+                            if (geoRequired != null && !geoRequired) {
+                                // Geolocation disabled → hide button
+                                btnViewMap.setVisibility(View.GONE);
+                            } else {
+                                // Geolocation enabled → show button
+                                btnViewMap.setVisibility(View.VISIBLE);
+                            }
+                        }
+
+
                         // Update UI
                         tvTitle.setText(title != null ? title : "Untitled Event");
                         tvDescription.setText(description != null ? description : "No description available");
