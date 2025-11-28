@@ -56,6 +56,11 @@ class ImageItem {
 + type : String
 + uploadedAt : long
 }
+class ScanQrFragment {
++ onCreate(arg0 : Bundle) : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
 class AdminImagesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onImageClick(arg0 : ImageItem) : void
@@ -254,6 +259,8 @@ class SelectEntrantsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
+interface SelectEntrantsFragment$OnCancelClick {
+}
 class SelectEntrantsFragment$Entrant {
 }
 class SelectEntrantsFragment$SelectedAdapter {
@@ -367,6 +374,7 @@ Fragment <|-- InboxFragment
 Fragment <|-- OrganizerEventsFragment
 Fragment <|-- CreateEventFragment
 Fragment <|-- EventsScreenFragment
+Fragment <|-- ScanQrFragment
 OnImageActionListener <|.. AdminImagesFragment
 Fragment <|-- AdminImagesFragment
 AppCompatActivity <|-- MainActivity
@@ -414,6 +422,7 @@ OnUserActionListener <|.. AdminProfilesFragment
 Fragment <|-- AdminProfilesFragment
 Fragment <|-- EventsFragment
 Fragment <|-- SelectEntrantsFragment
+SelectEntrantsFragment +.. SelectEntrantsFragment$OnCancelClick
 SelectEntrantsFragment +.. SelectEntrantsFragment$Entrant
 SelectEntrantsFragment +.. SelectEntrantsFragment$SelectedAdapter
 Adapter <|-- SelectEntrantsFragment$SelectedAdapter
