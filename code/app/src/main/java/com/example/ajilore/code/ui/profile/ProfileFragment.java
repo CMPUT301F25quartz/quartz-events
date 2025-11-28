@@ -179,6 +179,9 @@ public class ProfileFragment extends Fragment {
      */
     private void loadProfile() {
         db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
+                    if (!isAdded() || getActivity() == null) {
+                        return;
+                    }
                     if (!doc.exists()) {
                         tvProfileHeader.setText("Hi User");
                         tvName.setText("Name: —");
@@ -210,9 +213,11 @@ public class ProfileFragment extends Fragment {
                     }
 
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     /**
