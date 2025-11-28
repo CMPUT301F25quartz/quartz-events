@@ -216,6 +216,8 @@ public class LoginFragment extends Fragment {
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+
+            //tempUserData = user; // store until permission comes back
             return;
         }
 

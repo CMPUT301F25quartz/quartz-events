@@ -117,12 +117,14 @@ public class EntrantMapFragment extends Fragment implements OnMapReadyCallback {
                                     if (lat == null || lng == null) return;
 
                                     LatLng pos = new LatLng(lat, lng);
+                                    entrantLocations.add(pos);
+
 
                                     myMap.addMarker(new MarkerOptions()
                                             .position(pos)
                                             .title(name != null ? name : "User"));
 
-                                    entrantLocations.add(pos);
+
 
                                     if (loadedCount[0] == total) {
                                         fitCameraToAllMarkers();
