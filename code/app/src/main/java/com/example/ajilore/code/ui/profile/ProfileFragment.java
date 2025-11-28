@@ -29,6 +29,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
@@ -247,23 +248,41 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        db.collection("users").document(deviceId)
-                .delete()
-                .addOnSuccessListener(x -> {
-                    Toast.makeText(getContext(),
-                            "Profile deleted",
-                            Toast.LENGTH_SHORT).show();
+        db.collection("org_events").get().addOnSuccessListener(events -> {
+                    for (DocumentSnapshot eventDoc: events.getDocuments()) {
+                        String eventId = eventDoc.getId();
+                        db.collection("org_events")
+                                .document(eventId)
+                                .collection("waiting_list")
+                                .document(deviceId)
+                                .delete();
+                    }
 
-                    requireActivity().getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.nav_host_fragment, new LoginFragment())
-                            .commit();
-                })
-                .addOnFailureListener(err ->
+            db.collection("users").document(deviceId)
+                    .delete()
+                    .addOnSuccessListener(x -> {
                         Toast.makeText(getContext(),
-                                "Delete failed: " + err.getMessage(),
-                                Toast.LENGTH_LONG).show()
+                                "Profile deleted",
+                                Toast.LENGTH_SHORT).show();
+
+                        requireActivity().getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.nav_host_fragment, new LoginFragment())
+                                .commit();
+                    })
+                    .addOnFailureListener(err ->
+                            Toast.makeText(getContext(),
+                                    "Delete failed: " + err.getMessage(),
+                                    Toast.LENGTH_LONG).show()
+                    );
+        })
+            .addOnFailureListener(err ->
+                Toast.makeText(getContext(),
+                        "Delete failed: " + err.getMessage(),
+                        Toast.LENGTH_LONG).show()
                 );
+
+
     }
 
 }
