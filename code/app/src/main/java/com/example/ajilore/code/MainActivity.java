@@ -159,6 +159,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "onNewIntent called - processing navigation");
     }
 
+    /**
+     * Show the bottom navigation bar
+     */
     public void showBottomNav() {
         if (bottomNavigationView != null){
             bottomNavigationView.setVisibility(View.VISIBLE);
