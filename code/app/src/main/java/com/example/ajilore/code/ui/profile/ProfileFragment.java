@@ -166,7 +166,7 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Signed out", Toast.LENGTH_SHORT).show();
             FirebaseAuth.getInstance().signOut();
             requireActivity().getSupportFragmentManager().beginTransaction()
-                   .replace(R.id.nav_host_fragment, new LoginFragment())
+                    .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
             return true;
         }

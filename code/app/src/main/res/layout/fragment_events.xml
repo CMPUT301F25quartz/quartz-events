@@ -8,6 +8,8 @@
     tools:context=".ui.events.EventsFragment"
     android:background="#FBFBFB">
 
+
+
     <!-- Optional header bar -->
     <TextView
         android:id="@+id/header"
@@ -26,6 +28,21 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- The feed -->
+
+    <ImageButton
+        android:id="@+id/btnScanQR"
+        android:layout_width="80dp"
+        android:layout_height="100dp"
+        android:layout_marginEnd="4dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Scan QR"
+        android:padding="8dp"
+        android:src="@drawable/ic_qr_code"
+        app:layout_constraintBottom_toBottomOf="@id/header"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/header"
+        app:layout_constraintVertical_bias="0.228" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvEvents"
         android:layout_width="0dp"

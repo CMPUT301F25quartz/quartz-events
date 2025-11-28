@@ -1,5 +1,6 @@
 package com.example.ajilore.code.ui.events;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -42,6 +43,12 @@ import com.example.ajilore.code.ui.events.EventNotifier;
 
 
 public class SelectEntrantsFragment extends Fragment {
+
+    //Interface
+    public interface OnCancelClick{
+        void onCancel(Entrant entrant);
+
+    }
 
     private static final String ARG_EVENT_ID = "eventId";
     private static final String ARG_EVENT_TITLE = "eventTitle";
@@ -125,7 +132,20 @@ public class SelectEntrantsFragment extends Fragment {
         tvEmpty = v.findViewById(R.id.tvEmpty);
         rvSelected = v.findViewById(R.id.rvSelected);
         rvSelected.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SelectedAdapter(selectedList);
+        adapter = new SelectedAdapter(selectedList, entrant ->{
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Cancel entrant?")
+                    .setMessage("Are you sure you want to cancel this entrant?")
+                    .setPositiveButton("Cancel Entrant", (d, which) ->{
+                        db.collection("org_events").document(eventId)
+                                .collection("waiting_list").document(entrant.uid)
+                                .delete()
+                                .addOnSuccessListener(ve -> Toast.makeText(requireContext(), "Entrant cancelled", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to cancel entrant: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    })
+                    .setNegativeButton("Keep",null)
+                    .show();
+        });
         rvSelected.setAdapter(adapter);
 
         // Load current “selected (pending/accepted/declined)”
@@ -154,14 +174,36 @@ public class SelectEntrantsFragment extends Fragment {
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            String name = d.getString("name");        // or "displayName" if that’s what you saved
+                            //String name = d.getString("name");        // or "displayName" if that’s what you saved
                             String responded = d.getString("responded"); // pending/accepted/declined
-                            selectedList.add(new Entrant(uid, name, responded));
-                        }
+                            //selectedList.add(new Entrant(uid, name, responded));
+                            db.collection("users")
+                                    .document(uid)
+                                    .get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        String userName = userDoc.getString("name");
+                                        if(userName == null || userName.isEmpty()){
+                                            userName = uid; // just use the device id
+                                            }
+                                        selectedList.add(new Entrant(uid, userName, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+
+                                    }).addOnFailureListener(e1 -> {
+                                        selectedList.add(new Entrant(uid, uid, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+                                    });
+                                    }
+                        } else {
+                            //no chosen entrants
+                            adapter.notifyDataSetChanged();
+                            tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                     }
-                    adapter.notifyDataSetChanged();
-                    tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                 });
+
+
+
     }
 
     /**
@@ -340,13 +382,20 @@ public class SelectEntrantsFragment extends Fragment {
      */
     static class SelectedAdapter extends RecyclerView.Adapter<VH> {
         private final List<Entrant> items;
-        SelectedAdapter(List<Entrant> items) { this.items = items; }
+        private final OnCancelClick onCancelClick;
+        SelectedAdapter(List<Entrant> items, OnCancelClick onCancelClick) {
+            this.items = items;
+            this.onCancelClick = onCancelClick;
+        }
+
         @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
             View view = LayoutInflater.from(p.getContext())
                     .inflate(R.layout.item_selected_entrant, p, false);
             return new VH(view);
         }
-        @Override public void onBindViewHolder(@NonNull VH h, int pos) { h.bind(items.get(pos)); }
+        @Override public void onBindViewHolder(@NonNull VH h, int pos) {
+            h.bind(items.get(pos), onCancelClick);
+        }
         @Override public int getItemCount() { return items.size(); }
     }
 
@@ -358,7 +407,7 @@ public class SelectEntrantsFragment extends Fragment {
      */
     static class VH extends RecyclerView.ViewHolder {
         private final TextView tvName, tvBadge;
-        private final ImageView ivAvatar;
+        private final ImageView ivAvatar, ivCancel;
 
         /**
          * Constructs a ViewHolder for a selected entrant row view.
@@ -370,18 +419,26 @@ public class SelectEntrantsFragment extends Fragment {
             tvName = itemView.findViewById(R.id.tvName);
             tvBadge = itemView.findViewById(R.id.tvBadge);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
+            ivCancel = itemView.findViewById(R.id.ivCancel);
         }
         /**
          * Binds an {@link Entrant}'s details to the row, including avatar and status label.
          *
          * @param e Entrant data for this row.
          */
-        void bind(Entrant e) {
+        void bind(Entrant e, OnCancelClick onCancelClick) {
             tvName.setText(e.nameOrUid);
             // Pending/Accepted/Declined
             tvBadge.setText(cap(e.responded));
             // simple placeholder avatar
             ivAvatar.setImageResource(R.drawable.jazz);
+
+            if ("accepted".equalsIgnoreCase(e.responded)) {
+                ivCancel.setVisibility(View.GONE);
+            } else {
+                ivCancel.setVisibility(View.VISIBLE);
+                ivCancel.setOnClickListener(x -> onCancelClick.onCancel(e));
+            }
         }
         /**
          * Capitalizes the first letter of a response status.

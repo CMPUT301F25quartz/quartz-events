@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.ajilore.code.R;
@@ -84,6 +85,19 @@ public abstract class EventsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
+
+        //QR code button
+        ImageButton btnScarQr = v.findViewById(R.id.btnScanQR);
+
+        btnScarQr.setOnClickListener(x ->{
+            Fragment fragment = new ScanQrFragment();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, fragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         rvEvents  = v.findViewById(R.id.rvEvents);
         progress  = v.findViewById(R.id.progress);
