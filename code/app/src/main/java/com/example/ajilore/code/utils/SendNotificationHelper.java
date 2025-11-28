@@ -12,16 +12,17 @@ import java.util.Map;
 public class SendNotificationHelper {
 
     /**
-     * Sends a notification to a chosen entrant.
+     * Sends a notification to a chosen entrant AND logs it for the admin.
      *
      * @param context Application or Fragment context for Toast
      * @param userId  UID of the chosen entrant
      * @param eventId Firestore event ID
      * @param message Notification message
      * @param type    Notification type (e.g., "lottery_winner", "general")
+     * @param senderId Sender ID
      */
     public static void sendNotification(Context context, String userId, String eventId,
-                                        String message, String type) {
+                                        String message, String type, String senderId) {
 
         if (userId == null || userId.isEmpty() || eventId == null || eventId.isEmpty()) {
             Toast.makeText(context, "Invalid user or event ID", Toast.LENGTH_SHORT).show();
@@ -30,16 +31,27 @@ public class SendNotificationHelper {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Prepare notification data
+        // 1. Prepare User Notification Data (Existing Logic)
         Map<String, Object> notifData = new HashMap<>();
         notifData.put("message", message != null ? message : "You have a new notification!");
         notifData.put("type", type != null ? type : "general");
-        notifData.put("read", false);        // default unread
-        notifData.put("archived", false);    // default not archived
+        notifData.put("read", false);
         notifData.put("createdAt", FieldValue.serverTimestamp());
-        notifData.put("actionText", "See Details"); // optional for UI
+        notifData.put("actionText", "See Details");
 
-        // Add notification to Firestore
+        // 2. Prepare Admin Log Data (NEW LOGIC)
+        // We capture this separately so Admin has a central list
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("eventId", eventId);
+        logData.put("message", message);
+        logData.put("audience", "Single User (" + userId + ")"); // Track who it went to
+        logData.put("type", type);
+        logData.put("senderId", senderId);
+        logData.put("timestamp", FieldValue.serverTimestamp());
+
+        // 3. Perform Batch Write (Optional but cleaner) or Chained Writes
+
+        // Write to User Inbox
         db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
@@ -47,10 +59,18 @@ public class SendNotificationHelper {
                 .collection("inbox")
                 .add(notifData)
                 .addOnSuccessListener(docRef -> {
-                    Toast.makeText(context, "Notification sent successfully!", Toast.LENGTH_SHORT).show();
+
+                    // ON SUCCESS: Write to Admin Log
+                    db.collection("notification_logs")
+                            .add(logData)
+                            .addOnSuccessListener(logRef -> {
+                                // Log created silently
+                            });
+
+                    Toast.makeText(context, "Notification sent!", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Failed to send notification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Failed to send: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }

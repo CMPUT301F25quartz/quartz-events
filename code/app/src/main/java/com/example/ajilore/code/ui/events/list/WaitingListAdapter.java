@@ -25,6 +25,7 @@ public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.
     private final List<Entrant> items;
     private final Context context;
 
+
     /**
      * Constructs a new WaitingListAdapter.
      *

@@ -102,6 +102,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database:20.3.3")
 
+    implementation("io.github.g00fy2.quickie:quickie-bundled:1.7.0")
     // Image loading library - Glide
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
