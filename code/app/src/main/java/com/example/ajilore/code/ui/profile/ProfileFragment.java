@@ -33,6 +33,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.firestore.DocumentReference;
+
 
 /**
  * {@code ProfileFragment} displays and manages a user's profile information
@@ -248,41 +251,90 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        db.collection("org_events").get().addOnSuccessListener(events -> {
-                    for (DocumentSnapshot eventDoc: events.getDocuments()) {
+        // 1) For every event, remove this device from waiting_list
+        //    AND clear its inbox under org_events/{eventId}/waiting_list/{deviceId}/inbox
+        db.collection("org_events")
+                .get()
+                .addOnSuccessListener(events -> {
+
+                    for (DocumentSnapshot eventDoc : events.getDocuments()) {
                         String eventId = eventDoc.getId();
-                        db.collection("org_events")
+
+                        // waiting_list/{deviceId}
+                        DocumentReference waitingRef = db.collection("org_events")
                                 .document(eventId)
                                 .collection("waiting_list")
-                                .document(deviceId)
-                                .delete();
+                                .document(deviceId);
+
+                        // delete inbox docs under waiting_list/{deviceId}/inbox
+                        waitingRef.collection("inbox")
+                                .get()
+                                .addOnSuccessListener(inboxSnap -> {
+                                    WriteBatch inboxBatch = db.batch();
+                                    for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                        inboxBatch.delete(d.getReference());
+                                    }
+                                    inboxBatch.commit();
+                                });
+
+                        // delete the waiting_list doc itself
+                        waitingRef.delete();
                     }
 
-            db.collection("users").document(deviceId)
-                    .delete()
-                    .addOnSuccessListener(x -> {
+                    // 2) Delete registration history AND inbox under users/{deviceId}/registrations
+                    db.collection("users")
+                            .document(deviceId)
+                            .collection("registrations")
+                            .get()
+                            .addOnSuccessListener(regSnap -> {
+                                for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                                    // clear inbox subcollection for this registration
+                                    regDoc.getReference()
+                                            .collection("inbox")
+                                            .get()
+                                            .addOnSuccessListener(inboxSnap -> {
+                                                WriteBatch batch = db.batch();
+                                                for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                                    batch.delete(d.getReference());
+                                                }
+                                                batch.commit();
+                                            });
+
+                                    // delete the registration doc itself
+                                    regDoc.getReference().delete();
+                                }
+
+                                //Delete the main users/{deviceId} doc
+                                db.collection("users")
+                                        .document(deviceId)
+                                        .delete()
+                                        .addOnSuccessListener(x -> {
+                                            Toast.makeText(getContext(),
+                                                    "Profile deleted",
+                                                    Toast.LENGTH_SHORT).show();
+
+                                            requireActivity().getSupportFragmentManager()
+                                                    .beginTransaction()
+                                                    .replace(R.id.nav_host_fragment,
+                                                            new LoginFragment())
+                                                    .commit();
+                                        })
+                                        .addOnFailureListener(err ->
+                                                Toast.makeText(getContext(),
+                                                        "Delete failed: " + err.getMessage(),
+                                                        Toast.LENGTH_LONG).show()
+                                        );
+                            })
+                            .addOnFailureListener(err ->
+                                    Toast.makeText(getContext(),
+                                            "Delete failed: " + err.getMessage(),
+                                            Toast.LENGTH_LONG).show()
+                            );
+                })
+                .addOnFailureListener(err ->
                         Toast.makeText(getContext(),
-                                "Profile deleted",
-                                Toast.LENGTH_SHORT).show();
-
-                        requireActivity().getSupportFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.nav_host_fragment, new LoginFragment())
-                                .commit();
-                    })
-                    .addOnFailureListener(err ->
-                            Toast.makeText(getContext(),
-                                    "Delete failed: " + err.getMessage(),
-                                    Toast.LENGTH_LONG).show()
-                    );
-        })
-            .addOnFailureListener(err ->
-                Toast.makeText(getContext(),
-                        "Delete failed: " + err.getMessage(),
-                        Toast.LENGTH_LONG).show()
+                                "Delete failed: " + err.getMessage(),
+                                Toast.LENGTH_LONG).show()
                 );
-
-
     }
-
 }

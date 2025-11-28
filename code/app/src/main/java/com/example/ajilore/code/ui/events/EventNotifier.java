@@ -189,6 +189,7 @@ public final class EventNotifier {
                                     @Nullable String linkUrl,
                                     @NonNull Callback cb) {
 
+        // 1) write a broadcast audit record
         Map<String, Object> payload = new HashMap<>();
         payload.put("audience", targetStatus);
         payload.put("message", message);
@@ -203,13 +204,27 @@ public final class EventNotifier {
                 .addOnSuccessListener(bRef -> {
                     String broadcastId = bRef.getId();
 
+                    // 2) create inbox doc refs in both locations
                     DocumentReference inboxRef = db.collection("org_events").document(eventId)
                             .collection("waiting_list").document(uid)
                             .collection("inbox").document();
 
+                    String inboxId = inboxRef.getId();
+
+                    // mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
+                    DocumentReference userInboxRef = db.collection("users")
+                            .document(uid)
+                            .collection("registrations")
+                            .document(eventId)
+                            .collection("inbox")
+                            .document(inboxId);
+
                     Map<String, Object> inbox = new HashMap<>();
-                    inbox.put("type", targetStatus.equals("selected") ? "selected_notice"
-                            : targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
+                    inbox.put("type",
+                            targetStatus.equals("selected")  ? "selected_notice"  :
+                                    targetStatus.equals("cancelled") ? "cancelled_notice" :
+                                            targetStatus.equals("removed")   ? "removed_notice"   :
+                                                    "broadcast");
                     inbox.put("audience", targetStatus);
                     inbox.put("eventId", eventId);
                     inbox.put("eventTitle", eventTitle);
@@ -220,12 +235,18 @@ public final class EventNotifier {
                     inbox.put("broadcastId", broadcastId);
                     inbox.put("createdAt", FieldValue.serverTimestamp());
 
-                    inboxRef.set(inbox)
+                    // 3) batch both writes
+                    WriteBatch batch = db.batch();
+                    batch.set(inboxRef, inbox);
+                    batch.set(userInboxRef, inbox);
+
+                    batch.commit()
                             .addOnSuccessListener(v -> cb.onSuccess(1, broadcastId))
                             .addOnFailureListener(cb::onError);
                 })
-                .addOnFailureListener(cb::onError);
+                .addOnFailureListener(cb::onError);   // in case writing the broadcast fails
     }
+
 
     /**
      * Batch-write inbox notifications to entrants in chunks.
@@ -268,6 +289,16 @@ public final class EventNotifier {
                         .collection("waiting_list").document(uid)
                         .collection("inbox").document();
 
+                String inboxId = inboxRef.getId();
+
+                // NEW: mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
+                DocumentReference userInboxRef = db.collection("users")
+                        .document(uid)
+                        .collection("registrations")
+                        .document(eventId)
+                        .collection("inbox")
+                        .document(inboxId);
+
                 Map<String, Object> inbox = new HashMap<>();
                 inbox.put("type",
                         targetStatus.equals("chosen")    ? "invite" :
@@ -284,8 +315,10 @@ public final class EventNotifier {
                 inbox.put("createdAt", FieldValue.serverTimestamp());
 
                 batch.set(inboxRef, inbox);
+                batch.set(userInboxRef, inbox);   // NEW
                 thisBatchCount++;
             }
+
 
             batches.add(batch);
             batchSizes.add(thisBatchCount);

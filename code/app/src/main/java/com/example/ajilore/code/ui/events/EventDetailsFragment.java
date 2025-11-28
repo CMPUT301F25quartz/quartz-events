@@ -279,14 +279,26 @@ public class EventDetailsFragment extends Fragment {
                         return;
                     }
 
-                    isOnWaitingList = (doc != null && doc.exists());
-                    // isSelectedForLottery = "chosen".equals(doc.getString("status"));  for accept/decline
+                    if (doc != null && doc.exists()) {
+                        String status    = doc.getString("status");
+                        String responded = doc.getString("responded");
+
+                        // Treat cancelled / declined as NOT on the waiting list
+                        boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                || "declined".equalsIgnoreCase(responded);
+
+                        isOnWaitingList = !cancelled;
+
+                    } else {
+                        isOnWaitingList = false;
+                    }
+
                     if (eventListener != null) {
                         updateJoinLeaveButton();
                     }
                 });
-
     }
+
 
     /**
      * Loads and updates the displayed waiting list count.
@@ -306,10 +318,24 @@ public class EventDetailsFragment extends Fragment {
                     }
 
                     if (snapshot != null) {
-                        waitingListCount = snapshot.size();
+                        int count = 0;
+                        for (DocumentSnapshot d : snapshot.getDocuments()) {
+                            String status    = d.getString("status");
+                            String responded = d.getString("responded");
+
+                            boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                    || "declined".equalsIgnoreCase(responded);
+
+                            if (!cancelled) {
+                                count++;
+                            }
+                        }
+
+                        waitingListCount = count;
                         tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
+
                 });
     }
 

@@ -31,6 +31,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import android.provider.Settings;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 /**
  * OrganizerEventsFragment
@@ -50,6 +55,8 @@ public class OrganizerEventsFragment extends Fragment {
     private final List<EventItem> data = new ArrayList<>();
     private FirebaseFirestore db;
 
+    private ImageView ivAvatar;
+    private TextView tvName;
 
     /**
      * Inflates the organizer events screen.
@@ -78,6 +85,10 @@ public class OrganizerEventsFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+        ivAvatar = v.findViewById(R.id.ivAvatar);
+        tvName   = v.findViewById(R.id.tvName);
+        loadOrganizerHeader();
+
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -99,6 +110,46 @@ public class OrganizerEventsFragment extends Fragment {
 
         loadEvents();
     }
+
+
+    private void loadOrganizerHeader() {
+        // same device ID scheme you use everywhere else
+        String deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            return;
+        }
+
+        db.collection("users")
+                .document(deviceId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!isAdded() || doc == null || !doc.exists()) return;
+
+                    String name = doc.getString("name");
+                    String profileUrl = doc.getString("profilepicture");
+
+                    if (name != null && !name.isEmpty() && tvName != null) {
+                        tvName.setText(name);
+                    }
+
+                    if (profileUrl != null && !profileUrl.isEmpty() && ivAvatar != null) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.organizer_profileimage)
+                                .error(R.drawable.organizer_profileimage)
+                                .into(ivAvatar);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
 
     /**
