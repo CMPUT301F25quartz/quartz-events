@@ -6,15 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.settings.SettingsFragment;
+import com.example.ajilore.code.utils.AdminAuthManager; // Import AdminAuthManager
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -23,7 +22,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,13 +30,15 @@ public class InboxFragment extends Fragment {
     private RecyclerView recyclerNotifications;
     private NotificationAdapter adapter;
 
-    private List<NotificationModel> notificationList = new ArrayList<>();
-    private List<NotificationModel> archivedList = new ArrayList<>();
+    private List<NotificationModel> notificationList;
+    private List<NotificationModel> archivedList;
 
     private FirebaseFirestore db;
-    private FirebaseAuth auth;
+    private FirebaseAuth auth; // Still needed for potential anonymous sign-in for Firestore rules
 
-    private MaterialButton btnMarkAllRead, btnFilterUnread, btnViewArchived;
+    private MaterialButton btnMarkAllRead;
+    private MaterialButton btnFilterUnread;
+    private MaterialButton btnViewArchived;
 
     private boolean showOnlyUnread = false;
     private boolean showingArchived = false;
@@ -51,7 +51,6 @@ public class InboxFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_inbox, container, false);
 
         recyclerNotifications = view.findViewById(R.id.recyclerNotifications);
@@ -61,18 +60,43 @@ public class InboxFragment extends Fragment {
         btnFilterUnread = view.findViewById(R.id.btnFilterUnread);
         btnViewArchived = view.findViewById(R.id.btnViewArchived);
 
+        // Settings button navigation
         ImageButton btnSettings = view.findViewById(R.id.btnSettings);
         if (btnSettings != null) {
             btnSettings.setOnClickListener(v -> openNotificationSettings());
         }
 
         db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance(); // Initialize for potential use
+        notificationList = new ArrayList<>();
+        archivedList = new ArrayList<>();
 
+        // Listener for RecyclerView actions
         listener = new NotificationAdapter.OnNotificationActionListener() {
             @Override
             public void onDismiss(NotificationModel notification) {
-                archiveNotification(notification);
+                // Get the actual device ID
+                String userId = AdminAuthManager.getDeviceId(requireContext()); // Use device ID
+                if (userId == null || userId.isEmpty()) {
+                    Toast.makeText(getContext(), "Cannot archive: Device ID not available", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                DocumentReference ref = db.collection("org_events")
+                        .document(notification.getEventId())
+                        .collection("waiting_list")
+                        .document(userId) // Use actual device ID
+                        .collection("inbox")
+                        .document(notification.getFirestoreDocId());
+
+                ref.update("archived", true).addOnSuccessListener(aVoid -> {
+                    notificationList.remove(notification);
+                    archivedList.add(notification);
+                    adapter.updateList(getCurrentList(), showingArchived);
+                    Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to archive: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
             }
 
             @Override
@@ -90,12 +114,21 @@ public class InboxFragment extends Fragment {
         btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
         btnViewArchived.setOnClickListener(v -> toggleArchiveView());
 
+        // Still sign in anonymously if needed for Firestore rules
         signInAnonymouslyIfNeeded();
         return view;
     }
 
-    // ---------------- Navigation ----------------
+    // Helper method to get device ID (replace with your actual implementation from MainActivity)
+    private String getDeviceId() {
+        // Use the same method as in MainActivity
+        String deviceId = AdminAuthManager.getDeviceId(requireContext());
+        return deviceId != null ? deviceId : "unknown_device"; // Fallback
+    }
 
+
+    /** ------------------- Helper Methods ------------------- **/
+    // Navigate to SettingsFragment
     private void openNotificationSettings() {
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -104,12 +137,15 @@ public class InboxFragment extends Fragment {
                 .commit();
     }
 
-    // ---------------- Firebase Sign-in ----------------
-
+    // Anonymous sign-in if needed (for Firestore security rules, not for user identification)
     private void signInAnonymouslyIfNeeded() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            auth.signInAnonymously().addOnSuccessListener(result -> loadUserNotifications())
+            auth.signInAnonymously().addOnSuccessListener(result -> {
+                        // Ensure device ID user profile exists after sign-in if needed
+                        // This part might be handled by the login flow or a separate initialization
+                        loadUserNotifications();
+                    })
                     .addOnFailureListener(e ->
                             Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
@@ -118,14 +154,14 @@ public class InboxFragment extends Fragment {
         }
     }
 
-    // ---------------- Load Notifications ----------------
-
+    // ------------------- Load Notifications -------------------
     private void loadUserNotifications() {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) return;
-
-        // 🔥 FIX: Use actual user ID instead of hardcoded "demoUser"
-        String userId = user.getUid(); // Use real user ID instead of "demoUser"
+        // Use the actual device ID instead of "demoUser"
+        String userId = getDeviceId(); // Use device ID here
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(getContext(), "Cannot load notifications: Device ID not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         db.collection("org_events").get().addOnSuccessListener(eventSnapshots -> {
             for (DocumentSnapshot eventDoc : eventSnapshots) {
@@ -133,11 +169,15 @@ public class InboxFragment extends Fragment {
 
                 eventDoc.getReference()
                         .collection("waiting_list")
-                        .document(userId) // 🔥 Now uses real user ID
+                        .document(userId) // Use actual device ID
                         .collection("inbox")
                         .orderBy("createdAt", Query.Direction.DESCENDING)
                         .addSnapshotListener((snapshots, e) -> {
                             if (e != null || snapshots == null) return;
+
+                            // Clear lists before adding new data to prevent duplicates or stale data
+                            notificationList.clear();
+                            archivedList.clear();
 
                             for (DocumentChange change : snapshots.getDocumentChanges()) {
                                 DocumentSnapshot inboxDoc = change.getDocument();
@@ -150,84 +190,54 @@ public class InboxFragment extends Fragment {
 
                                 if (message != null) {
                                     NotificationModel notification = new NotificationModel(
-                                            eventId, docId, message,
+                                            eventId,
+                                            docId,
+                                            message,
                                             "", "", read,
                                             getString(R.string.see_details),
                                             type
                                     );
 
                                     if (archived) {
-                                        if (!archivedList.contains(notification)) archivedList.add(notification);
+                                        archivedList.add(notification);
                                     } else {
-                                        if (!notificationList.contains(notification)) notificationList.add(notification);
+                                        notificationList.add(notification);
                                     }
                                 }
                             }
-                            refreshDisplay();
+                            // Update UI after processing all changes
+                            adapter.updateList(getCurrentList(), showingArchived);
                         });
             }
         });
     }
 
-    // ---------------- Button Functions ----------------
-
+    // ------------------- Button Actions -------------------
     private void markAllRead() {
         for (NotificationModel n : notificationList) n.setRead(true);
-        // Later we'll update Firebase here
-        refreshDisplay();
+        adapter.updateList(getCurrentList(), showingArchived);
         Toast.makeText(getContext(), "All notifications marked as read", Toast.LENGTH_SHORT).show();
     }
 
     private void toggleUnreadFilter() {
         showOnlyUnread = !showOnlyUnread;
-        refreshDisplay();
+        adapter.updateList(getCurrentList(), showingArchived);
         btnFilterUnread.setText(showOnlyUnread ? R.string.show_all : R.string.show_unread);
     }
 
     private void toggleArchiveView() {
         showingArchived = !showingArchived;
-        refreshDisplay();
+        adapter.updateList(getCurrentList(), showingArchived);
         btnViewArchived.setText(showingArchived ? R.string.show_inbox : R.string.view_archived);
     }
 
-    // ---------------- Helper Lists ----------------
-
     private List<NotificationModel> getCurrentList() {
-        List<NotificationModel> source = showingArchived ? archivedList : notificationList;
-        List<NotificationModel> filtered = new ArrayList<>();
-        for (NotificationModel n : source) {
+        List<NotificationModel> sourceList = showingArchived ? archivedList : notificationList;
+        List<NotificationModel> filteredList = new ArrayList<>();
+        for (NotificationModel n : sourceList) {
             if (showOnlyUnread && n.isRead()) continue;
-            filtered.add(n);
+            filteredList.add(n);
         }
-        return filtered;
-    }
-
-    private void refreshDisplay() {
-        adapter.updateList(getCurrentList(), showingArchived);
-    }
-
-    // ---------------- Archive (Dismiss) ----------------
-
-    private void archiveNotification(NotificationModel notification) {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) return;
-
-        String userId = user.getUid(); // Use real user ID
-
-        DocumentReference ref = db.collection("org_events")
-                .document(notification.getEventId())
-                .collection("waiting_list")
-                .document(userId) // 🔥 Now uses real user ID
-                .collection("inbox")
-                .document(notification.getFirestoreDocId());
-
-        ref.update("archived", true).addOnSuccessListener(aVoid -> {
-            notificationList.remove(notification);
-            archivedList.add(notification);
-            refreshDisplay();
-            Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-        );
+        return filteredList;
     }
 }

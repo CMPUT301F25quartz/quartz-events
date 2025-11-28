@@ -4,22 +4,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast; // Import for Toast
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
+import com.example.ajilore.code.utils.AdminAuthManager; // Import AdminAuthManager
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.ajilore.code.R;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class SettingsFragment extends Fragment {
 
     private SwitchMaterial switchNotifications;
-    private FirebaseAuth auth;
+    private FirebaseAuth auth; // Initialize for potential use
     private FirebaseFirestore db;
 
     @Nullable
@@ -27,91 +27,45 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
-        // Initialize views and Firebase
         switchNotifications = view.findViewById(R.id.switchNotifications);
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance(); // Initialize for potential use
         db = FirebaseFirestore.getInstance();
 
-        // Use demoUser if not signed in
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "demoUser";
+        // Use device ID instead of "demoUser"
+        String userId = AdminAuthManager.getDeviceId(requireContext()); // Use device ID
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(getContext(), "Cannot load settings: Device ID unavailable", Toast.LENGTH_SHORT).show();
+            return view; // Return early if device ID is not available
+        }
 
-        // Load current preference
-        loadNotificationPreference(userId);
+        // Load current preference from Firestore using device ID
+        db.collection("users")
+                .document(userId)
+                .collection("preferences")
+                .document("notifications")
+                .get()
+                .addOnSuccessListener(doc -> {
+                    boolean enabled = true; // default
+                    if (doc.exists()) {
+                        Boolean pref = doc.getBoolean("enabled");
+                        enabled = pref != null ? pref : true;
+                    }
+                    switchNotifications.setChecked(enabled);
+                });
 
-        // Listen for toggle changes
+        // Listen for toggle changes - update using device ID
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            updateNotificationPreference(userId, isChecked);
+            Map<String, Object> data = new HashMap<>();
+            data.put("enabled", isChecked);
+            db.collection("users")
+                    .document(userId) // Use actual device ID
+                    .collection("preferences")
+                    .document("notifications")
+                    .set(data);
         });
 
         return view;
-    }
-
-    private void loadNotificationPreference(String userId) {
-        db.collection("users")
-                .document(userId)
-                .get()
-                .addOnSuccessListener(userDoc -> {
-                    Boolean enabled = null;
-                    if (userDoc.exists()) {
-                        enabled = userDoc.getBoolean("notificationsEnabled");
-                    }
-
-                    if (enabled != null) {
-                        switchNotifications.setChecked(enabled);
-                    } else {
-                        // Fallback to preferences subcollection
-                        db.collection("users")
-                                .document(userId)
-                                .collection("preferences")
-                                .document("notifications")
-                                .get()
-                                .addOnSuccessListener(prefDoc -> {
-                                    boolean prefEnabled = true;
-                                    if (prefDoc.exists()) {
-                                        Boolean pref = prefDoc.getBoolean("enabled");
-                                        prefEnabled = pref != null ? pref : true;
-                                    }
-                                    switchNotifications.setChecked(prefEnabled);
-                                })
-                                .addOnFailureListener(e -> {
-                                    switchNotifications.setChecked(true);
-                                });
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    switchNotifications.setChecked(true);
-                });
-    }
-
-    private void updateNotificationPreference(String userId, boolean isChecked) {
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("notificationsEnabled", isChecked);
-
-        db.collection("users")
-                .document(userId)
-                .set(userData, com.google.firebase.firestore.SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    // Also update preferences subcollection for backup
-                    Map<String, Object> prefData = new HashMap<>();
-                    prefData.put("enabled", isChecked);
-                    db.collection("users")
-                            .document(userId)
-                            .collection("preferences")
-                            .document("notifications")
-                            .set(prefData);
-                })
-                .addOnFailureListener(e -> {
-                    // If main update fails, at least update preferences
-                    Map<String, Object> prefData = new HashMap<>();
-                    prefData.put("enabled", isChecked);
-                    db.collection("users")
-                            .document(userId)
-                            .collection("preferences")
-                            .document("notifications")
-                            .set(prefData);
-                });
     }
 }

@@ -76,4 +76,11 @@
         <item name="cornerSize">6dp</item>
     </style>
 
+    <!-- NEW: Style for Tab Text Appearance -->
+    <style name="TabTextAppearance" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/dark_gray</item>
+    </style>
+
 </resources>
