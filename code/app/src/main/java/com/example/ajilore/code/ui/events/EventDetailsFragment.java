@@ -1,6 +1,7 @@
 package com.example.ajilore.code.ui.events;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -118,14 +119,26 @@ public class EventDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
-        // Get authenticated user's ID
-        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
+        //TEMI ADDED (REMOVED FIREBASE AUTH AND REPLACED IT WITH DEVICE ID)
+        userId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId == null || userId.isEmpty()) {
             Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
-            requireActivity().onBackPressed();
+            requireActivity().getSupportFragmentManager().popBackStack();
             return;
         }
-        userId = currentUser.getUid(); // Use authenticated user's ID
+
+//        // Get authenticated user's ID
+//        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        if (currentUser == null) {
+//            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+//            requireActivity().onBackPressed();
+//            return;
+//        }
+//        userId = currentUser.getUid(); // Use authenticated user's ID
         // Get arguments
         Bundle args = getArguments();
         if (args != null) {

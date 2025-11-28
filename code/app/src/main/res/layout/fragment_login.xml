@@ -12,8 +12,6 @@
 
         <!-- Welcome Title -->
 
-        <!-- Login title -->
-
         <TextView
             android:id="@+id/tvWelcome"
             android:layout_width="wrap_content"
@@ -33,45 +31,13 @@
             android:textSize="20sp"
             android:layout_marginBottom="8dp" />
 
-        <!-- LOGIN: name only -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNameLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNameLogin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Name"
-                android:inputType="textPersonName" />
-        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContinueLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Log in"
-            android:enabled="false"
             android:layout_marginTop="16dp" />
-
-        <!-- Divider text -->
-        <TextView
-            android:id="@+id/tvNoAccount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Don't have an account?"
-            android:layout_marginTop="24dp" />
-
-        <!-- Show Sign up -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnShowSignup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sign up"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_marginTop="8dp" />
 
         <!-- SIGN UP GROUP (hidden by default) -->
         <LinearLayout
@@ -89,6 +55,19 @@
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNameSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNameSignup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Name"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmailSignup"
@@ -118,6 +97,13 @@
                     android:hint="Phone (optional)"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Share my location"
+                android:layout_marginTop="12dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSignup"
