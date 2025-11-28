@@ -206,8 +206,8 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_pill_grey"
-                    android:textOn="Selected"
-                    android:textOff="Selected"
+                    android:textOn="Accepted"
+                    android:textOff="Accepted"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -219,8 +219,8 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:background="@drawable/bg_pill_grey"
-                    android:textOn="Cancelled"
-                    android:textOff="Cancelled"
+                    android:textOn="Declined"
+                    android:textOff="Declined"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
