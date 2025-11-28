@@ -26,7 +26,12 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.ArrayList;
 import java.util.List;
 import android.provider.Settings;
-import android.provider.Settings;
+import com.google.firebase.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 
 /**
  * Fragment representing an inbox screen.
@@ -36,6 +41,8 @@ import android.provider.Settings;
 
 
 public class InboxFragment extends Fragment {
+
+    private String userProfileUrl;
 
     private RecyclerView recyclerNotifications;
     private NotificationAdapter adapter;
@@ -101,6 +108,7 @@ public class InboxFragment extends Fragment {
         notificationList = new ArrayList<>();
         archivedList = new ArrayList<>();
 
+
         listener = new NotificationAdapter.OnNotificationActionListener() {
             @Override
             public void onDismiss(NotificationModel notification) {
@@ -161,10 +169,35 @@ public class InboxFragment extends Fragment {
         btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
         btnViewArchived.setOnClickListener(v -> toggleArchiveView());
 
-        signInAnonymouslyIfNeeded();
+        //signInAnonymouslyIfNeeded();
+        loadUserProfileThenNotifications();
 
         return view;
     }
+
+    private void loadUserProfileThenNotifications() {
+        // If we somehow don't have a device ID, just proceed with notifications
+        if (userId == null || userId.isEmpty()) {
+            signInAnonymouslyIfNeeded();
+            return;
+        }
+
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc != null && doc.exists()) {
+                        userProfileUrl = doc.getString("profilepicture");
+                    }
+                    // avatar is loaded, start FirebaseAuth + notifications
+                    signInAnonymouslyIfNeeded();
+                })
+                .addOnFailureListener(e -> {
+                    // Even if profile fetch fails, we still want notifications
+                    signInAnonymouslyIfNeeded();
+                });
+    }
+
 
     private void signInAnonymouslyIfNeeded() {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -180,7 +213,7 @@ public class InboxFragment extends Fragment {
 
     private void loadUserNotifications() {
         FirebaseUser user = auth.getCurrentUser();
-        // You’re using device ID as the key, but we can still require that FirebaseAuth is not null
+        //Use ID as the key, still require that FirebaseAuth is not null
         if (user == null || userId == null || userId.isEmpty()) return;
 
         db.collection("users")
@@ -216,12 +249,26 @@ public class InboxFragment extends Fragment {
                                         boolean archived = archivedFlag != null && archivedFlag;
                                         String docId = inboxDoc.getId();
 
+                                        // for time: get createdAt and format it
+                                        Timestamp ts = inboxDoc.getTimestamp("createdAt");
+                                        String timeString = "";
+                                        if (ts != null) {
+                                            Date date = ts.toDate();
+                                            // e.g. "Nov 27, 5:36 PM"
+                                            SimpleDateFormat sdf =
+                                                    new SimpleDateFormat("MMM d, h:mm a", Locale.getDefault());
+                                            timeString = sdf.format(date);
+                                        }
+
+
                                         if (message != null) {
                                             NotificationModel notification = new NotificationModel(
                                                     eventId,
                                                     docId, // Firestore document ID
                                                     message,
-                                                    "", "", read,
+                                                    timeString,  // from createdAt
+                                                    userProfileUrl != null ? userProfileUrl : "",
+                                                    read,
                                                     getString(R.string.see_details),
                                                     type
                                             );
