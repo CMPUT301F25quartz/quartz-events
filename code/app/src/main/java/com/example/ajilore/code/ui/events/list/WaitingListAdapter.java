@@ -111,17 +111,31 @@ public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.
             switch (e.displayStatus.toLowerCase()) {
                 case "accepted":
                     tvStatus.setText("Accepted");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_accepted));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_accepted));
                     break;
+
                 case "declined":
                     tvStatus.setText("Declined");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_declined));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_declined));
                     break;
+
+                case "waiting":
+                    tvStatus.setText("Waiting");
+                    // use the same color as pending or create a separate one if you like
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_pending));
+                    break;
+
+                case "pending":
                 default:
                     tvStatus.setText("Pending");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_pending));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_pending));
                     break;
             }
+
 
             ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
         }

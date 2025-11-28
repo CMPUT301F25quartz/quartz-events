@@ -251,59 +251,73 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        // 1) Remove this user from all events' waiting_list
+        // 1) For every event, remove this device from waiting_list
+        //    AND clear its inbox under org_events/{eventId}/waiting_list/{deviceId}/inbox
         db.collection("org_events")
                 .get()
                 .addOnSuccessListener(events -> {
 
-                    WriteBatch waitingBatch = db.batch();
                     for (DocumentSnapshot eventDoc : events.getDocuments()) {
                         String eventId = eventDoc.getId();
-                        DocumentReference ref = db.collection("org_events")
+
+                        // waiting_list/{deviceId}
+                        DocumentReference waitingRef = db.collection("org_events")
                                 .document(eventId)
                                 .collection("waiting_list")
                                 .document(deviceId);
-                        waitingBatch.delete(ref);
-                    }
-                    waitingBatch.commit();
 
-                    // 2) Delete registration history under users/{deviceId}/registrations
+                        // delete inbox docs under waiting_list/{deviceId}/inbox
+                        waitingRef.collection("inbox")
+                                .get()
+                                .addOnSuccessListener(inboxSnap -> {
+                                    WriteBatch inboxBatch = db.batch();
+                                    for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                        inboxBatch.delete(d.getReference());
+                                    }
+                                    inboxBatch.commit();
+                                });
+
+                        // delete the waiting_list doc itself
+                        waitingRef.delete();
+                    }
+
+                    // 2) Delete registration history AND inbox under users/{deviceId}/registrations
                     db.collection("users")
                             .document(deviceId)
                             .collection("registrations")
                             .get()
                             .addOnSuccessListener(regSnap -> {
-                                WriteBatch regBatch = db.batch();
-
                                 for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
-                                    // This deletes the registration doc.
-                                    // Its inbox subcollection becomes unreachable from the app.
-                                    regBatch.delete(regDoc.getReference());
+                                    // clear inbox subcollection for this registration
+                                    regDoc.getReference()
+                                            .collection("inbox")
+                                            .get()
+                                            .addOnSuccessListener(inboxSnap -> {
+                                                WriteBatch batch = db.batch();
+                                                for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                                    batch.delete(d.getReference());
+                                                }
+                                                batch.commit();
+                                            });
+
+                                    // delete the registration doc itself
+                                    regDoc.getReference().delete();
                                 }
 
-                                regBatch.commit()
-                                        .addOnSuccessListener(v -> {
-                                            // 3) Finally delete the main user doc
-                                            db.collection("users")
-                                                    .document(deviceId)
-                                                    .delete()
-                                                    .addOnSuccessListener(x -> {
-                                                        Toast.makeText(getContext(),
-                                                                "Profile deleted",
-                                                                Toast.LENGTH_SHORT).show();
+                                //Delete the main users/{deviceId} doc
+                                db.collection("users")
+                                        .document(deviceId)
+                                        .delete()
+                                        .addOnSuccessListener(x -> {
+                                            Toast.makeText(getContext(),
+                                                    "Profile deleted",
+                                                    Toast.LENGTH_SHORT).show();
 
-                                                        requireActivity()
-                                                                .getSupportFragmentManager()
-                                                                .beginTransaction()
-                                                                .replace(R.id.nav_host_fragment,
-                                                                        new LoginFragment())
-                                                                .commit();
-                                                    })
-                                                    .addOnFailureListener(err ->
-                                                            Toast.makeText(getContext(),
-                                                                    "Delete failed: " + err.getMessage(),
-                                                                    Toast.LENGTH_LONG).show()
-                                                    );
+                                            requireActivity().getSupportFragmentManager()
+                                                    .beginTransaction()
+                                                    .replace(R.id.nav_host_fragment,
+                                                            new LoginFragment())
+                                                    .commit();
                                         })
                                         .addOnFailureListener(err ->
                                                 Toast.makeText(getContext(),
@@ -323,5 +337,4 @@ public class ProfileFragment extends Fragment {
                                 Toast.LENGTH_LONG).show()
                 );
     }
-
 }
