@@ -145,16 +145,31 @@ public class WaitingListFragment extends Fragment {
                             }
                            // entrantList.add(new Entrant(uid, name, displayStatus));
 
-                            total++;
-                            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
 
-                            switch (safeResponded) {
-                                case "accepted": accepted++; break;
-                                case "declined": declined++; break;
-                                case "waiting" :
-                                    pending++; break;
-                                default: pending++; break;
+                            total++;
+                            // NEW: classify based on status + responded
+                            String r = responded != null ? responded.toLowerCase() : "";
+                            String s = status != null ? status.toLowerCase() : "";
+
+                            // Pending = chosen in draw and still pending
+                            if ("chosen".equals(s) && "pending".equals(r)) {
+                                pending++;
                             }
+                            // Accepted = responded accepted
+                            else if ("accepted".equals(r) || "selected".equals(s)) {
+                                accepted++;
+                            }
+                            // Declined = responded declined
+                            else if ("declined".equals(r) || "cancelled".equals(s)) {
+                                declined++;
+                            }
+
+// hide "chosen + declined" people from the visible list
+                            if ("chosen".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
+                                // we already counted them in "declined", just don't show them in the RecyclerView
+                                continue;
+                            }
+
                             //Fetch the user's name from the "user" collection
                             db.collection("users")
                                     .document(uid)

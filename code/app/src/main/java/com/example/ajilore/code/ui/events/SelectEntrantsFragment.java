@@ -210,16 +210,20 @@ public class SelectEntrantsFragment extends Fragment {
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            //String name = d.getString("name");        // or "displayName" if that’s what you saved
-                            String responded = d.getString("responded"); // pending/accepted/declined
-                            //selectedList.add(new Entrant(uid, name, responded));
+                            String responded = d.getString("responded"); // pending/accepted/decline
+
+                            // if declined, do not show them in the chosen list
+                            if ("declined".equalsIgnoreCase(responded)) {
+                                continue;
+                            }
+
                             db.collection("users")
                                     .document(uid)
                                     .get()
                                     .addOnSuccessListener(userDoc -> {
                                         String userName = userDoc.getString("name");
                                         if(userName == null || userName.isEmpty()){
-                                            userName = uid; // just use the device id
+                                            userName = uid; // use the device id
                                             }
                                         selectedList.add(new Entrant(uid, userName, responded));
                                         adapter.notifyDataSetChanged();
@@ -273,20 +277,34 @@ public class SelectEntrantsFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(snap -> {
                     if (snap == null || snap.isEmpty()) {
-                        Toast.makeText(requireContext(), "No one on the waiting list.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(),
+                                "No one on the waiting list.",
+                                Toast.LENGTH_SHORT).show();
                         btnRunDraw.setEnabled(true);
                         return;
                     }
 
-                    // Shuffle and pick the first N
-
-// Shuffle and pick the first N
+                    // All waiting entrants
                     List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
                     Collections.shuffle(waiting, new Random());
 
-                    int maxWinners = Math.min(numberOfWinners, waiting.size());
+                    int available = waiting.size();
+
+                    //warning if they asked for more than available
+                    if (numberOfWinners > available) {
+                        Toast.makeText(
+                                requireContext(),
+                                "You asked to pick " + numberOfWinners
+                                        + " entrants, but only " + available
+                                        + " are left. Running draw for " + available + ".",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    int maxWinners = Math.min(numberOfWinners, available);
                     List<DocumentSnapshot> winners    = waiting.subList(0, maxWinners);
                     List<DocumentSnapshot> nonWinners = waiting.subList(maxWinners, waiting.size());
+
 
                     WriteBatch batch = db.batch();
                     for (DocumentSnapshot d : winners) {
