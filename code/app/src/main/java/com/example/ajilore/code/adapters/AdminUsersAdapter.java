@@ -95,22 +95,45 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
      * Filters user profiles based on query string (by name or email).
      * @param query Filter string, case-insensitive
      */
-    public void filter(String query) {
+    // Inside AdminUsersAdapter.java
+
+    public void filter(String query, String roleFilter) {
         userList.clear();
-        if (query.isEmpty()) {
-            userList.addAll(userListFull);
-        } else {
-            String lowerCaseQuery = query.toLowerCase();
-            for (User user : userListFull) {
-                if (user.getName() != null && user.getName().toLowerCase().contains(lowerCaseQuery) ||
-                        user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerCaseQuery)) {
-                    userList.add(user);
+
+        // Normalize query
+        String lowerCaseQuery = query.toLowerCase();
+
+        for (User user : userListFull) {
+            boolean matchesSearch = false;
+            boolean matchesRole = false;
+
+            // 1. Check Name/Email Search
+            if (query.isEmpty()) {
+                matchesSearch = true;
+            } else {
+                if ((user.getName() != null && user.getName().toLowerCase().contains(lowerCaseQuery)) ||
+                        (user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerCaseQuery))) {
+                    matchesSearch = true;
                 }
+            }
+
+            // 2. Check Role Filter
+            if (roleFilter.equals("All")) {
+                matchesRole = true;
+            } else if (roleFilter.equals("Organizers") && "organiser".equalsIgnoreCase(user.getRole())) {
+                matchesRole = true;
+            } else if (roleFilter.equals("Entrants") && !"organiser".equalsIgnoreCase(user.getRole())) {
+                // Assuming anything not 'organiser' is an entrant (or check specific 'entrant' role)
+                matchesRole = true;
+            }
+
+            // 3. Add if BOTH match
+            if (matchesSearch && matchesRole) {
+                userList.add(user);
             }
         }
         notifyDataSetChanged();
     }
-
     /**
      * Inflates a view and ViewHolder for a user row.
      * @param parent   Parent ViewGroup
@@ -135,6 +158,19 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         User user = userList.get(position);
 
         holder.tvUserName.setText(user.getName() != null ? user.getName() : "Unknown User");
+
+        holder.tvRoleBadge.setVisibility(View.VISIBLE); // Always visible now
+
+        if ("organiser".equalsIgnoreCase(user.getRole())) {
+            holder.tvRoleBadge.setText("Organizer");
+            holder.tvRoleBadge.setBackgroundResource(R.drawable.badge_organizer);
+            holder.tvRoleBadge.setTextColor(android.graphics.Color.parseColor("#E65100")); // Dark Orange text
+        } else {
+            holder.tvRoleBadge.setText("Entrant");
+            holder.tvRoleBadge.setBackgroundResource(R.drawable.badge_entrant);
+            holder.tvRoleBadge.setTextColor(android.graphics.Color.parseColor("#1565C0")); // Dark Blue text
+        }
+
 
         // Load profile image
         if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
@@ -176,6 +212,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         ImageView ivUserImage;
         TextView tvUserName;
         ImageButton btnDelete;
+        TextView tvRoleBadge;
 
         /**
          * Binds row view references.
@@ -186,6 +223,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
             ivUserImage = itemView.findViewById(R.id.iv_user_image);
             tvUserName = itemView.findViewById(R.id.tv_user_name);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            tvRoleBadge = itemView.findViewById(R.id.tv_role_badge);
         }
     }
 }

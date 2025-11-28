@@ -65,6 +65,47 @@
         android:textSize="14sp"
         android:textColorHint="@color/gray" />
 
+    <!-- Filter by Organiser or Entrant -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter: "
+            android:textStyle="bold"/>
+
+        <RadioGroup
+            android:id="@+id/rg_role_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rb_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All"
+                android:checked="true"/>
+
+            <RadioButton
+                android:id="@+id/rb_entrants"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Entrants"/>
+
+            <RadioButton
+                android:id="@+id/rb_organizers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Organizers"/>
+        </RadioGroup>
+    </LinearLayout>
+
     <!-- RecyclerView for users list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_users"

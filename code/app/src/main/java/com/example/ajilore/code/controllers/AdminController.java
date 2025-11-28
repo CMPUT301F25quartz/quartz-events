@@ -14,13 +14,26 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AdminController handles all administrative operations.
  * Provides methods for browsing and removing events, users, and images.
- * Implements US 03.04.01 (Browse Events), US 03.05.01 (Browse Users),
- * and US 03.01.01 (Remove Events).
+ *
+ * Implements:
+ * - US 03.04.01 (Browse Events)
+ * - US 03.05.01 (Browse Users)
+ * - US 03.06.01 (Browse Images)
+ * - US 03.01.01 (Remove Events)
+ * - US 03.02.01 (Remove Profiles)
+ * - US 03.03.01 (Remove Images)
+ * - US 03.07.01 (Remove Organizers)
+ *
+ * @author Dinma (Team Quartz)
+ * @version 1.3
+ * @since 2025-11-25
  */
 public class AdminController {
     private static final String TAG = "AdminController";
@@ -42,8 +55,7 @@ public class AdminController {
 
     /**
      * Fetches all event documents from Firestore.
-     * <p>User Story:</p>
-     * <ul><li>US 03.04.01 - Browse Events</li></ul>
+     * User Story: US 03.04.01 - Browse Events
      *
      * @param callback DataCallback returning list of events or an error.
      */
@@ -68,20 +80,19 @@ public class AdminController {
                                 }
                             }
                             callback.onSuccess(events);
-                            Log.d(TAG, " Successfully fetched " + events.size() + " events");
+                            Log.d(TAG, "Successfully fetched " + events.size() + " events");
                         } else {
                             Exception e = task.getException();
                             callback.onError(e != null ? e : new Exception("Unknown error"));
-                            Log.e(TAG, " Error fetching events", task.getException());
+                            Log.e(TAG, "Error fetching events", task.getException());
                         }
                     }
                 });
     }
 
     /**
-     * Fetches all user profiles from Firestore.
-     * <p>User Story:</p>
-     * <ul><li>US 03.05.01 - Browse Users/Profiles</li></ul>
+     * Fetches all user profiles from Firestore and converts to User model.
+     * User Story: US 03.05.01 - Browse Users/Profiles
      *
      * @param callback DataCallback returning the user list or error.
      */
@@ -97,18 +108,22 @@ public class AdminController {
                             List<User> users = new ArrayList<>();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 try {
-                                    User user = document.toObject(User.class);
+                                    // Manually build User from Firestore document
+                                    User user = new User();
                                     user.setUserId(document.getId());
+                                    user.setName(document.getString("name"));
+                                    user.setEmail(document.getString("email"));
+                                    user.setRole(document.getString("role"));
 
-                                    // MANUAL FIX: Map profilepicture → profileImageUrl
+                                    // Profile picture - use exact Firebase field name
                                     String profilePic = document.getString("profilepicture");
                                     if (profilePic != null && !profilePic.isEmpty()) {
                                         user.setProfileImageUrl(profilePic);
-                                        Log.d(TAG, "Loaded profile pic for: " + user.getName());
                                     }
 
                                     users.add(user);
-                                    Log.d(TAG, "Loaded user: " + user.getName());
+                                    Log.d(TAG, "Loaded user: " + user.getName() +
+                                            " (role: " + user.getRole() + ")");
                                 } catch (Exception e) {
                                     Log.e(TAG, "Error parsing user: " + document.getId(), e);
                                 }
@@ -118,7 +133,7 @@ public class AdminController {
                         } else {
                             Exception e = task.getException();
                             callback.onError(e != null ? e : new Exception("Unknown error"));
-                            Log.e(TAG, " Error fetching users", task.getException());
+                            Log.e(TAG, "Error fetching users", task.getException());
                         }
                     }
                 });
@@ -126,8 +141,7 @@ public class AdminController {
 
     /**
      * Removes an event and corresponding poster image from Firestore and Storage.
-     * <p>User Story:</p>
-     * <ul><li>US 03.01.01 - Remove Events</li></ul>
+     * User Story: US 03.01.01 - Remove Events
      *
      * @param eventId  Event document id to delete.
      * @param callback OperationCallback for success/error handling.
@@ -147,7 +161,7 @@ public class AdminController {
                         db.collection(EVENTS_COLLECTION).document(eventId)
                                 .delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, " Event removed: " + eventId);
+                                    Log.d(TAG, "Event removed: " + eventId);
 
                                     // If there's an image, delete it from Storage
                                     if (posterUrl != null && !posterUrl.isEmpty() && !posterUrl.equals("\"\"")) {
@@ -157,7 +171,7 @@ public class AdminController {
                                     callback.onSuccess();
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.e(TAG, " Error removing event", e);
+                                    Log.e(TAG, "Error removing event", e);
                                     callback.onError(e);
                                 });
                     } else {
@@ -166,14 +180,17 @@ public class AdminController {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, " Error fetching event", e);
+                    Log.e(TAG, "Error fetching event", e);
                     callback.onError(e);
                 });
     }
 
     /**
      * Removes a user profile from Firestore.
-     * Extend this method to remove user's events, waiting list entries, or extra cleanup as needed.
+     * User Story: US 03.02.01 - Remove Profiles
+     *
+     * Note: This permanently deletes the user document.
+     * For organizers, use deactivateOrganizer() instead.
      *
      * @param userId User's document ID.
      * @param callback OperationCallback for success/error.
@@ -184,11 +201,179 @@ public class AdminController {
         db.collection(USERS_COLLECTION).document(userId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, " User removed: " + userId);
+                    Log.d(TAG, "User removed: " + userId);
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, " Error removing user", e);
+                    Log.e(TAG, "Error removing user", e);
+                    callback.onError(e);
+                });
+    }
+
+    /**
+     * Deactivates an organizer account and flags all their events.
+     * User Story: US 03.07.01 - Remove organizers that violate app policy
+     *
+     * This method:
+     * 1. Updates the organizer's account with deactivation status
+     * 2. Prevents future event creation
+     * 3. Flags all events created by this organizer
+     *
+     * @param organizerId The user ID of the organizer to deactivate
+     * @param callback OperationCallback for success/error handling
+     */
+    public void deactivateOrganizer(String organizerId, final OperationCallback callback) {
+        Log.d(TAG, "Deactivating organizer: " + organizerId);
+
+        // Prepare deactivation data
+        Map<String, Object> deactivationData = new HashMap<>();
+        deactivationData.put("accountStatus", "deactivated");
+        deactivationData.put("canCreateEvents", false);
+        deactivationData.put("deactivatedAt", System.currentTimeMillis());
+        deactivationData.put("deactivatedBy", "admin");
+
+        // Update organizer document
+        db.collection(USERS_COLLECTION).document(organizerId)
+                .update(deactivationData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Organizer account deactivated: " + organizerId);
+
+                    // Now flag all their events
+                    flagOrganizerEvents(organizerId, new OperationCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "All organizer events flagged successfully");
+                            callback.onSuccess();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            // Still report success even if event flagging fails
+                            Log.w(TAG, "Organizer deactivated but event flagging had issues", e);
+                            callback.onSuccess();
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deactivating organizer", e);
+                    callback.onError(e);
+                });
+    }
+
+    /**
+     * Flags all events created by a specific organizer.
+     * User Story: US 03.07.01 - Remove organizers that violate app policy
+     *
+     * This is called automatically by deactivateOrganizer().
+     * Flags prevent new registrations and mark events for review.
+     *
+     * NOTE: Uses "createdByUid" field to match your Event model!
+     *
+     * @param organizerId The organizer's user ID
+     * @param callback OperationCallback for success/error handling
+     */
+    private void flagOrganizerEvents(String organizerId, final OperationCallback callback) {
+        Log.d(TAG, "Flagging events for organizer: " + organizerId);
+
+        // Query all events by this organizer
+        // IMPORTANT: Using "createdByUid" to match your Event model!
+        db.collection(EVENTS_COLLECTION)
+                .whereEqualTo("createdByUid", organizerId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        Log.d(TAG, "No events found for organizer: " + organizerId);
+                        callback.onSuccess();
+                        return;
+                    }
+
+                    // Prepare flag data
+                    Map<String, Object> flagData = new HashMap<>();
+                    flagData.put("status", "flagged");
+                    flagData.put("flaggedReason", "Organizer account deactivated");
+                    flagData.put("flaggedAt", System.currentTimeMillis());
+
+                    // Track completion of all updates
+                    final int totalEvents = querySnapshot.size();
+                    final int[] completedUpdates = {0};
+                    final boolean[] hasError = {false};
+
+                    Log.d(TAG, "Flagging " + totalEvents + " events");
+
+                    // Update each event
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        String eventId = document.getId();
+
+                        db.collection(EVENTS_COLLECTION).document(eventId)
+                                .update(flagData)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Flagged event: " + eventId);
+                                    completedUpdates[0]++;
+
+                                    // Check if all updates completed
+                                    if (completedUpdates[0] >= totalEvents) {
+                                        if (hasError[0]) {
+                                            callback.onError(new Exception("Some events failed to flag"));
+                                        } else {
+                                            callback.onSuccess();
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error flagging event: " + eventId, e);
+                                    hasError[0] = true;
+                                    completedUpdates[0]++;
+
+                                    // Check if all updates completed
+                                    if (completedUpdates[0] >= totalEvents) {
+                                        callback.onError(new Exception("Some events failed to flag"));
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error querying organizer events", e);
+                    callback.onError(e);
+                });
+    }
+
+    /**
+     * Fetches all events created by a specific organizer.
+     * User Story: US 03.07.01 - Remove organizers that violate app policy
+     *
+     * This can be used to display organizer event activity before deactivation.
+     *
+     * NOTE: Uses "createdByUid" field to match your Event model!
+     *
+     * @param organizerId The organizer's user ID
+     * @param callback DataCallback returning list of events or error
+     */
+    public void getOrganizerEvents(String organizerId, final DataCallback<List<Event>> callback) {
+        Log.d(TAG, "Fetching events for organizer: " + organizerId);
+
+        // IMPORTANT: Using "createdByUid" to match your Event model!
+        db.collection(EVENTS_COLLECTION)
+                .whereEqualTo("createdByUid", organizerId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Event> events = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        try {
+                            Event event = document.toObject(Event.class);
+                            event.id = document.getId();
+                            events.add(event);
+                            Log.d(TAG, "Loaded organizer event: " + event.title);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing event: " + document.getId(), e);
+                        }
+                    }
+
+                    callback.onSuccess(events);
+                    Log.d(TAG, "Fetched " + events.size() + " events for organizer");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching organizer events", e);
                     callback.onError(e);
                 });
     }
@@ -208,19 +393,18 @@ public class AdminController {
                         .addOnSuccessListener(aVoid ->
                                 Log.d(TAG, "Image deleted from storage"))
                         .addOnFailureListener(e ->
-                                Log.e(TAG, "⚠ Error deleting image (may not exist)", e));
+                                Log.e(TAG, "Error deleting image (may not exist)", e));
             } else {
-                Log.d(TAG, "⚠ External image URL (not in Firebase Storage): " + imageURL);
+                Log.d(TAG, "External image URL (not in Firebase Storage): " + imageURL);
             }
         } catch (Exception e) {
-            Log.e(TAG, "⚠ Invalid storage URL: " + imageURL, e);
+            Log.e(TAG, "Invalid storage URL: " + imageURL, e);
         }
     }
 
     /**
      * Fetches all images (event posters AND profile pictures) from Firestore.
-     * <p>User Story:</p>
-     * <ul><li>US 03.06.01 - Browse Images</li></ul>
+     * User Story: US 03.06.01 - Browse Images
      *
      * @param callback DataCallback returning list of ImageItems or an error.
      */
@@ -295,7 +479,7 @@ public class AdminController {
                             // Add profile pictures
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 try {
-                                    // CRITICAL: Use "profilepicture" to match your Firebase field name!
+                                    // CRITICAL: Use "profilepicture" to match your Firebase field name
                                     String profileImageUrl = document.getString("profilepicture");
                                     String userName = document.getString("name");
 
@@ -330,11 +514,11 @@ public class AdminController {
                             }
 
                             callback.onSuccess(eventImages);
-                            Log.d(TAG, " Successfully fetched " + eventImages.size() + " images total");
+                            Log.d(TAG, "Successfully fetched " + eventImages.size() + " images total");
                         } else {
                             // If profile fetch fails, still return event images
                             callback.onSuccess(eventImages);
-                            Log.w(TAG, "⚠ Error fetching profile images, returning event images only");
+                            Log.w(TAG, "Error fetching profile images, returning event images only");
                         }
                     }
                 });
@@ -342,8 +526,7 @@ public class AdminController {
 
     /**
      * Removes an image (event poster OR profile picture) from Storage and Firestore.
-     * <p>User Story:</p>
-     * <ul><li>US 03.03.01 - Remove Images</li></ul>
+     * User Story: US 03.03.01 - Remove Images
      *
      * @param imageItem  The ImageItem containing the image URL, ID, and type
      * @param callback OperationCallback for success/error handling.
@@ -361,9 +544,9 @@ public class AdminController {
         String field;
 
         if ("profile".equals(imageItem.type)) {
-            // Profile picture - Use "profilepicture" to match Firebase!
+            // Profile picture - Use "profilepicture" to match Firebase
             collection = USERS_COLLECTION;
-            field = "profilepicture";  // ← Matches your Firebase field name!
+            field = "profilepicture";
             Log.d(TAG, "Removing profile picture for user: " + imageItem.eventId);
         } else {
             // Event poster (default)
@@ -376,12 +559,43 @@ public class AdminController {
         db.collection(collection).document(imageItem.eventId)
                 .update(field, null)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, " Image removed from " + collection + ": " + imageItem.eventId);
+                    Log.d(TAG, "Image removed from " + collection + ": " + imageItem.eventId);
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, " Error removing image reference from " + collection, e);
+                    Log.e(TAG, "Error removing image reference from " + collection, e);
                     callback.onError(e);
+                });
+    }
+
+
+    /**
+     * Fetches all notification logs for the admin review.
+     * US 03.08.01
+     */
+    public void fetchNotificationLogs(final DataCallback<List<com.example.ajilore.code.models.NotificationLog>> callback) {
+        Log.d(TAG, "Fetching notification logs...");
+
+        db.collection("admin_notification_logs")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING) // Newest first
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        List<com.example.ajilore.code.models.NotificationLog> logs = new ArrayList<>();
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot document : task.getResult()) {
+                            try {
+                                com.example.ajilore.code.models.NotificationLog log =
+                                        document.toObject(com.example.ajilore.code.models.NotificationLog.class);
+                                log.setLogId(document.getId());
+                                logs.add(log);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing log", e);
+                            }
+                        }
+                        callback.onSuccess(logs);
+                    } else {
+                        callback.onError(task.getException());
+                    }
                 });
     }
 
