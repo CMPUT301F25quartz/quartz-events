@@ -55,9 +55,8 @@ public class OrganizerEventsFragment extends Fragment {
     private final List<EventItem> data = new ArrayList<>();
     private FirebaseFirestore db;
 
-    private ImageView ivOrganizerProfile;
-    private TextView tvOrganizerName;
-
+    private ImageView ivAvatar;
+    private TextView tvName;
 
     /**
      * Inflates the organizer events screen.
@@ -86,8 +85,8 @@ public class OrganizerEventsFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        ivOrganizerProfile = v.findViewById(R.id.ivOrganizerProfile);
-        tvOrganizerName    = v.findViewById(R.id.tvOrganizerName);
+        ivAvatar = v.findViewById(R.id.ivAvatar);
+        tvName   = v.findViewById(R.id.tvName);
         loadOrganizerHeader();
 
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
@@ -121,9 +120,6 @@ public class OrganizerEventsFragment extends Fragment {
         );
 
         if (deviceId == null || deviceId.isEmpty()) {
-            if (tvOrganizerName != null) {
-                tvOrganizerName.setText("Organizer");
-            }
             return;
         }
 
@@ -131,31 +127,26 @@ public class OrganizerEventsFragment extends Fragment {
                 .document(deviceId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (!isAdded() || doc == null) return;
-
-                    if (!doc.exists()) {
-                        tvOrganizerName.setText("Organizer");
-                        return;
-                    }
+                    if (!isAdded() || doc == null || !doc.exists()) return;
 
                     String name = doc.getString("name");
                     String profileUrl = doc.getString("profilepicture");
 
-                    tvOrganizerName.setText(
-                            name != null && !name.isEmpty() ? name : "Organizer"
-                    );
+                    if (name != null && !name.isEmpty() && tvName != null) {
+                        tvName.setText(name);
+                    }
 
-                    if (profileUrl != null && !profileUrl.isEmpty() && ivOrganizerProfile != null) {
+                    if (profileUrl != null && !profileUrl.isEmpty() && ivAvatar != null) {
                         Glide.with(this)
                                 .load(profileUrl)
                                 .circleCrop()
-                                .error(android.R.drawable.sym_def_app_icon)
-                                .into(ivOrganizerProfile);
+                                .placeholder(R.drawable.organizer_profileimage)
+                                .error(R.drawable.organizer_profileimage)
+                                .into(ivAvatar);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    if (!isAdded()) return;
-                    tvOrganizerName.setText("Organizer");
+                    Toast.makeText(requireContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

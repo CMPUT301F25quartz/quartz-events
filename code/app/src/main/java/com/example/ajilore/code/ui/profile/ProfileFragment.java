@@ -33,6 +33,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.firestore.DocumentReference;
+
 
 /**
  * {@code ProfileFragment} displays and manages a user's profile information
@@ -248,41 +251,77 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        db.collection("org_events").get().addOnSuccessListener(events -> {
-                    for (DocumentSnapshot eventDoc: events.getDocuments()) {
+        // 1) Remove this user from all events' waiting_list
+        db.collection("org_events")
+                .get()
+                .addOnSuccessListener(events -> {
+
+                    WriteBatch waitingBatch = db.batch();
+                    for (DocumentSnapshot eventDoc : events.getDocuments()) {
                         String eventId = eventDoc.getId();
-                        db.collection("org_events")
+                        DocumentReference ref = db.collection("org_events")
                                 .document(eventId)
                                 .collection("waiting_list")
-                                .document(deviceId)
-                                .delete();
+                                .document(deviceId);
+                        waitingBatch.delete(ref);
                     }
+                    waitingBatch.commit();
 
-            db.collection("users").document(deviceId)
-                    .delete()
-                    .addOnSuccessListener(x -> {
+                    // 2) Delete registration history under users/{deviceId}/registrations
+                    db.collection("users")
+                            .document(deviceId)
+                            .collection("registrations")
+                            .get()
+                            .addOnSuccessListener(regSnap -> {
+                                WriteBatch regBatch = db.batch();
+
+                                for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                                    // This deletes the registration doc.
+                                    // Its inbox subcollection becomes unreachable from the app.
+                                    regBatch.delete(regDoc.getReference());
+                                }
+
+                                regBatch.commit()
+                                        .addOnSuccessListener(v -> {
+                                            // 3) Finally delete the main user doc
+                                            db.collection("users")
+                                                    .document(deviceId)
+                                                    .delete()
+                                                    .addOnSuccessListener(x -> {
+                                                        Toast.makeText(getContext(),
+                                                                "Profile deleted",
+                                                                Toast.LENGTH_SHORT).show();
+
+                                                        requireActivity()
+                                                                .getSupportFragmentManager()
+                                                                .beginTransaction()
+                                                                .replace(R.id.nav_host_fragment,
+                                                                        new LoginFragment())
+                                                                .commit();
+                                                    })
+                                                    .addOnFailureListener(err ->
+                                                            Toast.makeText(getContext(),
+                                                                    "Delete failed: " + err.getMessage(),
+                                                                    Toast.LENGTH_LONG).show()
+                                                    );
+                                        })
+                                        .addOnFailureListener(err ->
+                                                Toast.makeText(getContext(),
+                                                        "Delete failed: " + err.getMessage(),
+                                                        Toast.LENGTH_LONG).show()
+                                        );
+                            })
+                            .addOnFailureListener(err ->
+                                    Toast.makeText(getContext(),
+                                            "Delete failed: " + err.getMessage(),
+                                            Toast.LENGTH_LONG).show()
+                            );
+                })
+                .addOnFailureListener(err ->
                         Toast.makeText(getContext(),
-                                "Profile deleted",
-                                Toast.LENGTH_SHORT).show();
-
-                        requireActivity().getSupportFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.nav_host_fragment, new LoginFragment())
-                                .commit();
-                    })
-                    .addOnFailureListener(err ->
-                            Toast.makeText(getContext(),
-                                    "Delete failed: " + err.getMessage(),
-                                    Toast.LENGTH_LONG).show()
-                    );
-        })
-            .addOnFailureListener(err ->
-                Toast.makeText(getContext(),
-                        "Delete failed: " + err.getMessage(),
-                        Toast.LENGTH_LONG).show()
+                                "Delete failed: " + err.getMessage(),
+                                Toast.LENGTH_LONG).show()
                 );
-
-
     }
 
 }
