@@ -60,6 +60,20 @@ public class SendNotificationHelper {
                 .add(notifData)
                 .addOnSuccessListener(docRef -> {
 
+
+                    String inboxId = docRef.getId();
+
+                    // NEW: mirror the same inbox item under users/{userId}/registrations/{eventId}/inbox
+                    FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(userId)
+                            .collection("registrations")
+                            .document(eventId)
+                            .collection("inbox")
+                            .document(inboxId)
+                            .set(notifData);
+
+
                     // ON SUCCESS: Write to Admin Log
                     db.collection("notification_logs")
                             .add(logData)
