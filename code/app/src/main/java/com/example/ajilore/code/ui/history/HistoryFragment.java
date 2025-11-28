@@ -1,6 +1,7 @@
 package com.example.ajilore.code.ui.history;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +66,7 @@ public class HistoryFragment extends Fragment {
     private List<Map<String, Object>> historyList = new ArrayList<>();
     //firebase
     private FirebaseFirestore db;
-    private String uid;
+    private String deviceId;
     /**
             * Inflates the layout for the history screen.
      *
@@ -100,7 +101,10 @@ public class HistoryFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
 
         loadHistory();
     }
@@ -118,7 +122,7 @@ public class HistoryFragment extends Fragment {
     private void loadHistory() {
         progressBar.setVisibility(View.VISIBLE);
         db.collection("users")
-                .document(uid)
+                .document(deviceId)
                 .collection("registrations")
                 .orderBy("registeredAt", Query.Direction.DESCENDING)
                 .get()

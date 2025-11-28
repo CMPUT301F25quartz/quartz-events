@@ -2,6 +2,7 @@ package com.example.ajilore.code.ui.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
@@ -65,9 +67,8 @@ public class ProfileFragment extends Fragment {
     private BottomNavigationView bottomNavigationView;
 
     //firebase
-    private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String uid;
+    private String deviceId;
     /** Default constructor required for Fragment instantiation. */
     public ProfileFragment() { }
 
@@ -108,15 +109,16 @@ public class ProfileFragment extends Fragment {
         btnDeleteProfile = v.findViewById(R.id.btnDeleteProfile);
         tvProfileHeader = v.findViewById(R.id.tvProfileHeader);
 
-        bottomNavigationView = requireActivity().findViewById(R.id.menu_bottom_nav);
-
-
-
-        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        FirebaseUser current = auth.getCurrentUser();
-        uid = (current != null) ? current.getUid() : null;
+        bottomNavigationView = requireActivity().findViewById(R.id.menu_bottom_nav);
+
+        // Get device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
         //three dots
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
         btnEditProfile.setOnClickListener(view -> openEditProfile());
@@ -176,34 +178,42 @@ public class ProfileFragment extends Fragment {
      * Displays default placeholders if user data is unavailable.
      */
     private void loadProfile() {
-        var user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            tvProfileHeader.setText("Hi User");
-            tvName.setText("Name: —");
-            tvEmail.setText("Email: —");
-            tvPhone.setText("Phone: —");
-            return;
-        }
-
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(user.getUid())
-                .get()
-                .addOnSuccessListener(doc -> {
-                    String name  = doc.getString("name");
+        db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        tvProfileHeader.setText("Hi User");
+                        tvName.setText("Name: —");
+                        tvEmail.setText("Email: —");
+                        tvPhone.setText("Phone: —");
+                        // Default profile picture
+                        //imgProfile.setImageResource(R.drawable.circle_placeholder);
+                        return;
+                    }
+                    String name = doc.getString("name");
                     String email = doc.getString("email");
                     String phone = doc.getString("phone");
+                    String profileUrl = doc.getString("profilepicture");
 
                     tvProfileHeader.setText((name != null && !name.isEmpty()) ? "Hi " + name : "Hi User");
                     tvName.setText("Name: " + (name == null || name.isEmpty() ? "—" : name));
                     tvEmail.setText("Email: " + (email == null || email.isEmpty() ? "—" : email));
                     tvPhone.setText("Phone: " + (phone == null || phone.isEmpty() ? "—" : phone));
+
+                    if (profileUrl != null && !profileUrl.isEmpty()) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .error(android.R.drawable.sym_def_app_icon)
+                                .into(imgProfile);
+                    } else {
+                        // Keep your default icon from XML
+                        imgProfile.setImageResource(android.R.drawable.sym_def_app_icon);
+                    }
+
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
     }
-    private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 
     /**
      * Opens the Edit Profile screen by replacing the current fragment.
@@ -232,58 +242,23 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
-        if (current == null) {
-            Toast.makeText(getContext(), "Not signed in.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        uid = current.getUid();
+        db.collection("users").document(deviceId)
+                .delete()
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(getContext(),
+                            "Profile deleted",
+                            Toast.LENGTH_SHORT).show();
 
-        // 1) Read user doc to get nameLower for secondary index
-        db.collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    String nameLower = doc.getString("nameLower");
-
-                    // 2) Batch delete Firestore docs
-                    var batch = db.batch();
-                    batch.delete(db.collection("users").document(uid));
-                    if (nameLower != null && !nameLower.trim().isEmpty()) {
-                        batch.delete(db.collection("usersByName").document(nameLower));
-                    }
-
-                    batch.commit()
-                            .addOnSuccessListener(x -> {
-                                // 3) Delete Auth user (falls back to signOut if reauth is required)
-                                current.delete()
-                                        .addOnSuccessListener(v -> {
-                                            Toast.makeText(getContext(), "Profile deleted", Toast.LENGTH_SHORT).show();
-                                            navigateToLogin();
-                                        })
-                                        .addOnFailureListener(err -> {
-                                            // If delete requires recent login or fails, just sign out
-                                            FirebaseAuth.getInstance().signOut();
-                                            Toast.makeText(getContext(), "Profile data deleted. Signed out.", Toast.LENGTH_SHORT).show();
-                                            navigateToLogin();
-                                        });
-                            })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                            );
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.nav_host_fragment, new LoginFragment())
+                            .commit();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                .addOnFailureListener(err ->
+                        Toast.makeText(getContext(),
+                                "Delete failed: " + err.getMessage(),
+                                Toast.LENGTH_LONG).show()
                 );
     }
-    /**
-     * Navigates the user back to the Login screen after sign-out or deletion.
-     */
-    private void navigateToLogin() {
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.nav_host_fragment, new LoginFragment())
-                .commit();
-    }
-
-
 
 }

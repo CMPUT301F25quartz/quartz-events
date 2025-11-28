@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.EventNotifier;   // << make sure helper is in this package
+import com.example.ajilore.code.ui.events.model.EntrantMapFragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -127,6 +128,8 @@ public class ManageEventsFragment extends Fragment {
         Button btnQR         = v.findViewById(R.id.btnQR);
         btnNotifyTop         = v.findViewById(R.id.btnNotifyEntrants);
         btnEditEvent    = v.findViewById(R.id.btnEditEvent);
+        Button btnMap = v.findViewById(R.id.btnMap);
+
 
         // audience pills (ensure your XML has these 4 IDs)
         tgWaiting   = v.findViewById(R.id.tgWaiting);
@@ -211,6 +214,17 @@ public class ManageEventsFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+
+        //Map, once clicked navigates to map screen
+        btnMap.setOnClickListener(view -> {
+            Fragment f = EntrantMapFragment.newInstance(eventId);
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, f)
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         //QR Page/Generator
         btnQR.setOnClickListener(x -> {
