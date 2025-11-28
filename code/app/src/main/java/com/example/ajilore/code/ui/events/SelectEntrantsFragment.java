@@ -136,16 +136,52 @@ public class SelectEntrantsFragment extends Fragment {
             new AlertDialog.Builder(requireContext())
                     .setTitle("Cancel entrant?")
                     .setMessage("Are you sure you want to cancel this entrant?")
-                    .setPositiveButton("Cancel Entrant", (d, which) ->{
-                        db.collection("org_events").document(eventId)
-                                .collection("waiting_list").document(entrant.uid)
-                                .delete()
-                                .addOnSuccessListener(ve -> Toast.makeText(requireContext(), "Entrant cancelled", Toast.LENGTH_SHORT).show())
-                                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to cancel entrant: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    .setPositiveButton("Cancel Entrant", (d, which) -> {
+
+                        String msg = "You were removed from "
+                                + (eventTitle != null ? eventTitle : "this event")
+                                + " by the organizer.";
+
+                        // 1) send automatic message with status "removed"
+                        EventNotifier.notifySingle(
+                                db,
+                                eventId,
+                                eventTitle != null ? eventTitle : "",
+                                entrant.uid,
+                                "removed",          // <- new status
+                                msg,
+                                /* includePoster */ true,
+                                /* linkUrl */ null,
+                                new EventNotifier.Callback() {
+                                    @Override
+                                    public void onSuccess(int delivered, @NonNull String broadcastId) {
+                                        // 2) now remove them from waiting_list
+                                        db.collection("org_events").document(eventId)
+                                                .collection("waiting_list").document(entrant.uid)
+                                                .delete()
+                                                .addOnSuccessListener(ve -> {
+                                                    Toast.makeText(requireContext(),
+                                                            "Entrant removed and notified",
+                                                            Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                                                        "Removed but failed to update list: " + e.getMessage(),
+                                                        Toast.LENGTH_SHORT).show());
+                                    }
+
+                                    @Override
+                                    public void onError(@NonNull Exception e) {
+                                        Toast.makeText(requireContext(),
+                                                "Failed to notify entrant: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                        );
                     })
-                    .setNegativeButton("Keep",null)
+                    .setNegativeButton("Keep", null)
                     .show();
         });
+
         rvSelected.setAdapter(adapter);
 
         // Load current “selected (pending/accepted/declined)”

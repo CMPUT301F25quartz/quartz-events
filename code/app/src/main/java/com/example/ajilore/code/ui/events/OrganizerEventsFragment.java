@@ -31,6 +31,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import android.provider.Settings;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 /**
  * OrganizerEventsFragment
@@ -49,6 +54,9 @@ public class OrganizerEventsFragment extends Fragment {
     private OrganizerEventsAdapter adapter;
     private final List<EventItem> data = new ArrayList<>();
     private FirebaseFirestore db;
+
+    private ImageView ivOrganizerProfile;
+    private TextView tvOrganizerName;
 
 
     /**
@@ -78,6 +86,10 @@ public class OrganizerEventsFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+        ivOrganizerProfile = v.findViewById(R.id.ivOrganizerProfile);
+        tvOrganizerName    = v.findViewById(R.id.tvOrganizerName);
+        loadOrganizerHeader();
+
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -99,6 +111,54 @@ public class OrganizerEventsFragment extends Fragment {
 
         loadEvents();
     }
+
+
+    private void loadOrganizerHeader() {
+        // same device ID scheme you use everywhere else
+        String deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            if (tvOrganizerName != null) {
+                tvOrganizerName.setText("Organizer");
+            }
+            return;
+        }
+
+        db.collection("users")
+                .document(deviceId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!isAdded() || doc == null) return;
+
+                    if (!doc.exists()) {
+                        tvOrganizerName.setText("Organizer");
+                        return;
+                    }
+
+                    String name = doc.getString("name");
+                    String profileUrl = doc.getString("profilepicture");
+
+                    tvOrganizerName.setText(
+                            name != null && !name.isEmpty() ? name : "Organizer"
+                    );
+
+                    if (profileUrl != null && !profileUrl.isEmpty() && ivOrganizerProfile != null) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .error(android.R.drawable.sym_def_app_icon)
+                                .into(ivOrganizerProfile);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!isAdded()) return;
+                    tvOrganizerName.setText("Organizer");
+                });
+    }
+
 
 
     /**
