@@ -5,13 +5,14 @@
     android:layout_height="match_parent"
     tools:context=".ui.events.ScanQrFragment">
 
-
+    <!-- Optional: Back button over the scanner screen -->
     <ImageButton
         android:id="@+id/btnQRBack"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_margin="16dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_back"
-        android:contentDescription="Back Button" />
+        android:contentDescription="@string/back" />
 
 </FrameLayout>
