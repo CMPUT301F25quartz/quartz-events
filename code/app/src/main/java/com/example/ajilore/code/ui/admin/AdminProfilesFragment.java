@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,37 +26,21 @@ import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminUsersAdapter;
 import com.example.ajilore.code.controllers.AdminController;
 import com.example.ajilore.code.models.User;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
 /**
  * Fragment for displaying and managing the list of users in the admin interface.
  *
- * <p>This fragment displays all user profiles and provides administrative controls
- * for user management, including viewing detailed user information and removing users
- * who violate application policies. Despite the class name "ProfilesFragment", this
- * component manages the user browsing functionality.</p>
- *
- * <p>Design Pattern: Fragment pattern from Android framework. Works in conjunction with
- * AdminUsersAdapter following the Model-View-Adapter pattern.</p>
- *
- * <p>User Stories:</p>
- * <ul>
- *   <li>US 03.05.01 - As an administrator, I want to be able to browse profiles</li>
- *   <li>US 03.02.01 - As an administrator, I want to be able to remove profiles</li>
- * </ul>
- *
- * <p>Features:</p>
- * <ul>
- *   <li>Search users by name or email</li>
- *   <li>Real-time filtering as user types</li>
- *   <li>Delete users with confirmation</li>
- *   <li>Loading and empty states</li>
- * </ul>
+ * Implements:
+ * - US 03.05.01: Browse profiles
+ * - US 03.02.01: Remove profiles
+ * - US 03.07.01: Remove organizers that violate policy
  *
  * @author Dinma (Team Quartz)
- * @version 1.1
- * @since 2025-11-01
+ * @version 1.3
+ * @since 2025-11-25
  */
 public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter.OnUserActionListener {
 
@@ -66,15 +51,9 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     private LinearLayout layoutEmptyState;
     private ProgressBar progressBar;
     private ImageButton btnBack;
+    private RadioGroup rgRoleFilter; // For filtering by organizer or entrant
+    private String currentFilter = "All"; // Track state
 
-    /**
-     * Inflates the admin profiles fragment view and initializes core UI and data elements.
-     *
-     * @param inflater The LayoutInflater object for view inflation.
-     * @param container Parent ViewGroup (if any).
-     * @param savedInstanceState Saved state from prior instance.
-     * @return The root view for admin profile browsing.
-     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -85,73 +64,67 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         adminController = new AdminController();
         setupRecyclerView();
         setupSearch();
+        setupFilter();
         setupBackButton();
         loadUsers();
 
         return view;
     }
 
-    /**
-     * Binds and wires up all core UI widgets in the fragment.
-     * @param view The root fragment view.
-     */
     private void initializeViews(View view) {
         rvUsers = view.findViewById(R.id.rv_users);
         etSearch = view.findViewById(R.id.et_search_users);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
         progressBar = view.findViewById(R.id.progress_bar);
         btnBack = view.findViewById(R.id.btn_back);
+        rgRoleFilter = view.findViewById(R.id.rg_role_filter);
     }
 
-    /**
-     * Initializes the RecyclerView, sets its adapter, and layout manager.
-     */
     private void setupRecyclerView() {
         adapter = new AdminUsersAdapter(requireContext(), this);
         rvUsers.setAdapter(adapter);
         rvUsers.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
 
-    /**
-     * Sets up the user search EditText to filter adapter contents live.
-     * Searches by name or email as user types.
-     */
+    private void setupFilter() {
+        rgRoleFilter.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rb_all) {
+                currentFilter = "All";
+            } else if (checkedId == R.id.rb_entrants) {
+                currentFilter = "Entrants";
+            } else if (checkedId == R.id.rb_organizers) {
+                currentFilter = "Organizers";
+            }
+            // Trigger filter with current search text AND new filter
+            adapter.filter(etSearch.getText().toString(), currentFilter);
+            updateEmptyState();
+        });
+    }
+
     private void setupSearch() {
         if (etSearch != null) {
             etSearch.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    // Not needed
-                }
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Filter the adapter as user types
-                    adapter.filter(s.toString());
+                    adapter.filter(s.toString(), currentFilter);
                     updateEmptyState();
                 }
 
                 @Override
-                public void afterTextChanged(Editable s) {
-                    // Not needed
-                }
+                public void afterTextChanged(Editable s) {}
             });
         }
     }
 
-    /**
-     * Sets up the back navigation button on the toolbar.
-     */
     private void setupBackButton() {
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
         }
     }
 
-    /**
-     * Loads all user records via the AdminController and updates adapter and UI.
-     * Displays loading state while in progress and empty state if no results.
-     */
     private void loadUsers() {
         showLoading(true);
 
@@ -183,10 +156,6 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         });
     }
 
-    /**
-     * Shows or hides the loading indicator.
-     * @param show True to show loading, false to hide
-     */
     private void showLoading(boolean show) {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -194,9 +163,6 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         rvUsers.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
-    /**
-     * Updates whether the empty state layout or RecyclerView is shown based on data content.
-     */
     private void updateEmptyState() {
         boolean isEmpty = adapter.getItemCount() == 0;
         layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
@@ -204,58 +170,153 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Callback when a user row is tapped to show brief info.
-     * @param user User instance that was tapped.
+     * Displays the organizer's event activity.
+     * Satisfies: "Admin can view organizer profiles and event activity"
      */
     @Override
     public void onUserClick(User user) {
-        Toast.makeText(requireContext(),
-                "User: " + user.getName(),
-                Toast.LENGTH_SHORT).show();
+        // Only fetch details if the user is an organizer
+        if ("organiser".equalsIgnoreCase(user.getRole())) {
+            showOrganizerDetailsDialog(user);
+        } else {
+            // For entrants, just show the standard info
+            Toast.makeText(requireContext(),
+                    "Entrant: " + user.getName(),
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
-     * Callback when the delete button for a user is tapped.
-     * @param user User to be deleted.
+     * Fetches and displays a list of events created by the organizer.
+     */
+    private void showOrganizerDetailsDialog(User user) {
+        // Show a loading indicator (optional, or use a simple toast)
+        Toast.makeText(requireContext(), "Fetching organizer activity...", Toast.LENGTH_SHORT).show();
+
+        adminController.getOrganizerEvents(user.getUserId(), new AdminController.DataCallback<List<com.example.ajilore.code.ui.events.model.Event>>() {
+            @Override
+            public void onSuccess(List<com.example.ajilore.code.ui.events.model.Event> events) {
+                if (!isAdded()) return;
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setTitle("Activity: " + user.getName());
+
+                if (events.isEmpty()) {
+                    builder.setMessage("No events created by this organizer.");
+                } else {
+                    // specific logic to list event titles
+                    String[] eventTitles = new String[events.size()];
+                    for (int i = 0; i < events.size(); i++) {
+                        eventTitles[i] = "• " + events.get(i).title;
+                    }
+                    builder.setItems(eventTitles, null); // Just list them, no click action needed
+                }
+
+                builder.setPositiveButton("Close", (dialog, which) -> dialog.dismiss());
+
+                // Add a direct "Deactivate" button here for better UX
+                builder.setNegativeButton("Deactivate", (dialog, which) -> {
+                    showOrganizerDeleteDialog(user); // Calls your existing delete logic
+                });
+
+                builder.show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(),
+                            "Failed to load activity: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    /**
+     * Shows role-specific delete dialog.
+     * Organizers get enhanced confirmation, entrants get simple confirmation.
+     *
+     * US 03.07.01 - Remove organizers
+     * US 03.02.01 - Remove profiles
      */
     @Override
     public void onDeleteClick(User user) {
-        showDeleteDialog(user);
+        // Check for "organiser" (British spelling in your Firebase)
+        if ("organiser".equalsIgnoreCase(user.getRole())) {
+            showOrganizerDeleteDialog(user);
+        } else {
+            DeleteDialogHelper.showDeleteDialog(
+                    requireContext(),
+                    "Profile",
+                    user.getName(),
+                    () -> deleteUser(user)
+            );
+        }
     }
 
     /**
-     * Displays a dialog to confirm permanent user deletion.
-     * Uses custom dialog layout for consistency with other admin screens.
-     * @param user The User record to delete.
+     * Shows enhanced delete confirmation for organizers with consequences listed.
+     * US 03.07.01 - Remove organizers that violate policy
      */
-    private void showDeleteDialog(User user) {
+    private void showOrganizerDeleteDialog(User user) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
         View dialogView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.dialog_delete_confirmation, null);
+                .inflate(R.layout.dialog_delete_organizer, null);
 
-        TextView messageText = dialogView.findViewById(R.id.tv_dialog_message);
-        messageText.setText("Are you sure you want to remove \"" + user.getName() +
-                "\"? This action cannot be undone.");
+        TextView tvMessage = dialogView.findViewById(R.id.tv_message);
+        tvMessage.setText("Are you sure you want to remove organizer \"" + user.getName() + "\"?");
 
-        Button deleteButton = dialogView.findViewById(R.id.btn_delete);
-        Button cancelButton = dialogView.findViewById(R.id.btn_cancel);
+        Button btnDelete = dialogView.findViewById(R.id.btn_delete);
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
 
         AlertDialog dialog = builder.setView(dialogView).create();
 
-        deleteButton.setOnClickListener(v -> {
-            deleteUser(user);
+        btnDelete.setOnClickListener(v -> {
+            deactivateOrganizer(user);
             dialog.dismiss();
         });
 
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
 
     /**
-     * Requests AdminController to delete a user, and refreshes UI on result.
-     * @param user User to remove.
+     * Deactivates organizer account and flags all their events.
+     * US 03.07.01 - Remove organizers that violate policy
+     */
+    private void deactivateOrganizer(User user) {
+        Toast.makeText(requireContext(),
+                "Deactivating organizer...",
+                Toast.LENGTH_SHORT).show();
+
+        adminController.deactivateOrganizer(user.getUserId(), new AdminController.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(),
+                            "Organizer deactivated\nAll events flagged",
+                            Toast.LENGTH_LONG).show();
+                    loadUsers();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(),
+                            "Error deactivating organizer:\n" + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    /**
+     * Permanently deletes a user profile.
+     * US 03.02.01 - Remove profiles
      */
     private void deleteUser(User user) {
         adminController.removeUser(user.getUserId(), new AdminController.OperationCallback() {
@@ -265,7 +326,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
                     Toast.makeText(requireContext(),
                             "User deleted",
                             Toast.LENGTH_SHORT).show();
-                    loadUsers(); // Reload list
+                    loadUsers();
                 }
             }
 
@@ -273,7 +334,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
             public void onError(Exception e) {
                 if (isAdded()) {
                     Toast.makeText(requireContext(),
-                            "Error deleting user: " + e.getMessage(),
+                            "Error deleting user:\n" + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 }
             }

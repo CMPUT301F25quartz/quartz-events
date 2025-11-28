@@ -113,6 +113,10 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
    // implementation(files("/Users/preciousajilore/Library/Android/sdk/platforms/android-36/android.jar"))
 
+    //for location
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+
 }
 
 fun Javadoc.configureAndroidJavadocTask() {

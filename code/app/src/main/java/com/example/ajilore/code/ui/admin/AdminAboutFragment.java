@@ -7,14 +7,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.content.Intent;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
@@ -26,20 +29,21 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * Fragment displaying the admin dashboard with navigation options.
  *
  * <p>This fragment serves as the main landing page for administrators,
- * displaying admin profile information and providing navigation buttons
- * to access different administrative functions (Events, Profiles, Images).</p>
+ * displaying admin profile information (name + profile picture) and providing
+ * navigation buttons to access different administrative functions (Events, Profiles, Images).</p>
  *
  * <p>Design Pattern: Fragment pattern serving as a navigation hub.</p>
  *
  * @author Dinma (Team Quartz)
- * @version 1.0
- * @since 2025-11-01
+ * @version 1.1
+ * @since 2025-11-25
  */
 public class AdminAboutFragment extends Fragment {
 
     private static final String TAG = "AdminAboutFragment";
 
     private TextView tvAdminName;
+    private ImageView ivAdminProfile;  // NEW: Profile picture
     private FirebaseFirestore db;
 
 
@@ -61,11 +65,14 @@ public class AdminAboutFragment extends Fragment {
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Initialize TextView
+        // Initialize Views
         tvAdminName = view.findViewById(R.id.tv_admin_name);
+        ivAdminProfile = view.findViewById(R.id.iv_profile_image);
+        ImageButton btnOptions = view.findViewById(R.id.btn_options_menu);
+        btnOptions.setOnClickListener(this::showOptionsMenu);
 
-        // Fetch and display admin name
-        fetchAdminName();
+        // Fetch and display admin name + profile picture
+        fetchAdminProfile();
 
         setupNavigationButtons(view);
 
@@ -85,21 +92,39 @@ public class AdminAboutFragment extends Fragment {
         return view;
     }
 
+    private void showOptionsMenu(View v) {
+        PopupMenu popup = new PopupMenu(requireContext(), v);
+        popup.getMenu().add(0, 1, 0, "Notification Logs");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                // Navigate to logs
+                ((AdminActivity)requireActivity()).loadFragment(new AdminNotificationLogsFragment());
+                return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
     /**
-     * Fetches the admin's name from Firestore based on device ID.
+     * Fetches the admin's profile (name + picture) from Firestore based on device ID.
      * The device ID is used as the document ID in the 'users' collection.
+     *
+     * UPDATED: Now also loads profile picture using Glide.
      */
-    private void fetchAdminName() {
+    private void fetchAdminProfile() {
         // Get the device ID
         String deviceId = AdminAuthManager.getDeviceId(requireContext());
 
         if (deviceId == null || deviceId.isEmpty()) {
             tvAdminName.setText("Admin User");
+            setDefaultProfileImage();
             Log.e(TAG, "Device ID is null or empty");
             return;
         }
 
-        Log.d(TAG, "Fetching admin name for device ID: " + deviceId);
+        Log.d(TAG, "Fetching admin profile for device ID: " + deviceId);
 
         // Set loading state
         tvAdminName.setText("Loading...");
@@ -110,31 +135,71 @@ public class AdminAboutFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // Get the name field from the document
+                        // Get the name field
                         String name = documentSnapshot.getString("name");
 
+                        // Get the profile picture (use "profilepicture" to match Firebase!)
+                        String profilePicUrl = documentSnapshot.getString("profilepicture");
+
+                        // Set name
                         if (name != null && !name.isEmpty()) {
                             tvAdminName.setText(name);
-                            Log.d(TAG, "Successfully loaded admin name: " + name);
+                            Log.d(TAG, "✅ Successfully loaded admin name: " + name);
                         } else {
-                            // Fallback: If name is null, show "Admin User"
                             tvAdminName.setText("Admin User");
                             Log.w(TAG, "Document exists but name is null");
                         }
+
+                        // Load profile picture with Glide
+                        loadProfileImage(profilePicUrl);
+
                     } else {
                         // Document doesn't exist for this device ID
                         tvAdminName.setText("Admin User");
+                        setDefaultProfileImage();
                         Log.w(TAG, "No user document found for device ID: " + deviceId);
                     }
                 })
                 .addOnFailureListener(e -> {
                     // Handle error
                     tvAdminName.setText("Admin User");
-                    Log.e(TAG, "Error fetching admin name from Firestore", e);
+                    setDefaultProfileImage();
+                    Log.e(TAG, "Error fetching admin profile from Firestore", e);
                     Toast.makeText(getContext(),
-                            "Failed to load admin name",
+                            "Failed to load admin profile",
                             Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    /**
+     * Loads the profile image using Glide.
+     * If URL is null or empty, shows default icon.
+     *
+     * @param profilePicUrl The URL of the profile picture from Firebase
+     */
+    private void loadProfileImage(String profilePicUrl) {
+        if (profilePicUrl != null && !profilePicUrl.isEmpty() && !profilePicUrl.equals("\"\"")) {
+            // Load actual profile picture
+            Glide.with(this)
+                    .load(profilePicUrl)
+                    .placeholder(android.R.drawable.ic_menu_myplaces)  // Loading placeholder
+                    .error(android.R.drawable.ic_menu_myplaces)        // Error fallback
+                    .circleCrop()                                       // Make it circular
+                    .into(ivAdminProfile);
+
+            Log.d(TAG, "Loaded profile picture: " + profilePicUrl);
+        } else {
+            // No profile picture available
+            setDefaultProfileImage();
+            Log.d(TAG, "No profile picture URL available");
+        }
+    }
+
+    /**
+     * Sets the default profile icon when no profile picture is available.
+     */
+    private void setDefaultProfileImage() {
+        ivAdminProfile.setImageResource(android.R.drawable.ic_menu_myplaces);
     }
 
     /**
