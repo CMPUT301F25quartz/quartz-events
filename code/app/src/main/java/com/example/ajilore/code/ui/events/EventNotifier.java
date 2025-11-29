@@ -1,8 +1,8 @@
 package com.example.ajilore.code.ui.events;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.util.Log;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
@@ -19,10 +19,11 @@ import java.util.Map;
 /**
  * EventNotifier
  *
- * Purpose: A class that sends the organizer broadcasts.
+ * Purpose: A class that sends the organizer broadcasts with admin audit logging.
  * It writes an audit record under /org_events/{eventId}/broadcasts and
  * fans out inbox items under /org_events/{eventId}/entrants/{uid}/inbox.
  *
+ * UPDATED: Now logs all broadcasts to admin_notification_logs for US 03.08.01
  * Pattern: Stateless helper with a simple callback interface.
  *
  */
@@ -51,11 +52,12 @@ public final class EventNotifier {
 
     /**
      * Broadcast a message to a whole audience bucket for an event.
+     * NOW INCLUDES: Automatic logging to admin_notification_logs
      * <p>
      * Steps:
      * 1) Create an audit doc in /org_events/{eventId}/broadcasts.
      * 2) Fan out an inbox message to entrants under
-     *    /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
+     * /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
      * </p>
      *
      * Status filter rules:
@@ -148,20 +150,41 @@ public final class EventNotifier {
                                     return;
                                 }
 
-                                // 2) Fan out to each recipient’s inbox (under org_events/{eventId}/entrants/{uid}/inbox)
+                                // 2) Fan out to each recipient’s inbox (under org_events/{eventId}/entrants/{uid}/inbox) WITH admin logging
                                 writeInboxInChunks(db, uids, eventId, eventTitle, message,
-                                        includePoster, linkUrl, targetStatus, broadcastId, cb);
+                                        includePoster, linkUrl, targetStatus, broadcastId,
+                                        new Callback() {
+                                            @Override
+                                            public void onSuccess(int deliveredCount, @NonNull String broadcastIdOrEmpty) {
+                                                // NEW: Log to admin_notification_logs
+                                                db.collection("org_events").document(eventId).get()
+                                                        .addOnSuccessListener(eventDoc -> {
+                                                            String senderId = eventDoc.getString("createdByUid");
+                                                            if (senderId == null)
+                                                                senderId = "organizer";
+
+                                                            logToAdminAudit(db, eventId, eventTitle, message,
+                                                                    targetStatus, deliveredCount, senderId);
+
+                                                            // Call original callback
+                                                            cb.onSuccess(deliveredCount, broadcastIdOrEmpty);
+                                                        });
+                                            }
+
+                                            @Override
+                                            public void onError(@NonNull Exception e) {
+                                                cb.onError(e);
+                                            }
+                                        });
                             })
                             .addOnFailureListener(cb::onError);
                 })
                 .addOnFailureListener(cb::onError);
     }
 
-
-
-
     /**
      * Send a broadcast and a single inbox message to one entrant.
+     * INCLUDES: Automatic logging to admin_notification_logs
      * <p>
      * Useful for follow-ups like per-user accept/decline messaging.
      * Writes an audit under broadcasts and one inbox doc under
@@ -178,7 +201,6 @@ public final class EventNotifier {
      * @param linkUrl       Optional URL to include (nullable)
      * @param cb            Completion callback (success or error)
      */
-
     public static void notifySingle(@NonNull FirebaseFirestore db,
                                     @NonNull String eventId,
                                     @NonNull String eventTitle,
@@ -241,15 +263,30 @@ public final class EventNotifier {
                     batch.set(userInboxRef, inbox);
 
                     batch.commit()
-                            .addOnSuccessListener(v -> cb.onSuccess(1, broadcastId))
-                            .addOnFailureListener(cb::onError);
-                })
-                .addOnFailureListener(cb::onError);   // in case writing the broadcast fails
-    }
+                            .addOnSuccessListener(v -> {
+                                //  Log single-user notification
+                                db.collection("org_events").document(eventId).get()
+                                        .addOnSuccessListener(eventDoc -> {
+                                            String senderId = eventDoc.getString("createdByUid");
+                                            if (senderId == null)
+                                                senderId = "organizer";
 
+                                            logToAdminAudit(db, eventId, eventTitle, message,
+                                                    targetStatus, 1, senderId);
+                                        });
+
+                                cb.onSuccess(1, broadcastId);
+                            })
+                            .addOnFailureListener(cb::onError);
+
+                })
+                .addOnFailureListener(cb::onError);
+    }
 
     /**
      * Batch-write inbox notifications to entrants in chunks.
+     * Writes to BOTH the event waiting list inbox and the user's registration inbox.
+     *
      * @param db Firestore instance
      * @param uids List of user IDs to notify
      * @param eventId Event document ID
@@ -315,6 +352,7 @@ public final class EventNotifier {
                 inbox.put("createdAt", FieldValue.serverTimestamp());
 
                 batch.set(inboxRef, inbox);
+                batch.set(userInboxRef, inbox);
                 batch.set(userInboxRef, inbox);   // NEW
                 thisBatchCount++;
             }
@@ -343,12 +381,12 @@ public final class EventNotifier {
      * @param broadcastId Broadcast audit document ID
      * @param cb Callback for completion/failure
      */
-    private static void commitChain(@NonNull List<WriteBatch> batches,
-                                    @NonNull List<Integer> batchSizes,
+    private static void commitChain(@NonNull List < WriteBatch > batches,
+                                    @NonNull List < Integer > batchSizes,
                                     int index,
                                     int deliveredSoFar,
                                     @NonNull String broadcastId,
-                                    @NonNull Callback cb) {
+                                    @NonNull Callback cb){
         if (index >= batches.size()) {
             cb.onSuccess(deliveredSoFar, broadcastId);
             return;
@@ -363,5 +401,47 @@ public final class EventNotifier {
                 .addOnFailureListener(cb::onError);
     }
 
-}
+    /**
+     * Logs a broadcast action to admin_notification_logs for audit trail.
+     * Called after successful broadcast creation.
+     *
+     * US 03.08.01 - Admin can review logs of all notifications
+     *
+     * @param db Firestore instance
+     * @param eventId Event document ID
+     * @param eventTitle Event title for display
+     * @param message Message content
+     * @param audience Target audience ("waiting", "chosen", "selected", "cancelled")
+     * @param recipientCount Number of entrants who received the notification
+     * @param senderId Organizer's user ID
+     */
+    private static void logToAdminAudit (@NonNull FirebaseFirestore db,
+                                         @NonNull String eventId,
+                                         @NonNull String eventTitle,
+                                         @NonNull String message,
+                                         @NonNull String audience,
+                                         int recipientCount,
+                                         @NonNull String senderId){
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("eventId", eventId);
+        logData.put("eventTitle", eventTitle);
+        logData.put("message", message);
+        logData.put("audience", audience);
+        logData.put("recipientCount", recipientCount);
+        logData.put("type", "broadcast");
+        logData.put("senderId", senderId);
+        logData.put("timestamp", FieldValue.serverTimestamp());
 
+        Log.d("EventNotifier", " Logging to admin_notification_logs: " + eventTitle + " (" + recipientCount + " recipients)");
+
+        db.collection("admin_notification_logs")
+                .add(logData)
+                .addOnSuccessListener(docRef -> {
+                    Log.d("EventNotifier", "Admin log created: " + docRef.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventNotifier", "Admin log FAILED: " + e.getMessage(), e);
+                });
+    }
+
+}

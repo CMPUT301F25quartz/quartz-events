@@ -43,6 +43,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.example.ajilore.code.utils.AdminAuthManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -447,6 +448,24 @@ public class CreateEventFragment extends Fragment {
 
         // Prepare database event creation logic
         btnSave.setEnabled(false);
+
+        String deviceId = AdminAuthManager.getDeviceId(requireContext());
+        // Check Permissions in Firestore before proceeding
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                            // 1. Check Policy Violations
+                            if (documentSnapshot.exists()) {
+                                Boolean canCreate = documentSnapshot.getBoolean("canCreateEvents");
+                                String status = documentSnapshot.getString("accountStatus");
+
+                                // If user is deactivated, STOP everything.
+                                if (Boolean.FALSE.equals(canCreate) || "deactivated".equals(status)) {
+                                    Toast.makeText(getContext(), "Account deactivated due to policy violation.", Toast.LENGTH_LONG).show();
+                                    btnSave.setEnabled(true);
+                                    return;
+                                }
+                            }
+         // User is clear, has permissions
         boolean geoRequired = geolocationSwitch != null &&geolocationSwitch.isChecked();
 
 
@@ -461,7 +480,7 @@ public class CreateEventFragment extends Fragment {
             event.put("regCloses", new Timestamp(regCloseCal.getTime()));
             event.put("posterUrl", posterUrl);
             event.put("status", "published");
-            event.put("createdByUid", "precious"); // Replace with actual user ID in production
+            event.put("createdByUid", "deviceId"); // Replace with actual user ID in production
             event.put("createdAt", FieldValue.serverTimestamp());
             event.put("updatedAt", FieldValue.serverTimestamp());
             event.put("geolocationRequired", geoRequired);
@@ -476,7 +495,7 @@ public class CreateEventFragment extends Fragment {
             if(eventId == null){
                 //Create a new event
                 event.put("createdAt", FieldValue.serverTimestamp());
-                event.put("createdByUid","precious");
+                event.put("createdByUid", deviceId);
                 db.collection("org_events").add(event)
                         .addOnSuccessListener(ref -> {
                             btnSave.setEnabled(true);
@@ -515,7 +534,13 @@ public class CreateEventFragment extends Fragment {
             saveEventWithPosterUrl.accept(null);
         }
         Log.d("CreateEventFragment", "Validation passed, starting upload or save");
-
+                })
+                .addOnFailureListener(e -> {
+                    // Handle network error during permission check
+                    Log.e("CreateEventFragment", "Error checking permissions", e);
+                    Toast.makeText(getContext(), "Error verifying permissions. Please try again.", Toast.LENGTH_SHORT).show();
+                    btnSave.setEnabled(true);
+                });
     }
     /**
      * Uploads an image to Cloudinary and calls a consumer with the resulting URL.

@@ -101,7 +101,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
-        AdminAuthManager.addCurrentDeviceAsAdmin(requireContext());
 
         // Bind views
         toolbar        = v.findViewById(R.id.profileToolbar);
