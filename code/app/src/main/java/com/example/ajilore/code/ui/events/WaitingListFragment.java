@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,7 +14,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -40,17 +40,23 @@ public class WaitingListFragment extends Fragment {
     private EditText etSearch;
     private WaitingListAdapter adapter;
     private List<Entrant> entrantList = new ArrayList<>();
+
+    // NEW: Store original list for filtering (added by Kulnoor)
+    private List<Entrant> originalEntrantList = new ArrayList<>(); // Store original list for filtering
     private FirebaseFirestore db;
     private String eventId;
 
     private ImageButton btnBack;
+
+    // // NEW: Adding filter button and filter state (added by Kulnoor)
+    private ImageButton btnFilter;
+    private String currentFilter = "ALL"; // NEW: Current filter state: "ALL", "ACCEPTED", "DECLINED", "PENDING"
 
     /**
      * Default public constructor for {@link WaitingListFragment}.
      * Required by the system for fragment instantiation.
      */
     public WaitingListFragment() {}
-
 
     /**
      * Factory method to create a new instance of {@link WaitingListFragment}
@@ -112,6 +118,11 @@ public class WaitingListFragment extends Fragment {
         btnBack = view.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(x -> requireActivity().onBackPressed());
 
+        // NEW: Initialize filter button as image button
+        btnFilter = view.findViewById(R.id.btnFilter);
+        if (btnFilter != null) {
+            btnFilter.setOnClickListener(v -> showFilterOptions());
+        }
 
         rvEntrants.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new WaitingListAdapter(requireContext(), entrantList);
@@ -121,12 +132,14 @@ public class WaitingListFragment extends Fragment {
                 .collection("waiting_list")
                 .addSnapshotListener((snap, err) -> {
                     entrantList.clear();
+
+                    // NEW: Clear original list too (added by Kulnoor)
+                    originalEntrantList.clear();
                     int total = 0, accepted = 0, declined = 0, pending = 0;
 
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            //String name = d.getString("name");
                             String status = d.getString("status");
                             String responded = d.getString("responded");
 
@@ -140,34 +153,18 @@ public class WaitingListFragment extends Fragment {
                             } else if ("waiting".equalsIgnoreCase(status)) {
                                 displayStatus = "Waiting";
                             } else {
-                                // fallback if anything else
                                 displayStatus = responded != null ? responded : "Pending";
                             }
-                           // entrantList.add(new Entrant(uid, name, displayStatus));
-
 
                             total++;
-                            // NEW: classify based on status + responded
-                            String r = responded != null ? responded.toLowerCase() : "";
-                            String s = status != null ? status.toLowerCase() : "";
+                            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
 
-                            // Pending = chosen in draw and still pending
-                            if ("chosen".equals(s) && "pending".equals(r)) {
-                                pending++;
-                            }
-                            // Accepted = responded accepted
-                            else if ("accepted".equals(r) || "selected".equals(s)) {
-                                accepted++;
-                            }
-                            // Declined = responded declined
-                            else if ("declined".equals(r) || "cancelled".equals(s)) {
-                                declined++;
-                            }
-
-// hide "chosen + declined" people from the visible list
-                            if ("chosen".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
-                                // we already counted them in "declined", just don't show them in the RecyclerView
-                                continue;
+                            switch (safeResponded) {
+                                case "accepted": accepted++; break;
+                                case "declined": declined++; break;
+                                case "waiting" :
+                                    pending++; break;
+                                default: pending++; break;
                             }
 
                             //Fetch the user's name from the "user" collection
@@ -179,14 +176,18 @@ public class WaitingListFragment extends Fragment {
                                         if(userName == null || userName.isEmpty()){
                                             userName = uid; // just use the device id
                                         }
-                                        entrantList.add(new Entrant(uid, userName, displayStatus));
-                                        adapter.updateList(new ArrayList<>(entrantList));
+                                        Entrant entrant = new Entrant(uid, userName, displayStatus);
+
+                                        // NEW: Add to both lists (added by Kulnoor)
+                                        entrantList.add(entrant);
+                                        originalEntrantList.add(entrant);
+                                        updateAdapter();
                                         tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
                                     });
                         }
                     }
 
-                    adapter.updateList(entrantList);
+                    updateAdapter();
                     tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
                     tvTotal.setText(total + " Total");
                     tvAccepted.setText(accepted + " Accepted");
@@ -201,15 +202,92 @@ public class WaitingListFragment extends Fragment {
              *
              * @param s The text after it has changed.
              */
+
+
             @Override
             public void afterTextChanged(Editable s) {
-                filterEntrants(s.toString());
+
+                // CHANGED: Use applyFilters instead of direct filter (added by Kulnoor)
+                applyFilters();
             }
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
         });
     }
 
+    // NEW: Separate method to update adapter (added by Kulnoor)
+    private void updateAdapter() {
+        applyFilters();
+    }
+
+    // NEW: Method to show filter options dialog (added by Kulnoor)
+    private void showFilterOptions() {
+        String[] filters = {"All", "Accepted/Enrolled", "Declined/Cancelled", "Pending/Invited"};
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter By Status")
+                .setItems(filters, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            // CHANGED: Set current filter to ALL (added by Kulnoor)
+                            currentFilter = "ALL";
+                            break;
+                        case 1:
+                            // CHANGED: Set current filter to ACCEPTED (added by Kulnoor)
+                            currentFilter = "ACCEPTED";
+                            break;
+                        case 2:
+                            // CHANGED: Set current filter to DECLINED (added by Kulnoor)
+                            currentFilter = "DECLINED";
+                            break;
+                        case 3:
+                            // CHANGED: Set current filter to PENDING (added by Kulnoor)
+                            currentFilter = "PENDING";
+                            break;
+                    }
+                    applyFilters();
+                })
+                .show();
+    }
+    // NEW: Method to apply both search and filter (added by Kulnoor)
+    private void applyFilters() {
+        List<Entrant> filtered = new ArrayList<>();
+        String searchTerm = etSearch.getText().toString().toLowerCase();
+
+        // NEW: Loop through original list and apply both search and filter (added by Kulnoor)
+        for (Entrant entrant : originalEntrantList) {
+            //Check if search matches
+            boolean matchesSearch = searchTerm.isEmpty() ||
+                    entrant.nameOrUid.toLowerCase().contains(searchTerm);
+
+            //Check if filter matches (added by Kulnoor)
+            boolean matchesFilter = true;
+            switch (currentFilter) {
+                case "ACCEPTED":
+                    matchesFilter = "Accepted".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "DECLINED":
+                    matchesFilter = "Declined".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "PENDING":
+                    matchesFilter = "Pending".equalsIgnoreCase(entrant.displayStatus) ||
+                            "Waiting".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "ALL":
+                default:
+                    matchesFilter = true;
+                    break;
+            }
+
+            // NEW: Only add if both search and filter match (added by Kulnoor)
+            if (matchesSearch && matchesFilter) {
+                filtered.add(entrant);
+            }
+        }
+
+        adapter.updateList(filtered);
+        tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+    }
 
     /**
      * Filters {@link #entrantList} based on the search query and updates the adapter.
@@ -217,13 +295,7 @@ public class WaitingListFragment extends Fragment {
      * @param query The search string to filter entrants by.
      */
     private void filterEntrants(String query) {
-        List<Entrant> filtered = new ArrayList<>();
-        for (Entrant e : entrantList) {
-            if (e.nameOrUid.toLowerCase().contains(query.toLowerCase())) {
-                filtered.add(e);
-            }
-        }
-        adapter.updateList(filtered);
-        tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+        // CHANGED: Now calls applyFilters instead of direct filter (added by Kulnoor)
+        applyFilters();
     }
 }
