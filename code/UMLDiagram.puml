@@ -84,7 +84,7 @@ class MainActivity {
 }
 class AdminLogsAdapter {
 + setLogs(arg0 : List<NotificationLog>) : void
-+ filter(arg0 : String) : void
++ filter(arg0 : String, arg1 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : LogViewHolder
 + onBindViewHolder(arg0 : LogViewHolder, arg1 : int) : void
 + getItemCount() : int
@@ -272,6 +272,7 @@ class SelectEntrantsFragment$VH {
 }
 class SendNotificationHelper {
 + {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String) : void
++ {static} sendBroadcastNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : boolean, arg6 : String, arg7 : int) : void
 }
 class NotificationPreferencesFragment {
 }
@@ -336,10 +337,19 @@ class NotificationLog {
 + getLogId() : String
 + setLogId(arg0 : String) : void
 + getEventId() : String
++ setEventId(arg0 : String) : void
++ getEventTitle() : String
++ setEventTitle(arg0 : String) : void
 + getMessage() : String
++ setMessage(arg0 : String) : void
 + getAudience() : String
++ setAudience(arg0 : String) : void
++ setTimestamp(arg0 : Timestamp) : void
 + getTimestamp() : Timestamp
 + getSenderId() : String
++ setSenderId(arg0 : String) : void
++ getRecipientCount() : int
++ setRecipientCount(arg0 : int) : void
 }
 class LoginFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
