@@ -92,6 +92,16 @@ public class InboxFragment extends Fragment {
         btnFilterUnread = view.findViewById(R.id.btnFilterUnread);
         btnViewArchived = view.findViewById(R.id.btnViewArchived);
 
+        // NEW: Settings button to open NotificationSettingsFragment (added by Kulnoor)
+        View settingsBtn = view.findViewById(R.id.btnInboxSettings);
+        settingsBtn.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment, new com.example.ajilore.code.ui.inbox.NotificationSettingsFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
