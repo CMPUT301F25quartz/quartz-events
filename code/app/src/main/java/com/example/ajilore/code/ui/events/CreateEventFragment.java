@@ -498,6 +498,12 @@ public class CreateEventFragment extends Fragment {
                 event.put("createdByUid", deviceId);
                 db.collection("org_events").add(event)
                         .addOnSuccessListener(ref -> {
+
+                            db.collection("users")
+                                    .document(deviceId)
+                                    .update("role", "organizer")
+                                    .addOnSuccessListener(v -> Log.d("CreateEvent", "User is now an organizer"))
+                                    .addOnFailureListener(err -> Log.e("CreateEvent", "Failed to update role: " + err.getMessage()));
                             btnSave.setEnabled(true);
                             Toast.makeText(requireContext(), "Event saved!", Toast.LENGTH_SHORT).show();
                             requireActivity().getSupportFragmentManager().popBackStack();
