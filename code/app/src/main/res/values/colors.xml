@@ -15,8 +15,14 @@
     <color name="blue">#FF2196F3</color>
     <color name="pink_red">#FFFFCDD2</color>
     <color name="my_purple">#5669FF</color>
-
+    <color name="teal">#17C172</color>
+    <color name="purple">#9C27B0</color>
     <!-- App primary and secondary theme colors-->
     <color name="remove">#018786</color>
     <color name="removed">#03DAC5</color>
+    <!-- Filter chip colors -->
+    <color name="chip_selected">#5C6BC0</color>
+    <color name="chip_unselected">#F5F5F5</color>
+    <color name="chip_text_selected">#FFFFFF</color>
+    <color name="chip_text_unselected">#666666</color>
 </resources>

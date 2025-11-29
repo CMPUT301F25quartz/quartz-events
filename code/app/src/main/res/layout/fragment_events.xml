@@ -8,22 +8,47 @@
     tools:context=".ui.events.EventsFragment"
     android:background="#FBFBFB">
 
-    <!-- Optional header bar -->
-    <TextView
+    <!-- Header bar with title and filter button -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Events"
-        android:textStyle="bold"
-        android:textSize="22sp"
-        android:textColor="#121212"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Events Title -->
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Events"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            android:textColor="#121212"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnFilter" />
+
+        <!-- Filter Button -->
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Filter events"
+            android:src="@drawable/ic_filter"
+            app:tint="#1976D2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- The feed -->
     <androidx.recyclerview.widget.RecyclerView
@@ -34,10 +59,12 @@
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
         android:paddingBottom="12dp"
-        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintVertical_bias="1.0"
         tools:listitem="@layout/item_event" />
 
     <!-- Loading spinner -->

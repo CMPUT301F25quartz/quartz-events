@@ -82,6 +82,9 @@ public class EventDetailsFragment extends Fragment {
     private boolean isSelectedForLottery = false;
     private int waitingListCount = 0;
     private int capacity = 0;
+    private Button btnAcceptSpot;
+    private Button btnDecline;
+    private View layoutInvitationActions;
 
     /**
      * Factory for creating a new instance of this fragment for a specific event and user.
@@ -150,13 +153,16 @@ public class EventDetailsFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
 
-        //Adding this to see if i can fix the bug by using an initial default state
+
         isRegistrationOpen = false;
         isOnWaitingList = false;
         updateJoinLeaveButton();
 
         // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
+
+        // join/leave button click listener
+        btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
 
         // Load event details
         loadEventDetails();
@@ -165,7 +171,13 @@ public class EventDetailsFragment extends Fragment {
         checkWaitingListStatus();
 
         // Setup button click
-        btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
+        btnAcceptSpot = view.findViewById(R.id.btnAcceptSpot);
+        btnDecline = view.findViewById(R.id.btnDecline);
+        layoutInvitationActions = view.findViewById(R.id.layoutInvitationActions);
+
+
+        btnAcceptSpot.setOnClickListener(v -> handleAcceptInvitation());
+        btnDecline.setOnClickListener(v -> handleDeclineInvitation());
     }
 
     /**
@@ -267,12 +279,20 @@ public class EventDetailsFragment extends Fragment {
                     }
 
                     isOnWaitingList = (doc != null && doc.exists());
-                    // isSelectedForLottery = "chosen".equals(doc.getString("status"));  for accept/decline
+
+                    // Check if user is selected for lottery
+                    if (doc != null && doc.exists()) {
+                        String status = doc.getString("status");
+                        isSelectedForLottery = "chosen".equals(status);
+                    } else {
+                        isSelectedForLottery = false;
+                    }
+
                     if (eventListener != null) {
                         updateJoinLeaveButton();
+                        updateInvitationUI(); // New method call
                     }
                 });
-
     }
 
     /**
@@ -454,6 +474,61 @@ public class EventDetailsFragment extends Fragment {
         }
     }
 
+    /**
+     * US 01.05.02 & 01.05.03: Show/hide accept/decline buttons based on lottery selection
+     */
+    private void updateInvitationUI() {
+        if (isSelectedForLottery) {
+            // Show accept/decline buttons container, hide join/leave button
+            layoutInvitationActions.setVisibility(View.VISIBLE);
+            btnJoinLeave.setVisibility(View.GONE);
+        } else {
+            // Hide accept/decline buttons container, show join/leave button
+            layoutInvitationActions.setVisibility(View.GONE);
+            btnJoinLeave.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * US 01.05.02: Accept invitation to participate in event
+     */
+    /**
+     * US 01.05.02: Accept invitation to participate in event
+     */
+    private void handleAcceptInvitation() {
+        btnAcceptSpot.setEnabled(false);
+        btnDecline.setEnabled(false);
+
+        DocumentReference waitingListRef = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> updateData = new HashMap<>();
+        updateData.put("status", "chosen");
+        updateData.put("acceptedAt", FieldValue.serverTimestamp());
+
+        waitingListRef.update(updateData)
+                .addOnSuccessListener(aVoid -> {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Invitation accepted! You're registered for the event.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                    // Hide the buttons container after accepting
+                    layoutInvitationActions.setVisibility(View.GONE);
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to accept invitation: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                    btnAcceptSpot.setEnabled(true);
+                    btnDecline.setEnabled(true);
+                });
+    }
+
     @Override
     public void onResume(){
         super.onResume();
@@ -516,26 +591,56 @@ public class EventDetailsFragment extends Fragment {
         return now.after(start) && now.before(end);
     }
 
-
-
-
-
-    // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
-    // Commented out for later sprints
-
-    /*
-    // US 01.04.01: Accept invitation (future implementation)
-    private Button btnAcceptSpot;
-    private Button btnDecline;
-
-    private void handleAcceptSpot() {
-        // Will be implemented when lottery system is ready
+    /**
+     * US 01.05.03: Decline invitation to participate in event
+     */
+    private void handleDeclineInvitation() {
+        // Show confirmation dialog
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Decline Invitation")
+                .setMessage("Are you sure you want to decline this invitation? This action cannot be undone and your spot will be given to another participant.")
+                .setPositiveButton("Decline", (dialog, which) -> confirmDeclineInvitation())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
-    private void handleDeclineSpot() {
-        // Will be implemented when lottery system is ready
+    /**
+     * Confirms and processes the decline action
+     */
+    private void confirmDeclineInvitation() {
+        btnAcceptSpot.setEnabled(false);
+        btnDecline.setEnabled(false);
+
+        DocumentReference waitingListRef = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> updateData = new HashMap<>();
+        updateData.put("status", "declined");
+        updateData.put("declinedAt", FieldValue.serverTimestamp());
+
+        waitingListRef.update(updateData)
+                .addOnSuccessListener(aVoid -> {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Invitation declined. You have been removed from this event.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                    // Hide the buttons container after declining
+                    layoutInvitationActions.setVisibility(View.GONE);
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(),
+                                "Failed to decline invitation: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                    btnAcceptSpot.setEnabled(true);
+                    btnDecline.setEnabled(true);
+                });
     }
-    */
+
     //method to log the history of the events that the user has registered for in registrations collection
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,
