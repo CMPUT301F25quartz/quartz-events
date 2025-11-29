@@ -128,16 +128,39 @@ public class WaitingListFragment extends Fragment {
         adapter = new WaitingListAdapter(requireContext(), entrantList);
         rvEntrants.setAdapter(adapter);
 
+        // NEW: Load and listen for real-time updates (added by Kulnoor)
+        loadAndListenForUpdates();
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            /**
+             * Called after the text is changed in the search EditText.
+             * Filters the entrants list based on the query.
+             *
+             * @param s The text after it has changed.
+             */
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // CHANGED: Use applyFilters instead of direct filter (added by Kulnoor)
+                applyFilters();
+            }
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
+        });
+    }
+
+    // NEW: Method to load data and set up real-time listener (added by Kulnoor)
+    private void loadAndListenForUpdates() {
         db.collection("org_events").document(eventId)
                 .collection("waiting_list")
                 .addSnapshotListener((snap, err) -> {
-                    entrantList.clear();
-
-                    // NEW: Clear original list too (added by Kulnoor)
-                    originalEntrantList.clear();
-                    int total = 0, accepted = 0, declined = 0, pending = 0;
+                    if (err != null) {
+                        Toast.makeText(requireContext(), "Error: " + err.getMessage(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
 
                     if (snap != null) {
+                        // NEW: Process each document and update lists in real-time (added by Kulnoor)
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
                             String status = d.getString("status");
@@ -156,63 +179,87 @@ public class WaitingListFragment extends Fragment {
                                 displayStatus = responded != null ? responded : "Pending";
                             }
 
-                            total++;
-                            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
+                            String finalDisplayStatus = displayStatus;
 
-                            switch (safeResponded) {
-                                case "accepted": accepted++; break;
-                                case "declined": declined++; break;
-                                case "waiting" :
-                                    pending++; break;
-                                default: pending++; break;
-                            }
-
-                            //Fetch the user's name from the "user" collection
+                            // NEW: Fetch user's name and update entrant in real-time (added by Kulnoor)
                             db.collection("users")
                                     .document(uid)
                                     .get()
                                     .addOnSuccessListener(userDoc -> {
                                         String userName = userDoc.getString("name");
-                                        if(userName == null || userName.isEmpty()){
+                                        if (userName == null || userName.isEmpty()) {
                                             userName = uid; // just use the device id
                                         }
-                                        Entrant entrant = new Entrant(uid, userName, displayStatus);
+                                        Entrant newEntrant = new Entrant(uid, userName, finalDisplayStatus);
 
-                                        // NEW: Add to both lists (added by Kulnoor)
-                                        entrantList.add(entrant);
-                                        originalEntrantList.add(entrant);
-                                        updateAdapter();
-                                        tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
+                                        // NEW: Update existing entrant or add new one (added by Kulnoor)
+                                        updateEntrantList(newEntrant);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle case where user doc doesn't exist
+                                        Entrant newEntrant = new Entrant(uid, uid, finalDisplayStatus);
+                                        updateEntrantList(newEntrant);
                                     });
                         }
+
+                        // NEW: Update statistics in real-time (added by Kulnoor)
+                        updateStatsFromFirestore(snap);
                     }
-
-                    updateAdapter();
-                    tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
-                    tvTotal.setText(total + " Total");
-                    tvAccepted.setText(accepted + " Accepted");
-                    tvDeclined.setText(declined + " Declined");
-                    tvPending.setText(pending + " Pending");
                 });
+    }
 
-        etSearch.addTextChangedListener(new TextWatcher() {
-            /**
-             * Called after the text is changed in the search EditText.
-             * Filters the entrants list based on the query.
-             *
-             * @param s The text after it has changed.
-             */
+    // NEW: Method to update the entrant lists in real-time (added by Kulnoor)
+    private void updateEntrantList(Entrant newEntrant) {
+        // NEW: Remove existing entrant with same UID if it exists (added by Kulnoor)
+        entrantList.removeIf(entrant -> entrant.uid.equals(newEntrant.uid));
+        originalEntrantList.removeIf(entrant -> entrant.uid.equals(newEntrant.uid));
 
+        // NEW: Add the updated entrant (added by Kulnoor)
+        originalEntrantList.add(newEntrant);
 
-            @Override
-            public void afterTextChanged(Editable s) {
+        // NEW: Apply current filter to update visible list (added by Kulnoor)
+        applyFilters();
+    }
 
-                // CHANGED: Use applyFilters instead of direct filter (added by Kulnoor)
-                applyFilters();
+    // NEW: Method to update statistics from Firestore snapshot (added by Kulnoor)
+    private void updateStatsFromFirestore(com.google.firebase.firestore.QuerySnapshot snap) {
+        int total = 0, accepted = 0, declined = 0, pending = 0;
+
+        for (DocumentSnapshot d : snap.getDocuments()) {
+            String status = d.getString("status");
+            String responded = d.getString("responded");
+
+            String displayStatus;
+            if ("chosen".equalsIgnoreCase(status) && "pending".equalsIgnoreCase(responded)) {
+                displayStatus = "Pending";
+            } else if ("selected".equalsIgnoreCase(status) && "accepted".equalsIgnoreCase(responded)) {
+                displayStatus = "Accepted";
+            } else if ("waiting".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
+                displayStatus = "Declined";
+            } else if ("waiting".equalsIgnoreCase(status)) {
+                displayStatus = "Waiting";
+            } else {
+                displayStatus = responded != null ? responded : "Pending";
             }
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
-        });
+
+            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
+
+            switch (safeResponded) {
+                case "accepted": accepted++; break;
+                case "declined": declined++; break;
+                case "waiting" :
+                    pending++; break;
+                default: pending++; break;
+            }
+        }
+
+        total = snap.size();
+
+        // NEW: Update UI with new statistics (added by Kulnoor)
+        tvTotal.setText(total + " Total");
+        tvAccepted.setText(accepted + " Accepted");
+        tvDeclined.setText(declined + " Declined");
+        tvPending.setText(pending + " Pending");
     }
 
     // NEW: Separate method to update adapter (added by Kulnoor)
@@ -249,6 +296,7 @@ public class WaitingListFragment extends Fragment {
                 })
                 .show();
     }
+
     // NEW: Method to apply both search and filter (added by Kulnoor)
     private void applyFilters() {
         List<Entrant> filtered = new ArrayList<>();
