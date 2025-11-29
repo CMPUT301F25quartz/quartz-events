@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -70,12 +71,15 @@ public class EventDetailsFragment extends Fragment {
     private TextView tvWaitingListCount;
     private TextView tvRegistrationWindow;
     private TextView tvLotteryInfo;
-    private Button btnJoinLeave;
+    private MaterialButton btnJoinLeave;
+    private MaterialButton btnAcceptSpot;
+    private MaterialButton btnDecline;
     private ProgressBar progressBar;
     private View layoutWaitingListInfo;
     private ListenerRegistration eventListener;
     private ListenerRegistration waitingListStatusListener;
     private ListenerRegistration waitingListCountListener;
+
 
     // US 01.01.01 & 01.01.02: Track waiting list status
     private boolean isOnWaitingList = false;
@@ -163,6 +167,12 @@ public class EventDetailsFragment extends Fragment {
         btnJoinLeave = view.findViewById(R.id.btnJoinLeaveWaitingList);
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
+//to handle accept and decline buttons
+        btnAcceptSpot = view.findViewById(R.id.btnAcceptSpot);
+        btnDecline    = view.findViewById(R.id.btnDecline);
+        btnAcceptSpot.setOnClickListener(v -> handleRespondToInvite(true));
+        btnDecline.setOnClickListener(v -> handleRespondToInvite(false));
+
 
         //Adding this to see if i can fix the bug by using an initial default state
         isRegistrationOpen = false;
@@ -306,8 +316,16 @@ public class EventDetailsFragment extends Fragment {
 
                         isOnWaitingList = !cancelled;
 
+                        // 🔹 chosen + not yet accepted/declined → show Accept/Decline
+                        boolean chosenPending =
+                                "chosen".equalsIgnoreCase(status)
+                                        && !"accepted".equalsIgnoreCase(responded)
+                                        && !"declined".equalsIgnoreCase(responded);
+
+                        isSelectedForLottery = chosenPending;
                     } else {
                         isOnWaitingList = false;
+                        isSelectedForLottery = false;
                     }
 
                     if (eventListener != null) {
@@ -315,6 +333,7 @@ public class EventDetailsFragment extends Fragment {
                     }
                 });
     }
+
 
 
     /**
@@ -432,41 +451,91 @@ public class EventDetailsFragment extends Fragment {
      * Removes the current user from the event's waiting list in Firestore.
      */
     private void leaveWaitingList() {
-        db.collection("org_events")
+        DocumentReference ref = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
-                .document(userId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Successfully left waiting list",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    btnJoinLeave.setEnabled(true);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to leave: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
-                    btnJoinLeave.setEnabled(true);
-                });
+                .document(userId);
+
+        // First see if this user currently has a spot (chosen/selected)
+        ref.get().addOnSuccessListener(doc -> {
+            String status    = doc != null ? doc.getString("status") : null;
+            String responded = doc != null ? doc.getString("responded") : null;
+
+            boolean hadSpot = "chosen".equalsIgnoreCase(status)
+                    || ("selected".equalsIgnoreCase(status)
+                    && "accepted".equalsIgnoreCase(responded));
+
+            ref.delete()
+                    .addOnSuccessListener(aVoid -> {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Successfully left waiting list",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
+                        //  Only draw a replacement if they actually had a spot
+                        if (hadSpot) {
+                            SelectEntrantsFragment.drawReplacementsFromWaitingList(
+                                    db,
+                                    requireContext(),
+                                    eventId,
+                                    eventTitle,
+                                    1
+                            );
+                        }
+
+                        btnJoinLeave.setEnabled(true);
+                    })
+                    .addOnFailureListener(e -> {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Failed to leave: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        btnJoinLeave.setEnabled(true);
+                    });
+
+        }).addOnFailureListener(e -> {
+            if (isAdded()) {
+                Toast.makeText(requireContext(),
+                        "Failed to check waiting list: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+            btnJoinLeave.setEnabled(true);
+        });
     }
+
 
     /**
      * Updates the join/leave button text and enabled state based on user registration and waiting list status.
      */
     private void updateJoinLeaveButton() {
 
+        // Default: hide accept/decline, enable them
+        btnAcceptSpot.setVisibility(View.GONE);
+        btnDecline.setVisibility(View.GONE);
+        btnAcceptSpot.setEnabled(true);
+        btnDecline.setEnabled(true);
+
+        // If this user has been chosen and hasn't responded yet,
+        // hide Join/Leave and show Accept/Decline instead.
+        if (isSelectedForLottery) {
+            btnJoinLeave.setVisibility(View.GONE);
+            btnAcceptSpot.setVisibility(View.VISIBLE);
+            btnDecline.setVisibility(View.VISIBLE);
+            return; // don't let the rest of the logic override this state
+        }
+
+        // Normal behaviour: show Join/Leave, hide Accept/Decline
+        btnJoinLeave.setVisibility(View.VISIBLE);
+
         if (!isRegistrationOpen) {
             btnJoinLeave.setText("Registration Closed");
             btnJoinLeave.setEnabled(false);
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
-            btnJoinLeave.setVisibility(View.VISIBLE);
             return;
         }
+
         if (isOnWaitingList) {
             btnJoinLeave.setText("Leave ->");
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
@@ -476,14 +545,8 @@ public class EventDetailsFragment extends Fragment {
         }
 
         btnJoinLeave.setEnabled(true);
-
-        // Hide button if selected for lottery (prepare for accept/decline buttons)
-        if (isSelectedForLottery) {
-            btnJoinLeave.setVisibility(View.GONE);
-        } else {
-            btnJoinLeave.setVisibility(View.VISIBLE);
-        }
     }
+
 
     /**
      * Updates registration window message and color based on status and timing.
@@ -588,7 +651,63 @@ public class EventDetailsFragment extends Fragment {
     private void handleDeclineSpot() {
         // Will be implemented when lottery system is ready
     }
+
     */
+
+    // response to invite
+    private void handleRespondToInvite(boolean accepted) {
+        if (eventId == null || userId == null) return;
+
+        btnAcceptSpot.setEnabled(false);
+        btnDecline.setEnabled(false);
+
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("responded", accepted ? "accepted" : "declined");
+        updates.put("responseAt", FieldValue.serverTimestamp());
+        updates.put("status", accepted ? "selected" : "cancelled");
+
+        ref.set(updates, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    if (!isAdded()) return;
+
+                    Toast.makeText(
+                            requireContext(),
+                            accepted ? "You accepted your spot 🎉" : "You declined this spot",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    // If they declined, free the spot and draw 1 replacement
+                    if (!accepted) {
+                        SelectEntrantsFragment.drawReplacementsFromWaitingList(
+                                db,
+                                requireContext(),
+                                eventId,
+                                eventTitle,
+                                1
+                        );
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!isAdded()) return;
+
+                    btnAcceptSpot.setEnabled(true);
+                    btnDecline.setEnabled(true);
+
+                    Toast.makeText(
+                            requireContext(),
+                            "Failed to update response: " + e.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+
+
     //method to log the history of the events that the user has registered for in registrations collection
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,

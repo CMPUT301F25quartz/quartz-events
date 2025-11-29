@@ -132,11 +132,13 @@ public class SelectEntrantsFragment extends Fragment {
         tvEmpty = v.findViewById(R.id.tvEmpty);
         rvSelected = v.findViewById(R.id.rvSelected);
         rvSelected.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SelectedAdapter(selectedList, entrant ->{
+
+// Adapter with cancel dialog + replacement draw
+        adapter = new SelectedAdapter(selectedList, entrant -> {
             new AlertDialog.Builder(requireContext())
                     .setTitle("Cancel entrant?")
                     .setMessage("Are you sure you want to cancel this entrant?")
-                    .setPositiveButton("Cancel Entrant", (d, which) -> {
+                    .setPositiveButton("Cancel Entrant", (dialog, which) -> {
 
                         String msg = "You were removed from "
                                 + (eventTitle != null ? eventTitle : "this event")
@@ -148,7 +150,7 @@ public class SelectEntrantsFragment extends Fragment {
                                 eventId,
                                 eventTitle != null ? eventTitle : "",
                                 entrant.uid,
-                                "removed",          // <- new status
+                                "removed",          // status label for the notification
                                 msg,
                                 /* includePoster */ true,
                                 /* linkUrl */ null,
@@ -160,20 +162,35 @@ public class SelectEntrantsFragment extends Fragment {
                                                 .collection("waiting_list").document(entrant.uid)
                                                 .delete()
                                                 .addOnSuccessListener(ve -> {
-                                                    Toast.makeText(requireContext(),
+                                                    Toast.makeText(
+                                                            requireContext(),
                                                             "Entrant removed and notified",
-                                                            Toast.LENGTH_SHORT).show();
+                                                            Toast.LENGTH_SHORT
+                                                    ).show();
+
+                                                    // pick 1 replacement if possible
+                                                    SelectEntrantsFragment.drawReplacementsFromWaitingList(
+                                                            db,
+                                                            requireContext(),
+                                                            eventId,
+                                                            eventTitle,
+                                                            1
+                                                    );
                                                 })
-                                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
-                                                        "Removed but failed to update list: " + e.getMessage(),
-                                                        Toast.LENGTH_SHORT).show());
+                                                .addOnFailureListener(err -> Toast.makeText(
+                                                        requireContext(),
+                                                        "Removed but failed to update list: " + err.getMessage(),
+                                                        Toast.LENGTH_SHORT
+                                                ).show());
                                     }
 
                                     @Override
                                     public void onError(@NonNull Exception e) {
-                                        Toast.makeText(requireContext(),
+                                        Toast.makeText(
+                                                requireContext(),
                                                 "Failed to notify entrant: " + e.getMessage(),
-                                                Toast.LENGTH_SHORT).show();
+                                                Toast.LENGTH_SHORT
+                                        ).show();
                                     }
                                 }
                         );
@@ -183,6 +200,7 @@ public class SelectEntrantsFragment extends Fragment {
         });
 
         rvSelected.setAdapter(adapter);
+
 
         // Load current “selected (pending/accepted/declined)”
         listenForSelected();
@@ -413,7 +431,17 @@ public class SelectEntrantsFragment extends Fragment {
      * applicant from the pooling system when a previously selected applicant
      * cancels or rejects the invitation.
      */
-    private void drawReplacementsFromWaitingList(int numSlots) {
+    /**
+     * Draws replacement entrants from the waiting pool.
+     * - Looks for entrants with status == "waiting"
+     * - Promotes up to numSlots of them to CHOSEN (responded = pending)
+     * - Sends each a notification.
+     */
+    public static void drawReplacementsFromWaitingList(@NonNull FirebaseFirestore db,
+                                                       @NonNull android.content.Context context,
+                                                       @NonNull String eventId,
+                                                       @Nullable String eventTitle,
+                                                       int numSlots) {
 
         if (numSlots <= 0) return;
 
@@ -423,7 +451,7 @@ public class SelectEntrantsFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(snap -> {
                     if (snap == null || snap.isEmpty()) {
-                        Toast.makeText(requireContext(),
+                        Toast.makeText(context,
                                 "No one left on the waiting list.",
                                 Toast.LENGTH_SHORT).show();
                         return;
@@ -452,11 +480,10 @@ public class SelectEntrantsFragment extends Fragment {
 
                     batch.commit()
                             .addOnSuccessListener(v -> {
-                                Toast.makeText(requireContext(),
+                                Toast.makeText(context,
                                         "Selected " + replacements.size() + " replacement entrant(s).",
                                         Toast.LENGTH_SHORT).show();
 
-                                // Notify each replacement
                                 String msg = "A spot has opened up for "
                                         + (eventTitle != null ? eventTitle : "this event")
                                         + ". You have been selected from the waiting list. "
@@ -485,18 +512,20 @@ public class SelectEntrantsFragment extends Fragment {
                                 }
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(requireContext(),
+                                Toast.makeText(context,
                                         "Failed to pick replacement(s): " + e.getMessage(),
                                         Toast.LENGTH_LONG).show();
                             });
 
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(context,
                             "Failed to load waiting pool: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 });
     }
+
+
 
 
 

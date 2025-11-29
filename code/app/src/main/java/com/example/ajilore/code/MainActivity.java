@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.example.ajilore.code.ui.admin.AdminEventsFragment;
 import com.example.ajilore.code.ui.admin.AdminProfilesFragment;
 import com.example.ajilore.code.ui.events.EntrantEventsFragment;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
@@ -28,6 +29,7 @@ import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.LoginFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.example.ajilore.code.utils.AdminAuthManager;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -173,6 +175,52 @@ public class MainActivity extends AppCompatActivity {
     public void hideBottomNav() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setVisibility(View.GONE);
+        }
+    }
+
+
+    public void openEventDetailsFromInbox(@NonNull String eventId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Fetch the event so we can pass the title into EventDetailsFragment
+        db.collection("org_events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String title = "";
+                    if (doc != null && doc.exists()) {
+                        String t = doc.getString("title");
+                        if (t != null) title = t;
+                    }
+
+                    Fragment frag = EventDetailsFragment.newInstance(eventId, title);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.nav_host_fragment, frag) //
+                            .addToBackStack(null)
+                            .commit();
+                })
+                .addOnFailureListener(e -> Toast.makeText(
+                        this,
+                        "Could not open event: " + e.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show());
+    }
+
+
+    public void updateInboxBadge(int unreadCount) {
+        BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); //  nav view id
+        if (nav == null) return;
+
+        BadgeDrawable badge = nav.getOrCreateBadge(R.id.inboxFragment); // your inbox menu id
+
+        if (unreadCount <= 0) {
+            badge.clearNumber();
+            badge.setVisible(false);
+        } else {
+            badge.setVisible(true);
+            badge.setNumber(unreadCount);
         }
     }
 
