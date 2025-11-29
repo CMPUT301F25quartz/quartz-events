@@ -1,6 +1,5 @@
 package com.example.ajilore.code.ui.events;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.Log;
@@ -58,7 +57,7 @@ public final class EventNotifier {
      * Steps:
      * 1) Create an audit doc in /org_events/{eventId}/broadcasts.
      * 2) Fan out an inbox message to entrants under
-     *    /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
+     * /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
      * </p>
      *
      * Status filter rules:
@@ -152,13 +151,11 @@ public final class EventNotifier {
                                 }
 
                                 // 2) Fan out to each recipient’s inbox (under org_events/{eventId}/entrants/{uid}/inbox) WITH admin logging
-                                final int[] finalDeliveredCount = {0};  // Store count for loggin
                                 writeInboxInChunks(db, uids, eventId, eventTitle, message,
                                         includePoster, linkUrl, targetStatus, broadcastId,
                                         new Callback() {
                                             @Override
                                             public void onSuccess(int deliveredCount, @NonNull String broadcastIdOrEmpty) {
-                                                finalDeliveredCount[0] = deliveredCount;
                                                 // NEW: Log to admin_notification_logs
                                                 db.collection("org_events").document(eventId).get()
                                                         .addOnSuccessListener(eventDoc -> {
@@ -185,235 +182,261 @@ public final class EventNotifier {
                 .addOnFailureListener(cb::onError);
     }
 
-                                /**
-                                 * Send a broadcast and a single inbox message to one entrant.
-                                 * INCLUDES: Automatic logging to admin_notification_logs
-                                 * <p>
-                                 * Useful for follow-ups like per-user accept/decline messaging.
-                                 * Writes an audit under broadcasts and one inbox doc under
-                                 * /org_events/{eventId}/entrants/{uid}/inbox.
-                                 * </p>
-                                 *
-                                 * @param db            Firestore instance to use
-                                 * @param eventId       Event document ID
-                                 * @param eventTitle    Title placed into the inbox item
-                                 * @param uid           Entrant user ID (entrants doc id)
-                                 * @param targetStatus  Label for this message ("selected", "cancelled", etc.)
-                                 * @param message       Message body
-                                 * @param includePoster Whether the UI should show a poster
-                                 * @param linkUrl       Optional URL to include (nullable)
-                                 * @param cb            Completion callback (success or error)
-                                 */
+    /**
+     * Send a broadcast and a single inbox message to one entrant.
+     * INCLUDES: Automatic logging to admin_notification_logs
+     * <p>
+     * Useful for follow-ups like per-user accept/decline messaging.
+     * Writes an audit under broadcasts and one inbox doc under
+     * /org_events/{eventId}/entrants/{uid}/inbox.
+     * </p>
+     *
+     * @param db            Firestore instance to use
+     * @param eventId       Event document ID
+     * @param eventTitle    Title placed into the inbox item
+     * @param uid           Entrant user ID (entrants doc id)
+     * @param targetStatus  Label for this message ("selected", "cancelled", etc.)
+     * @param message       Message body
+     * @param includePoster Whether the UI should show a poster
+     * @param linkUrl       Optional URL to include (nullable)
+     * @param cb            Completion callback (success or error)
+     */
+    public static void notifySingle(@NonNull FirebaseFirestore db,
+                                    @NonNull String eventId,
+                                    @NonNull String eventTitle,
+                                    @NonNull String uid,
+                                    @NonNull String targetStatus,   // "selected" or "cancelled" (or others)
+                                    @NonNull String message,
+                                    boolean includePoster,
+                                    @Nullable String linkUrl,
+                                    @NonNull Callback cb) {
 
-                                public static void notifySingle (@NonNull FirebaseFirestore db,
-                                        @NonNull String eventId,
-                                        @NonNull String eventTitle,
-                                        @NonNull String uid,
-                                        @NonNull String
-                                targetStatus,   // "selected" or "cancelled" (or others)
-                                        @NonNull String message,
-                                boolean includePoster,
-                                @Nullable String linkUrl,
-                                @NonNull Callback cb){
+        // 1) write a broadcast audit record
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("audience", targetStatus);
+        payload.put("message", message);
+        payload.put("includePoster", includePoster);
+        payload.put("linkUrl", linkUrl);
+        payload.put("createdAt", FieldValue.serverTimestamp());
+        payload.put("eventId", eventId);
 
-                                    Map<String, Object> payload = new HashMap<>();
-                                    payload.put("audience", targetStatus);
-                                    payload.put("message", message);
-                                    payload.put("includePoster", includePoster);
-                                    payload.put("linkUrl", linkUrl);
-                                    payload.put("createdAt", FieldValue.serverTimestamp());
-                                    payload.put("eventId", eventId);
+        db.collection("org_events").document(eventId)
+                .collection("broadcasts")
+                .add(payload)
+                .addOnSuccessListener(bRef -> {
+                    String broadcastId = bRef.getId();
 
-                                    db.collection("org_events").document(eventId)
-                                            .collection("broadcasts")
-                                            .add(payload)
-                                            .addOnSuccessListener(bRef -> {
-                                                String broadcastId = bRef.getId();
+                    // 2) create inbox doc refs in both locations
+                    DocumentReference inboxRef = db.collection("org_events").document(eventId)
+                            .collection("waiting_list").document(uid)
+                            .collection("inbox").document();
 
-                                                DocumentReference inboxRef = db.collection("org_events").document(eventId)
-                                                        .collection("waiting_list").document(uid)
-                                                        .collection("inbox").document();
+                    String inboxId = inboxRef.getId();
 
-                                                Map<String, Object> inbox = new HashMap<>();
-                                                inbox.put("type", targetStatus.equals("selected") ? "selected_notice"
-                                                        : targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
-                                                inbox.put("audience", targetStatus);
-                                                inbox.put("eventId", eventId);
-                                                inbox.put("eventTitle", eventTitle);
-                                                inbox.put("message", message);
-                                                inbox.put("includePoster", includePoster);
-                                                inbox.put("linkUrl", linkUrl);
-                                                inbox.put("read", false);
-                                                inbox.put("broadcastId", broadcastId);
-                                                inbox.put("createdAt", FieldValue.serverTimestamp());
+                    // mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
+                    DocumentReference userInboxRef = db.collection("users")
+                            .document(uid)
+                            .collection("registrations")
+                            .document(eventId)
+                            .collection("inbox")
+                            .document(inboxId);
 
-                                                inboxRef.set(inbox)
-                                                        .addOnSuccessListener(v -> {
-                                                            //  Log single-user notification
-                                                            db.collection("org_events").document(eventId).get()
-                                                                    .addOnSuccessListener(eventDoc -> {
-                                                                        String senderId = eventDoc.getString("createdByUid");
-                                                                        if (senderId == null)
-                                                                            senderId = "organizer";
+                    Map<String, Object> inbox = new HashMap<>();
+                    inbox.put("type", targetStatus.equals("selected") ? "selected_notice"
+                            : targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
+                    inbox.put("audience", targetStatus);
+                    inbox.put("eventId", eventId);
+                    inbox.put("eventTitle", eventTitle);
+                    inbox.put("message", message);
+                    inbox.put("includePoster", includePoster);
+                    inbox.put("linkUrl", linkUrl);
+                    inbox.put("read", false);
+                    inbox.put("broadcastId", broadcastId);
+                    inbox.put("createdAt", FieldValue.serverTimestamp());
 
-                                                                        logToAdminAudit(db, eventId, eventTitle, message,
-                                                                                targetStatus, 1, senderId);
-                                                                    });
+                    // 3) batch both writes
+                    WriteBatch batch = db.batch();
+                    batch.set(inboxRef, inbox);
+                    batch.set(userInboxRef, inbox);
 
-                                                            cb.onSuccess(1, broadcastId);
-                                                        })
-                                                        .addOnFailureListener(cb::onError);
+                    batch.commit()
+                            .addOnSuccessListener(v -> {
+                                //  Log single-user notification
+                                db.collection("org_events").document(eventId).get()
+                                        .addOnSuccessListener(eventDoc -> {
+                                            String senderId = eventDoc.getString("createdByUid");
+                                            if (senderId == null)
+                                                senderId = "organizer";
 
-                                            })
-                                            .addOnFailureListener(cb::onError);
-                                }
+                                            logToAdminAudit(db, eventId, eventTitle, message,
+                                                    targetStatus, 1, senderId);
+                                        });
 
-                                /**
-                                 * Batch-write inbox notifications to entrants in chunks.
-                                 * @param db Firestore instance
-                                 * @param uids List of user IDs to notify
-                                 * @param eventId Event document ID
-                                 * @param eventTitle Event title in the inbox
-                                 * @param message Message body
-                                 * @param includePoster Whether to show a poster in UI
-                                 * @param linkUrl Optional link
-                                 * @param targetStatus Audience label
-                                 * @param broadcastId Written to inbox docs for correlation
-                                 * @param cb Completion callback
-                                 */
-                                private static void writeInboxInChunks(@NonNull FirebaseFirestore db,
-                                                                       @NonNull List<String> uids,
-                                                                       @NonNull String eventId,
-                                                                       @NonNull String eventTitle,
-                                                                       @NonNull String message,
-                                                                       boolean includePoster,
-                                                                       @Nullable String linkUrl,
-                                                                       @NonNull String targetStatus,
-                                                                       @NonNull String broadcastId,
-                                                                       @NonNull Callback cb) {
-                                    final int LIMIT = 450;
+                                cb.onSuccess(1, broadcastId);
+                            })
+                            .addOnFailureListener(cb::onError);
 
-                                    List<WriteBatch> batches = new ArrayList<>();
-                                    List<Integer> batchSizes = new ArrayList<>();
+                })
+                .addOnFailureListener(cb::onError);
+    }
 
-                                    int from = 0;
-                                    while (from < uids.size()) {
-                                        int to = Math.min(from + LIMIT, uids.size());
-                                        List<String> chunk = uids.subList(from, to);
+    /**
+     * Batch-write inbox notifications to entrants in chunks.
+     * Writes to BOTH the event waiting list inbox and the user's registration inbox.
+     *
+     * @param db Firestore instance
+     * @param uids List of user IDs to notify
+     * @param eventId Event document ID
+     * @param eventTitle Event title in the inbox
+     * @param message Message body
+     * @param includePoster Whether to show a poster in UI
+     * @param linkUrl Optional link
+     * @param targetStatus Audience label
+     * @param broadcastId Written to inbox docs for correlation
+     * @param cb Completion callback
+     */
+    private static void writeInboxInChunks(@NonNull FirebaseFirestore db,
+                                           @NonNull List<String> uids,
+                                           @NonNull String eventId,
+                                           @NonNull String eventTitle,
+                                           @NonNull String message,
+                                           boolean includePoster,
+                                           @Nullable String linkUrl,
+                                           @NonNull String targetStatus,
+                                           @NonNull String broadcastId,
+                                           @NonNull Callback cb) {
+        final int LIMIT = 450;
 
-                                        WriteBatch batch = db.batch();
-                                        int thisBatchCount = 0;
+        List<WriteBatch> batches = new ArrayList<>();
+        List<Integer> batchSizes = new ArrayList<>();
 
-                                        for (String uid : chunk) {
-                                            DocumentReference inboxRef = db.collection("org_events").document(eventId)
-                                                    .collection("waiting_list").document(uid)
-                                                    .collection("inbox").document();
+        int from = 0;
+        while (from < uids.size()) {
+            int to = Math.min(from + LIMIT, uids.size());
+            List<String> chunk = uids.subList(from, to);
 
-                                            Map<String, Object> inbox = new HashMap<>();
-                                            inbox.put("type",
-                                                    targetStatus.equals("chosen")    ? "invite" :
-                                                            targetStatus.equals("selected")  ? "selected_notice" :
-                                                                    targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
-                                            inbox.put("audience", targetStatus);
-                                            inbox.put("eventId", eventId);
-                                            inbox.put("eventTitle", eventTitle);
-                                            inbox.put("message", message);
-                                            inbox.put("includePoster", includePoster);
-                                            inbox.put("linkUrl", linkUrl);
-                                            inbox.put("read", false);
-                                            inbox.put("broadcastId", broadcastId);
-                                            inbox.put("createdAt", FieldValue.serverTimestamp());
+            WriteBatch batch = db.batch();
+            int thisBatchCount = 0;
 
-                                            batch.set(inboxRef, inbox);
-                                            thisBatchCount++;
-                                        }
+            for (String uid : chunk) {
+                DocumentReference inboxRef = db.collection("org_events").document(eventId)
+                        .collection("waiting_list").document(uid)
+                        .collection("inbox").document();
 
-                                        batches.add(batch);
-                                        batchSizes.add(thisBatchCount);
-                                        from = to;
-                                    }
+                String inboxId = inboxRef.getId();
 
-                                    if (batches.isEmpty()) {
-                                        cb.onSuccess(0, broadcastId);
-                                        return;
-                                    }
+                // NEW: mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
+                DocumentReference userInboxRef = db.collection("users")
+                        .document(uid)
+                        .collection("registrations")
+                        .document(eventId)
+                        .collection("inbox")
+                        .document(inboxId);
 
-                                    commitChain(batches, batchSizes, 0, 0, broadcastId, cb);
-                                }
+                Map<String, Object> inbox = new HashMap<>();
+                inbox.put("type",
+                        targetStatus.equals("chosen")    ? "invite" :
+                                targetStatus.equals("selected")  ? "selected_notice" :
+                                        targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
+                inbox.put("audience", targetStatus);
+                inbox.put("eventId", eventId);
+                inbox.put("eventTitle", eventTitle);
+                inbox.put("message", message);
+                inbox.put("includePoster", includePoster);
+                inbox.put("linkUrl", linkUrl);
+                inbox.put("read", false);
+                inbox.put("broadcastId", broadcastId);
+                inbox.put("createdAt", FieldValue.serverTimestamp());
+
+                batch.set(inboxRef, inbox);
+                batch.set(userInboxRef, inbox);
+                thisBatchCount++;
+            }
+
+            batches.add(batch);
+            batchSizes.add(thisBatchCount);
+            from = to;
+        }
+
+        if (batches.isEmpty()) {
+            cb.onSuccess(0, broadcastId);
+            return;
+        }
+
+        commitChain(batches, batchSizes, 0, 0, broadcastId, cb);
+    }
 
 
     /**
-                                 * Recursively commits batches, updating delivered count for the callback.
-                                 * @param batches List of WriteBatch objects to commit
-                                 * @param batchSizes List of delivered counts per batch
-                                 * @param index Current batch index
-                                 * @param deliveredSoFar Cumulative delivered count
-                                 * @param broadcastId Broadcast audit document ID
-                                 * @param cb Callback for completion/failure
-                                 */
-                                private static void commitChain
-                                (@NonNull List < WriteBatch > batches,
-                                        @NonNull List < Integer > batchSizes,
-                                int index,
-                                int deliveredSoFar,
-                                @NonNull String broadcastId,
-                                @NonNull Callback cb){
-                                    if (index >= batches.size()) {
-                                        cb.onSuccess(deliveredSoFar, broadcastId);
-                                        return;
-                                    }
+     * Recursively commits batches, updating delivered count for the callback.
+     * @param batches List of WriteBatch objects to commit
+     * @param batchSizes List of delivered counts per batch
+     * @param index Current batch index
+     * @param deliveredSoFar Cumulative delivered count
+     * @param broadcastId Broadcast audit document ID
+     * @param cb Callback for completion/failure
+     */
+    private static void commitChain(@NonNull List < WriteBatch > batches,
+                                    @NonNull List < Integer > batchSizes,
+                                    int index,
+                                    int deliveredSoFar,
+                                    @NonNull String broadcastId,
+                                    @NonNull Callback cb){
+        if (index >= batches.size()) {
+            cb.onSuccess(deliveredSoFar, broadcastId);
+            return;
+        }
 
-                                    WriteBatch batch = batches.get(index);
-                                    int thisBatchSize = batchSizes.get(index);
+        WriteBatch batch = batches.get(index);
+        int thisBatchSize = batchSizes.get(index);
 
-                                    batch.commit()
-                                            .addOnSuccessListener(v ->
-                                                    commitChain(batches, batchSizes, index + 1, deliveredSoFar + thisBatchSize, broadcastId, cb))
-                                            .addOnFailureListener(cb::onError);
-                                }
+        batch.commit()
+                .addOnSuccessListener(v ->
+                        commitChain(batches, batchSizes, index + 1, deliveredSoFar + thisBatchSize, broadcastId, cb))
+                .addOnFailureListener(cb::onError);
+    }
 
-                                /**
-                                 * Logs a broadcast action to admin_notification_logs for audit trail.
-                                 * Called after successful broadcast creation.
-                                 *
-                                 * US 03.08.01 - Admin can review logs of all notifications
-                                 *
-                                 * @param db Firestore instance
-                                 * @param eventId Event document ID
-                                 * @param eventTitle Event title for display
-                                 * @param message Message content
-                                 * @param audience Target audience ("waiting", "chosen", "selected", "cancelled")
-                                 * @param recipientCount Number of entrants who received the notification
-                                 * @param senderId Organizer's user ID
-                                 */
-                                private static void logToAdminAudit (@NonNull FirebaseFirestore db,
-                                        @NonNull String eventId,
-                                        @NonNull String eventTitle,
-                                        @NonNull String message,
-                                        @NonNull String audience,
-                                int recipientCount,
-                                @NonNull String senderId){
-                                    Map<String, Object> logData = new HashMap<>();
-                                    logData.put("eventId", eventId);
-                                    logData.put("eventTitle", eventTitle);
-                                    logData.put("message", message);
-                                    logData.put("audience", audience);
-                                    logData.put("recipientCount", recipientCount);
-                                    logData.put("type", "broadcast");
-                                    logData.put("senderId", senderId);
-                                    logData.put("timestamp", FieldValue.serverTimestamp());
+    /**
+     * Logs a broadcast action to admin_notification_logs for audit trail.
+     * Called after successful broadcast creation.
+     *
+     * US 03.08.01 - Admin can review logs of all notifications
+     *
+     * @param db Firestore instance
+     * @param eventId Event document ID
+     * @param eventTitle Event title for display
+     * @param message Message content
+     * @param audience Target audience ("waiting", "chosen", "selected", "cancelled")
+     * @param recipientCount Number of entrants who received the notification
+     * @param senderId Organizer's user ID
+     */
+    private static void logToAdminAudit (@NonNull FirebaseFirestore db,
+                                         @NonNull String eventId,
+                                         @NonNull String eventTitle,
+                                         @NonNull String message,
+                                         @NonNull String audience,
+                                         int recipientCount,
+                                         @NonNull String senderId){
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("eventId", eventId);
+        logData.put("eventTitle", eventTitle);
+        logData.put("message", message);
+        logData.put("audience", audience);
+        logData.put("recipientCount", recipientCount);
+        logData.put("type", "broadcast");
+        logData.put("senderId", senderId);
+        logData.put("timestamp", FieldValue.serverTimestamp());
 
-                                    Log.d("EventNotifier", " Logging to admin_notification_logs: " + eventTitle + " (" + recipientCount + " recipients)");
+        Log.d("EventNotifier", " Logging to admin_notification_logs: " + eventTitle + " (" + recipientCount + " recipients)");
 
-                                    db.collection("admin_notification_logs")
-                                            .add(logData)
-                                            .addOnSuccessListener(docRef -> {
-                                                Log.d("EventNotifier", "Admin log created: " + docRef.getId());
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                Log.e("EventNotifier", "Admin log FAILED: " + e.getMessage(), e);
-                                            });
-                                }
+        db.collection("admin_notification_logs")
+                .add(logData)
+                .addOnSuccessListener(docRef -> {
+                    Log.d("EventNotifier", "Admin log created: " + docRef.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventNotifier", "Admin log FAILED: " + e.getMessage(), e);
+                });
+    }
 
-                            }
-
+}
