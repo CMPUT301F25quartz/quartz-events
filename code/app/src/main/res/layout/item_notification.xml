@@ -16,49 +16,58 @@
         android:padding="12dp">
 
         <!-- Profile or placeholder icon -->
+
+        <!-- Notification message -->
+
+        <!-- Timestamp -->
+
+        <!-- Buttons (Dismiss + Details) -->
+
         <ImageView
             android:id="@+id/imageProfile"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_profile"
+            android:layout_marginStart="4dp"
             android:contentDescription="@string/profile_picture"
+            android:src="@drawable/ic_profile"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintVertical_bias="0.944" />
 
-        <!-- Notification message -->
         <TextView
             android:id="@+id/textMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="@string/notif_selected"
             android:textColor="@android:color/black"
-            android:textStyle="bold"
             android:textSize="14sp"
-            app:layout_constraintStart_toEndOf="@id/imageProfile"
-            app:layout_constraintTop_toTopOf="parent"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginStart="12dp" />
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/imageProfile"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Timestamp -->
         <TextView
             android:id="@+id/textTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
             android:text="@string/notif_time_now"
             android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintStart_toEndOf="@id/imageProfile"
-            app:layout_constraintTop_toBottomOf="@id/textMessage"
-            android:layout_marginTop="4dp" />
+            app:layout_constraintTop_toBottomOf="@id/textMessage" />
 
-        <!-- Buttons (Dismiss + Details) -->
         <LinearLayout
             android:id="@+id/buttonContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="16dp"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
             app:layout_constraintStart_toEndOf="@id/imageProfile"
             app:layout_constraintTop_toBottomOf="@id/textTime">
 

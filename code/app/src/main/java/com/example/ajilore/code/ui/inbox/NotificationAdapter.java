@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.bumptech.glide.Glide;
+
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,14 +49,31 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         NotificationModel notification = notificationList.get(position);
 
-        holder.imageProfile.setImageResource(R.drawable.ic_profile);
+        // 🔹 load profile image from imageUrl
+        String imageUrl = notification.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_profile)
+                    .error(R.drawable.ic_profile)
+                    .into(holder.imageProfile);
+        } else {
+            holder.imageProfile.setImageResource(R.drawable.ic_profile);
+        }
+
+        // 🔹 text fields
         holder.textMessage.setText(notification.getMessage());
         holder.textTime.setText(
-                notification.getTime() != null && !notification.getTime().isEmpty() ? notification.getTime() : "Just now"
+                notification.getTime() != null && !notification.getTime().isEmpty()
+                        ? notification.getTime()
+                        : "Just now"
         );
-        holder.btnAction.setText(notification.getActionText() != null ? notification.getActionText() : "View");
+        holder.btnAction.setText(
+                notification.getActionText() != null ? notification.getActionText() : "View"
+        );
 
-        // Hide dismiss button in archived view
+        // 🔹 hide dismiss button in archived view
         holder.btnDismiss.setVisibility(isArchivedView ? View.GONE : View.VISIBLE);
 
         holder.btnDismiss.setOnClickListener(v -> {
@@ -65,6 +84,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             if (listener != null) listener.onAction(notification);
         });
     }
+
 
     @Override
     public int getItemCount() {
