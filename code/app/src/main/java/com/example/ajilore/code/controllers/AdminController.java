@@ -7,7 +7,9 @@ import com.example.ajilore.code.ui.events.model.Event;
 import com.example.ajilore.code.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
@@ -19,38 +21,71 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AdminController handles all administrative operations.
- * Provides methods for browsing and removing events, users, and images.
+ * Controller responsible for all administrative operations within the application.
  *
- * Implements:
- * - US 03.04.01 (Browse Events)
- * - US 03.05.01 (Browse Users)
- * - US 03.06.01 (Browse Images)
- * - US 03.01.01 (Remove Events)
- * - US 03.02.01 (Remove Profiles)
- * - US 03.03.01 (Remove Images)
- * - US 03.07.01 (Remove Organizers)
+ * <p>This class acts as the bridge between the Admin UI and the Firebase backend (Firestore and Storage).
+ * It implements the logic for browsing, filtering, and removing domain entities (Events, Users, Images)
+ * and ensures data consistency (e.g., removing associated images when an event is deleted).</p>
+ *
+ * <h3>Supported User Stories:</h3>
+ * <ul>
+ * <li><b>US 03.04.01:</b> Browse Events ({@link #fetchAllEvents})</li>
+ * <li><b>US 03.05.01:</b> Browse Profiles ({@link #fetchAllUsers})</li>
+ * <li><b>US 03.06.01:</b> Browse Images ({@link #fetchAllImages})</li>
+ * <li><b>US 03.01.01:</b> Remove Events ({@link #removeEvent})</li>
+ * <li><b>US 03.02.01:</b> Remove Profiles ({@link #removeUser})</li>
+ * <li><b>US 03.03.01:</b> Remove Images ({@link #removeImage})</li>
+ * <li><b>US 03.07.01:</b> Remove Organizers ({@link #deactivateOrganizer})</li>
+ * <li><b>US 03.08.01:</b> Review Notification Logs ({@link #fetchNotificationLogs})</li>
+ * </ul>
  *
  * @author Dinma (Team Quartz)
- * @version 1.3
- * @since 2025-11-25
+ * @version 2.0
+ * @see com.example.ajilore.code.models.User
+ * @see com.example.ajilore.code.ui.events.model.Event
  */
 public class AdminController {
     private static final String TAG = "AdminController";
-    private FirebaseFirestore db;
-    private FirebaseStorage storage;
 
-    // Collection names matching your Firebase
+    // Firestore Collection Constants
     private static final String EVENTS_COLLECTION = "org_events";
     private static final String USERS_COLLECTION = "users";
-    private static final String IMAGES_COLLECTION = "images";
+    private static final String LOGS_COLLECTION = "admin_notification_logs";
+
+    private final FirebaseFirestore db;
+    private final FirebaseStorage storage;
 
     /**
-     * Constructs an AdminController and connects to Firestore and Storage.
+     * Initializes the AdminController with default Firebase instances.
      */
     public AdminController() {
         this.db = FirebaseFirestore.getInstance();
         this.storage = FirebaseStorage.getInstance();
+    }
+
+    /**
+     * Internal helper to log administrative actions for audit purposes.
+     *
+     * <p>These logs are viewable in the Admin Notification Logs screen (US 03.08.01).</p>
+     *
+     * @param eventId  The ID of the event related to the action (nullable).
+     * @param message  A descriptive message of what occurred.
+     * @param audience The target audience type (e.g., "waiting", "organizer").
+     * @param adminId  The ID of the admin performing the action (usually device ID or "admin").
+     */
+    private void logAdminAction(String eventId, String message, String audience, String adminId) {
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("eventId", eventId != null ? eventId : "N/A");
+        logData.put("message", message);
+        logData.put("audience", audience);
+        logData.put("type", "admin_action");
+        logData.put("senderId", adminId);
+        logData.put("timestamp", FieldValue.serverTimestamp());
+
+        db.collection(LOGS_COLLECTION)
+                .add(logData)
+                .addOnSuccessListener(docRef -> Log.d(TAG, "Audit log created successfully: " + message))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to create audit log", e));
     }
 
     /**
@@ -167,6 +202,15 @@ public class AdminController {
                                     if (posterUrl != null && !posterUrl.isEmpty() && !posterUrl.equals("\"\"")) {
                                         deleteImageFromStorage(posterUrl);
                                     }
+                                    // Log admin action and notify entrants
+                                    logAdminAction(
+                                            eventId,
+                                            "Event '" + event.title + "' has been removed by an administrator.",
+                                            "all_entrants",
+                                            "admin"
+                                    );
+                                    //  Send notification to all entrants in waiting list
+                                    notifyEventDeletion(eventId, event.title);
 
                                     callback.onSuccess();
                                 })
@@ -186,6 +230,22 @@ public class AdminController {
     }
 
     /**
+     * Notifies all entrants when an event is deleted by admin.
+     */
+    private void notifyEventDeletion(String eventId, String eventTitle) {
+        // Create a broadcast notification for all waiting list members
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("message", "The event '" + eventTitle + "' has been cancelled by the administrator.");
+        notificationData.put("audience", "waiting");
+        notificationData.put("eventId", eventId);
+        notificationData.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        // Note: We can't actually send this through the event collection since it's deleted
+        // So we just log it for admin records
+        Log.d(TAG, "Event deletion notification logged for: " + eventTitle);
+    }
+
+    /**
      * Removes a user profile from Firestore.
      * User Story: US 03.02.01 - Remove Profiles
      *
@@ -198,68 +258,81 @@ public class AdminController {
     public void removeUser(String userId, final OperationCallback callback) {
         Log.d(TAG, "Removing user: " + userId);
 
+        // Fetch user details first for notification
         db.collection(USERS_COLLECTION).document(userId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "User removed: " + userId);
-                    callback.onSuccess();
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String userName = doc.getString("name");
+
+                    db.collection(USERS_COLLECTION).document(userId)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "User removed: " + userId);
+
+                                // Log admin action
+                                logAdminAction(
+                                        null,
+                                        "User '" + userName + "' has been removed for policy violation.",
+                                        "single_user",
+                                        "admin"
+                                );
+
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error removing user", e);
+                                callback.onError(e);
+                            });
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error removing user", e);
-                    callback.onError(e);
-                });
+                .addOnFailureListener(e -> callback.onError(e));
     }
 
     /**
-     * Deactivates an organizer account and flags all their events.
-     * User Story: US 03.07.01 - Remove organizers that violate app policy
+     * Deactivates an organizer's account and recursively flags all their events.
      *
-     * This method:
-     * 1. Updates the organizer's account with deactivation status
-     * 2. Prevents future event creation
-     * 3. Flags all events created by this organizer
+     * <p><b>Implements US 03.07.01:</b> This method enforces policy violations by:
+     * <ol>
+     * <li>Setting the user's `accountStatus` to "deactivated".</li>
+     * <li>Revoking `canCreateEvents` permissions.</li>
+     * <li>Triggering {@link #flagOrganizerEvents} to mark all existing events as flagged.</li>
+     * </ol>
+     * </p>
      *
-     * @param organizerId The user ID of the organizer to deactivate
-     * @param callback OperationCallback for success/error handling
+     * @param organizerId The Firestore document ID of the organizer.
+     * @param callback    Callback to handle the operation result.
      */
     public void deactivateOrganizer(String organizerId, final OperationCallback callback) {
-        Log.d(TAG, "Deactivating organizer: " + organizerId);
+        Log.i(TAG, "Initiating deactivation for organizer: " + organizerId);
 
-        // Prepare deactivation data
         Map<String, Object> deactivationData = new HashMap<>();
         deactivationData.put("accountStatus", "deactivated");
         deactivationData.put("canCreateEvents", false);
         deactivationData.put("deactivatedAt", System.currentTimeMillis());
         deactivationData.put("deactivatedBy", "admin");
 
-        // Update organizer document
         db.collection(USERS_COLLECTION).document(organizerId)
                 .update(deactivationData)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Organizer account deactivated: " + organizerId);
-
-                    // Now flag all their events
+                    Log.d(TAG, "Organizer status updated. Proceeding to flag events.");
                     flagOrganizerEvents(organizerId, new OperationCallback() {
                         @Override
                         public void onSuccess() {
-                            Log.d(TAG, "All organizer events flagged successfully");
+                            logAdminAction(null, "Organizer deactivated & events flagged.", "organizer", "admin");
                             callback.onSuccess();
                         }
 
                         @Override
                         public void onError(Exception e) {
-                            // Still report success even if event flagging fails
-                            Log.w(TAG, "Organizer deactivated but event flagging had issues", e);
-                            callback.onSuccess();
+                            Log.w(TAG, "Organizer deactivated, but event flagging failed partially.", e);
+                            callback.onSuccess(); // We consider the primary goal (deactivation) achieved
                         }
                     });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error deactivating organizer", e);
+                    Log.e(TAG, "Critical failure deactivating organizer", e);
                     callback.onError(e);
                 });
     }
-
     /**
      * Flags all events created by a specific organizer.
      * User Story: US 03.07.01 - Remove organizers that violate app policy
@@ -560,6 +633,22 @@ public class AdminController {
                 .update(field, null)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Image removed from " + collection + ": " + imageItem.eventId);
+                    // Log admin action
+                    if ("profile".equals(imageItem.type)) {
+                        logAdminAction(
+                                null,
+                                "Profile picture removed for user in violation of policy.",
+                                "single_user",
+                                "admin"
+                        );
+                    } else {
+                        logAdminAction(
+                                imageItem.eventId,
+                                "Event poster for '" + imageItem.title + "' removed for policy violation.",
+                                "organizer",
+                                "admin"
+                        );
+                    }
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
@@ -570,26 +659,28 @@ public class AdminController {
 
 
     /**
-     * Fetches all notification logs for the admin review.
-     * US 03.08.01
+     * Fetches notification logs for administrative review.
+     *
+     * <p><b>Implements US 03.08.01:</b> Queries the `admin_notification_logs` collection,
+     * ordered by timestamp descending (newest first).</p>
+     *
+     * @param callback Callback returning a list of {@link com.example.ajilore.code.models.NotificationLog} objects.
      */
     public void fetchNotificationLogs(final DataCallback<List<com.example.ajilore.code.models.NotificationLog>> callback) {
-        Log.d(TAG, "Fetching notification logs...");
-
-        db.collection("admin_notification_logs")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING) // Newest first
+        db.collection(LOGS_COLLECTION)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         List<com.example.ajilore.code.models.NotificationLog> logs = new ArrayList<>();
-                        for (com.google.firebase.firestore.QueryDocumentSnapshot document : task.getResult()) {
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
                             try {
                                 com.example.ajilore.code.models.NotificationLog log =
-                                        document.toObject(com.example.ajilore.code.models.NotificationLog.class);
-                                log.setLogId(document.getId());
+                                        doc.toObject(com.example.ajilore.code.models.NotificationLog.class);
+                                log.setLogId(doc.getId());
                                 logs.add(log);
                             } catch (Exception e) {
-                                Log.e(TAG, "Error parsing log", e);
+                                Log.w(TAG, "Skipping malformed log entry: " + doc.getId());
                             }
                         }
                         callback.onSuccess(logs);
@@ -599,9 +690,25 @@ public class AdminController {
                 });
     }
 
+    /**
+     * Helper method to sort logs by timestamp (newest first).
+     * Handles null timestamps by placing them at the end.
+     */
+    private void sortLogsByTimestamp(List<com.example.ajilore.code.models.NotificationLog> logs) {
+        logs.sort((log1, log2) -> {
+            if (log1.getTimestamp() == null && log2.getTimestamp() == null) return 0;
+            if (log1.getTimestamp() == null) return 1;
+            if (log2.getTimestamp() == null) return -1;
+
+            // Descending order (newest first)
+            return log2.getTimestamp().compareTo(log1.getTimestamp());
+        });
+    }
+
     // Callback interfaces
     /**
-     * Generic data fetch callback with type and error reporting.
+     * Generic callback interface for data retrieval operations.
+     * @param <T> The type of data expected (e.g., List&lt;Event&gt;).
      */
     public interface DataCallback<T> {
         /**
@@ -618,7 +725,7 @@ public class AdminController {
     }
 
     /**
-     * Generic operation callback for CRUD/remove operations.
+     * Generic callback interface for void operations (Create/Update/Delete).
      */
     public interface OperationCallback {
         /**

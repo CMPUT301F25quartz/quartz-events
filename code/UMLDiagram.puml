@@ -25,6 +25,10 @@ class User {
 + setProfileImageUrl(arg0 : String) : void
 + isNotificationsEnabled() : boolean
 + setNotificationsEnabled(arg0 : boolean) : void
++ getAccountStatus() : String
++ setAccountStatus(arg0 : String) : void
++ isCanCreateEvents() : boolean
++ setCanCreateEvents(arg0 : boolean) : void
 }
 class OrganizerEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -56,6 +60,11 @@ class ImageItem {
 + type : String
 + uploadedAt : long
 }
+class ScanQrFragment {
++ onCreate(arg0 : Bundle) : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
 class AdminImagesFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onImageClick(arg0 : ImageItem) : void
@@ -79,7 +88,7 @@ class MainActivity {
 }
 class AdminLogsAdapter {
 + setLogs(arg0 : List<NotificationLog>) : void
-+ filter(arg0 : String) : void
++ filter(arg0 : String, arg1 : String) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : LogViewHolder
 + onBindViewHolder(arg0 : LogViewHolder, arg1 : int) : void
 + getItemCount() : int
@@ -148,6 +157,7 @@ class Event {
 + status : String
 + createdByUid : String
 + createdAt : Timestamp
++ flaggedReason : String
 }
 class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
@@ -247,12 +257,13 @@ abstract class EventsFragment {
 class AdminAuthManager {
 + {static} getDeviceId(arg0 : Context) : String
 + {static} isAdmin(arg0 : Context) : boolean
-+ {static} addCurrentDeviceAsAdmin(arg0 : Context) : void
 }
 class SelectEntrantsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : SelectEntrantsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+interface SelectEntrantsFragment$OnCancelClick {
 }
 class SelectEntrantsFragment$Entrant {
 }
@@ -265,6 +276,7 @@ class SelectEntrantsFragment$VH {
 }
 class SendNotificationHelper {
 + {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String) : void
++ {static} sendBroadcastNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : boolean, arg6 : String, arg7 : int) : void
 }
 class NotificationPreferencesFragment {
 }
@@ -329,10 +341,19 @@ class NotificationLog {
 + getLogId() : String
 + setLogId(arg0 : String) : void
 + getEventId() : String
++ setEventId(arg0 : String) : void
++ getEventTitle() : String
++ setEventTitle(arg0 : String) : void
 + getMessage() : String
++ setMessage(arg0 : String) : void
 + getAudience() : String
++ setAudience(arg0 : String) : void
++ setTimestamp(arg0 : Timestamp) : void
 + getTimestamp() : Timestamp
 + getSenderId() : String
++ setSenderId(arg0 : String) : void
++ getRecipientCount() : int
++ setRecipientCount(arg0 : int) : void
 }
 class LoginFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -364,9 +385,11 @@ class DeleteDialogHelper {
 
 
 Fragment <|-- InboxFragment
+Serializable <|.. User
 Fragment <|-- OrganizerEventsFragment
 Fragment <|-- CreateEventFragment
 Fragment <|-- EventsScreenFragment
+Fragment <|-- ScanQrFragment
 OnImageActionListener <|.. AdminImagesFragment
 Fragment <|-- AdminImagesFragment
 AppCompatActivity <|-- MainActivity
@@ -389,6 +412,7 @@ Adapter <|-- WaitingListAdapter
 WaitingListAdapter +.. WaitingListAdapter$VH
 ViewHolder <|-- WaitingListAdapter$VH
 Fragment <|-- EntrantEventsFragment
+Serializable <|.. Event
 Fragment <|-- EventDetailsFragment
 Adapter <|-- AdminUsersAdapter
 AdminUsersAdapter +.. AdminUsersAdapter$OnUserActionListener
@@ -414,6 +438,7 @@ OnUserActionListener <|.. AdminProfilesFragment
 Fragment <|-- AdminProfilesFragment
 Fragment <|-- EventsFragment
 Fragment <|-- SelectEntrantsFragment
+SelectEntrantsFragment +.. SelectEntrantsFragment$OnCancelClick
 SelectEntrantsFragment +.. SelectEntrantsFragment$Entrant
 SelectEntrantsFragment +.. SelectEntrantsFragment$SelectedAdapter
 Adapter <|-- SelectEntrantsFragment$SelectedAdapter

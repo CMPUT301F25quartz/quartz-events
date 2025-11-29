@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:background="#F9FAFB">
 
+    <!-- Header with Back Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,7 +19,8 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@drawable/ic_back"
-            android:background="?selectableItemBackgroundBorderless"/>
+            android:background="?selectableItemBackgroundBorderless"
+            android:contentDescription="Back"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -30,20 +32,116 @@
             android:textColor="#111827"/>
     </LinearLayout>
 
+    <!-- Search Bar -->
     <EditText
         android:id="@+id/et_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="@android:drawable/editbox_background"
+        android:background="@drawable/search_bar_background"
         android:padding="12dp"
         android:hint="Search by event ID or message..."
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:drawablePadding="8dp"/>
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:textSize="14sp"/>
 
+    <!-- Filter Buttons -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_filter_all"
+                style="@style/FilterChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="All"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btn_filter_waiting"
+                style="@style/FilterChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Waiting"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btn_filter_selected"
+                style="@style/FilterChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Selected"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btn_filter_chosen"
+                style="@style/FilterChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Chosen"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btn_filter_cancelled"
+                style="@style/FilterChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Cancelled"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="32dp"
+        android:visibility="gone"/>
+
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_logs"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="16dp"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"/>
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layout_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_empty_profiles"
+            android:alpha="0.3"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No notification logs found"
+            android:textSize="16sp"
+            android:textColor="#9CA3AF"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
 </LinearLayout>

@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#D5D7DC"/>
-    <corners android:radius="999dp"/>
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Selected state - Bold blue -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#5669FF"/>  <!-- Brighter purple/blue -->
+            <corners android:radius="18dp"/>
+        </shape>
+    </item>
+
+    <!-- Default state - Light gray -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E5E7EB"/>
+            <corners android:radius="18dp"/>
+        </shape>
+    </item>
+</selector>
