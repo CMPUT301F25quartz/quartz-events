@@ -7,31 +7,8 @@ class Entrant {
 + nameOrUid : String
 + displayStatus : String
 }
-class AdminEventsAdapter {
-+ setEvents(arg0 : List<Event>) : void
-+ filter(arg0 : String) : void
-+ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventViewHolder
-+ onBindViewHolder(arg0 : EventViewHolder, arg1 : int) : void
-+ getItemCount() : int
-}
-interface AdminEventsAdapter$OnEventActionListener {
-}
-class AdminEventsAdapter$EventViewHolder {
-}
 class InboxFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-}
-class ManageEventsFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : ManageEventsFragment
-+ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-+ onViewCreated(arg0 : View, arg1 : Bundle) : void
-}
-enum Audience {
-+  NONE
-+  WAITING
-+  CHOSEN
-+  SELECTED
-+  CANCELLED
 }
 class User {
 + getUserId() : String
@@ -72,6 +49,147 @@ class CreateEventFragment {
 class EventsScreenFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
+class ImageItem {
++ imageUrl : String
++ eventId : String
++ title : String
++ type : String
++ uploadedAt : long
+}
+class AdminImagesFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onImageClick(arg0 : ImageItem) : void
++ onDeleteClick(arg0 : ImageItem) : void
+}
+class EventItem {
++ eventId : String
++ title : String
++ dateText : String
++ subtitle : String
++ posterRes : int
++ posterUrl : String
+}
+class MainActivity {
+# onCreate(arg0 : Bundle) : void
+# onNewIntent(arg0 : Intent) : void
++ showBottomNav() : void
++ hideBottomNav() : void
++ onCreateOptionsMenu(arg0 : Menu) : boolean
++ onOptionsItemSelected(arg0 : MenuItem) : boolean
+}
+class AdminLogsAdapter {
++ setLogs(arg0 : List<NotificationLog>) : void
++ filter(arg0 : String) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : LogViewHolder
++ onBindViewHolder(arg0 : LogViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+class AdminLogsAdapter$LogViewHolder {
+}
+class HistoryAdapter {
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ViewHolder
++ onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+class HistoryAdapter$ViewHolder {
+}
+class AdminImagesAdapter {
++ setImages(arg0 : List<ImageItem>) : void
++ filter(arg0 : String) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ImageViewHolder
++ onBindViewHolder(arg0 : ImageViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+interface AdminImagesAdapter$OnImageActionListener {
+}
+class AdminImagesAdapter$ImageViewHolder {
+}
+class AdminEventsFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onEventClick(arg0 : Event) : void
++ onDeleteClick(arg0 : Event) : void
+}
+class EventNotifier {
++ {static} notifyAudience(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : boolean, arg5 : String, arg6 : String, arg7 : Callback) : void
++ {static} notifySingle(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String, arg6 : boolean, arg7 : String, arg8 : Callback) : void
+}
+interface EventNotifier$Callback {
+}
+class AdminNotificationLogsFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class WaitingListFragment {
++ {static} newInstance(arg0 : String) : WaitingListFragment
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class WaitingListAdapter {
++ updateList(arg0 : List<Entrant>) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
++ onBindViewHolder(arg0 : VH, arg1 : int) : void
++ getItemCount() : int
+}
+class WaitingListAdapter$VH {
+}
+class EntrantEventsFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class Event {
++ id : String
++ title : String
++ type : String
++ location : String
++ capacity : int
++ startsAt : Timestamp
++ regOpens : Timestamp
++ regCloses : Timestamp
++ posterUrl : String
++ status : String
++ createdByUid : String
++ createdAt : Timestamp
+}
+class EventDetailsFragment {
++ {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onResume() : void
++ onDestroyView() : void
+}
+class AdminUsersAdapter {
++ setUsers(arg0 : List<User>) : void
++ filter(arg0 : String, arg1 : String) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : UserViewHolder
++ onBindViewHolder(arg0 : UserViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+interface AdminUsersAdapter$OnUserActionListener {
+}
+class AdminUsersAdapter$UserViewHolder {
+}
+class AdminEventsAdapter {
++ setEvents(arg0 : List<Event>) : void
++ filter(arg0 : String) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventViewHolder
++ onBindViewHolder(arg0 : EventViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+interface AdminEventsAdapter$OnEventActionListener {
+}
+class AdminEventsAdapter$EventViewHolder {
+}
+class ManageEventsFragment {
++ {static} newInstance(arg0 : String, arg1 : String) : ManageEventsFragment
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+enum Audience {
++  NONE
++  WAITING
++  CHOSEN
++  SELECTED
++  CANCELLED
+}
 class UserEventsAdapter {
 + replaceAll(arg0 : List<EventRow>) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
@@ -91,13 +209,6 @@ class GeneralEventsFragment {
 # getRowLayoutId() : int
 # getEventsQuery() : Query
 # onEventClick(arg0 : EventRow) : void
-}
-class ImageItem {
-+ imageUrl : String
-+ eventId : String
-+ title : String
-+ type : String
-+ uploadedAt : long
 }
 class ManageEventQRFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : ManageEventQRFragment
@@ -126,11 +237,6 @@ class AdminProfilesFragment {
 + onUserClick(arg0 : User) : void
 + onDeleteClick(arg0 : User) : void
 }
-class AdminImagesFragment {
-+ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-+ onImageClick(arg0 : ImageItem) : void
-+ onDeleteClick(arg0 : ImageItem) : void
-}
 abstract class EventsFragment {
 # getRowLayoutId() : {abstract}int
 # getEventsQuery() : {abstract}Query
@@ -157,26 +263,10 @@ class SelectEntrantsFragment$SelectedAdapter {
 }
 class SelectEntrantsFragment$VH {
 }
-class EventItem {
-+ eventId : String
-+ title : String
-+ dateText : String
-+ subtitle : String
-+ posterRes : int
-+ posterUrl : String
-}
 class SendNotificationHelper {
-+ {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String) : void
++ {static} sendNotification(arg0 : Context, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String) : void
 }
 class NotificationPreferencesFragment {
-}
-class MainActivity {
-# onCreate(arg0 : Bundle) : void
-# onNewIntent(arg0 : Intent) : void
-+ showBottomNav() : void
-+ hideBottomNav() : void
-+ onCreateOptionsMenu(arg0 : Menu) : boolean
-+ onOptionsItemSelected(arg0 : MenuItem) : boolean
 }
 class AdminAboutFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
@@ -215,19 +305,15 @@ class AdminController {
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
++ deactivateOrganizer(arg0 : String, arg1 : OperationCallback) : void
++ getOrganizerEvents(arg0 : String, arg1 : DataCallback<List<Event>>) : void
 + fetchAllImages(arg0 : DataCallback<List<com.example.ajilore.code.models.ImageItem>>) : void
 + removeImage(arg0 : com.example.ajilore.code.models.ImageItem, arg1 : OperationCallback) : void
++ fetchNotificationLogs(arg0 : DataCallback<List<com.example.ajilore.code.models.NotificationLog>>) : void
 }
 interface AdminController$DataCallback {
 }
 interface AdminController$OperationCallback {
-}
-class HistoryAdapter {
-+ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ViewHolder
-+ onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
-+ getItemCount() : int
-}
-class HistoryAdapter$ViewHolder {
 }
 class NotificationAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : NotificationViewHolder
@@ -239,91 +325,29 @@ interface NotificationAdapter$OnNotificationActionListener {
 }
 class NotificationAdapter$NotificationViewHolder {
 }
-class AdminImagesAdapter {
-+ setImages(arg0 : List<ImageItem>) : void
-+ filter(arg0 : String) : void
-+ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ImageViewHolder
-+ onBindViewHolder(arg0 : ImageViewHolder, arg1 : int) : void
-+ getItemCount() : int
-}
-interface AdminImagesAdapter$OnImageActionListener {
-}
-class AdminImagesAdapter$ImageViewHolder {
+class NotificationLog {
++ getLogId() : String
++ setLogId(arg0 : String) : void
++ getEventId() : String
++ getMessage() : String
++ getAudience() : String
++ getTimestamp() : Timestamp
++ getSenderId() : String
 }
 class LoginFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
-}
-interface LoginFragment$OnChange {
++ onRequestPermissionsResult(arg0 : int, arg1 : String[], arg2 : int[]) : void
 }
 class HistoryFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
-class AdminEventsFragment {
-+ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-+ onEventClick(arg0 : Event) : void
-+ onDeleteClick(arg0 : Event) : void
-}
-class EventNotifier {
-+ {static} notifyAudience(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : boolean, arg5 : String, arg6 : String, arg7 : Callback) : void
-+ {static} notifySingle(arg0 : FirebaseFirestore, arg1 : String, arg2 : String, arg3 : String, arg4 : String, arg5 : String, arg6 : boolean, arg7 : String, arg8 : Callback) : void
-}
-interface EventNotifier$Callback {
-}
-class WaitingListFragment {
-+ {static} newInstance(arg0 : String) : WaitingListFragment
+class EntrantMapFragment {
++ {static} newInstance(arg0 : String) : EntrantMapFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
-}
-class WaitingListAdapter {
-+ updateList(arg0 : List<Entrant>) : void
-+ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : VH
-+ onBindViewHolder(arg0 : VH, arg1 : int) : void
-+ getItemCount() : int
-}
-class WaitingListAdapter$VH {
-}
-class EntrantEventsFragment {
-+ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-+ onViewCreated(arg0 : View, arg1 : Bundle) : void
-}
-class Event {
-+ getEventId() : String
-+ setEventId(arg0 : String) : void
-+ getOrganiserDeviceId() : String
-+ setOrganiserDeviceId(arg0 : String) : void
-+ getCapacity() : int
-+ setCapacity(arg0 : int) : void
-+ getDate() : String
-+ setDate(arg0 : String) : void
-+ getDescription() : String
-+ setDescription(arg0 : String) : void
-+ getImageURL() : String
-+ setImageURL(arg0 : String) : void
-+ getLocation() : String
-+ setLocation(arg0 : String) : void
-+ getPrice() : int
-+ setPrice(arg0 : int) : void
-+ getTime() : String
-+ setTime(arg0 : String) : void
-+ getTitle() : String
-+ setTitle(arg0 : String) : void
-+ getFormattedDateTime() : String
-}
-class Event {
-+ id : String
-+ title : String
-+ type : String
-+ location : String
-+ capacity : int
-+ startsAt : Timestamp
-+ regOpens : Timestamp
-+ regCloses : Timestamp
-+ posterUrl : String
-+ status : String
-+ createdByUid : String
-+ createdAt : Timestamp
++ onMapReady(arg0 : GoogleMap) : void
 }
 class OrganizerEventsAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventVH
@@ -334,38 +358,47 @@ interface OrganizerEventsAdapter$OnEventClick {
 }
 class OrganizerEventsAdapter$EventVH {
 }
-class EventDetailsFragment {
-+ {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
-+ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
-+ onViewCreated(arg0 : View, arg1 : Bundle) : void
-+ onResume() : void
-+ onDestroyView() : void
-}
 class DeleteDialogHelper {
 + {static} showDeleteDialog(arg0 : Context, arg1 : String, arg2 : String, arg3 : Runnable) : void
 }
-class AdminUsersAdapter {
-+ setUsers(arg0 : List<User>) : void
-+ filter(arg0 : String) : void
-+ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : UserViewHolder
-+ onBindViewHolder(arg0 : UserViewHolder, arg1 : int) : void
-+ getItemCount() : int
-}
-interface AdminUsersAdapter$OnUserActionListener {
-}
-class AdminUsersAdapter$UserViewHolder {
-}
 
 
+Fragment <|-- InboxFragment
+Fragment <|-- OrganizerEventsFragment
+Fragment <|-- CreateEventFragment
+Fragment <|-- EventsScreenFragment
+OnImageActionListener <|.. AdminImagesFragment
+Fragment <|-- AdminImagesFragment
+AppCompatActivity <|-- MainActivity
+Adapter <|-- AdminLogsAdapter
+AdminLogsAdapter +.. AdminLogsAdapter$LogViewHolder
+ViewHolder <|-- AdminLogsAdapter$LogViewHolder
+Adapter <|-- HistoryAdapter
+HistoryAdapter +.. HistoryAdapter$ViewHolder
+ViewHolder <|-- HistoryAdapter$ViewHolder
+Adapter <|-- AdminImagesAdapter
+AdminImagesAdapter +.. AdminImagesAdapter$OnImageActionListener
+AdminImagesAdapter +.. AdminImagesAdapter$ImageViewHolder
+ViewHolder <|-- AdminImagesAdapter$ImageViewHolder
+OnEventActionListener <|.. AdminEventsFragment
+Fragment <|-- AdminEventsFragment
+EventNotifier +.. EventNotifier$Callback
+Fragment <|-- AdminNotificationLogsFragment
+Fragment <|-- WaitingListFragment
+Adapter <|-- WaitingListAdapter
+WaitingListAdapter +.. WaitingListAdapter$VH
+ViewHolder <|-- WaitingListAdapter$VH
+Fragment <|-- EntrantEventsFragment
+Fragment <|-- EventDetailsFragment
+Adapter <|-- AdminUsersAdapter
+AdminUsersAdapter +.. AdminUsersAdapter$OnUserActionListener
+AdminUsersAdapter +.. AdminUsersAdapter$UserViewHolder
+ViewHolder <|-- AdminUsersAdapter$UserViewHolder
 Adapter <|-- AdminEventsAdapter
 AdminEventsAdapter +.. AdminEventsAdapter$OnEventActionListener
 AdminEventsAdapter +.. AdminEventsAdapter$EventViewHolder
 ViewHolder <|-- AdminEventsAdapter$EventViewHolder
-Fragment <|-- InboxFragment
 Fragment <|-- ManageEventsFragment
-Fragment <|-- OrganizerEventsFragment
-Fragment <|-- CreateEventFragment
-Fragment <|-- EventsScreenFragment
 Adapter <|-- UserEventsAdapter
 UserEventsAdapter +.. UserEventsAdapter$OnEventClick
 UserEventsAdapter +.. UserEventsAdapter$VH
@@ -379,8 +412,6 @@ EditProfileFragment +.. EditProfileFragment$SimpleWatcher
 TextWatcher <|.. EditProfileFragment$SimpleWatcher
 OnUserActionListener <|.. AdminProfilesFragment
 Fragment <|-- AdminProfilesFragment
-OnImageActionListener <|.. AdminImagesFragment
-Fragment <|-- AdminImagesFragment
 Fragment <|-- EventsFragment
 Fragment <|-- SelectEntrantsFragment
 SelectEntrantsFragment +.. SelectEntrantsFragment$Entrant
@@ -388,39 +419,19 @@ SelectEntrantsFragment +.. SelectEntrantsFragment$SelectedAdapter
 Adapter <|-- SelectEntrantsFragment$SelectedAdapter
 SelectEntrantsFragment +.. SelectEntrantsFragment$VH
 ViewHolder <|-- SelectEntrantsFragment$VH
-AppCompatActivity <|-- MainActivity
 Fragment <|-- AdminAboutFragment
 AdminController +.. AdminController$DataCallback
 AdminController +.. AdminController$OperationCallback
-Adapter <|-- HistoryAdapter
-HistoryAdapter +.. HistoryAdapter$ViewHolder
-ViewHolder <|-- HistoryAdapter$ViewHolder
 Adapter <|-- NotificationAdapter
 NotificationAdapter +.. NotificationAdapter$OnNotificationActionListener
 NotificationAdapter +.. NotificationAdapter$NotificationViewHolder
 ViewHolder <|-- NotificationAdapter$NotificationViewHolder
-Adapter <|-- AdminImagesAdapter
-AdminImagesAdapter +.. AdminImagesAdapter$OnImageActionListener
-AdminImagesAdapter +.. AdminImagesAdapter$ImageViewHolder
-ViewHolder <|-- AdminImagesAdapter$ImageViewHolder
 Fragment <|-- LoginFragment
-LoginFragment +.. LoginFragment$OnChange
 Fragment <|-- HistoryFragment
-OnEventActionListener <|.. AdminEventsFragment
-Fragment <|-- AdminEventsFragment
-EventNotifier +.. EventNotifier$Callback
-Fragment <|-- WaitingListFragment
-Adapter <|-- WaitingListAdapter
-WaitingListAdapter +.. WaitingListAdapter$VH
-ViewHolder <|-- WaitingListAdapter$VH
-Fragment <|-- EntrantEventsFragment
+OnMapReadyCallback <|.. EntrantMapFragment
+Fragment <|-- EntrantMapFragment
 Adapter <|-- OrganizerEventsAdapter
 OrganizerEventsAdapter +.. OrganizerEventsAdapter$OnEventClick
 OrganizerEventsAdapter +.. OrganizerEventsAdapter$EventVH
 ViewHolder <|-- OrganizerEventsAdapter$EventVH
-Fragment <|-- EventDetailsFragment
-Adapter <|-- AdminUsersAdapter
-AdminUsersAdapter +.. AdminUsersAdapter$OnUserActionListener
-AdminUsersAdapter +.. AdminUsersAdapter$UserViewHolder
-ViewHolder <|-- AdminUsersAdapter$UserViewHolder
 @enduml

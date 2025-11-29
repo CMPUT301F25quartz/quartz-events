@@ -1,5 +1,6 @@
 package com.example.ajilore.code.ui.events;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -42,6 +43,12 @@ import com.example.ajilore.code.ui.events.EventNotifier;
 
 
 public class SelectEntrantsFragment extends Fragment {
+
+    //Interface
+    public interface OnCancelClick{
+        void onCancel(Entrant entrant);
+
+    }
 
     private static final String ARG_EVENT_ID = "eventId";
     private static final String ARG_EVENT_TITLE = "eventTitle";
@@ -125,7 +132,56 @@ public class SelectEntrantsFragment extends Fragment {
         tvEmpty = v.findViewById(R.id.tvEmpty);
         rvSelected = v.findViewById(R.id.rvSelected);
         rvSelected.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SelectedAdapter(selectedList);
+        adapter = new SelectedAdapter(selectedList, entrant ->{
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Cancel entrant?")
+                    .setMessage("Are you sure you want to cancel this entrant?")
+                    .setPositiveButton("Cancel Entrant", (d, which) -> {
+
+                        String msg = "You were removed from "
+                                + (eventTitle != null ? eventTitle : "this event")
+                                + " by the organizer.";
+
+                        // 1) send automatic message with status "removed"
+                        EventNotifier.notifySingle(
+                                db,
+                                eventId,
+                                eventTitle != null ? eventTitle : "",
+                                entrant.uid,
+                                "removed",          // <- new status
+                                msg,
+                                /* includePoster */ true,
+                                /* linkUrl */ null,
+                                new EventNotifier.Callback() {
+                                    @Override
+                                    public void onSuccess(int delivered, @NonNull String broadcastId) {
+                                        // 2) now remove them from waiting_list
+                                        db.collection("org_events").document(eventId)
+                                                .collection("waiting_list").document(entrant.uid)
+                                                .delete()
+                                                .addOnSuccessListener(ve -> {
+                                                    Toast.makeText(requireContext(),
+                                                            "Entrant removed and notified",
+                                                            Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                                                        "Removed but failed to update list: " + e.getMessage(),
+                                                        Toast.LENGTH_SHORT).show());
+                                    }
+
+                                    @Override
+                                    public void onError(@NonNull Exception e) {
+                                        Toast.makeText(requireContext(),
+                                                "Failed to notify entrant: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                        );
+                    })
+                    .setNegativeButton("Keep", null)
+                    .show();
+        });
+
         rvSelected.setAdapter(adapter);
 
         // Load current “selected (pending/accepted/declined)”
@@ -154,14 +210,40 @@ public class SelectEntrantsFragment extends Fragment {
                     if (snap != null) {
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
-                            String name = d.getString("name");        // or "displayName" if that’s what you saved
-                            String responded = d.getString("responded"); // pending/accepted/declined
-                            selectedList.add(new Entrant(uid, name, responded));
-                        }
+                            String responded = d.getString("responded"); // pending/accepted/decline
+
+                            // if declined, do not show them in the chosen list
+                            if ("declined".equalsIgnoreCase(responded)) {
+                                continue;
+                            }
+
+                            db.collection("users")
+                                    .document(uid)
+                                    .get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        String userName = userDoc.getString("name");
+                                        if(userName == null || userName.isEmpty()){
+                                            userName = uid; // use the device id
+                                            }
+                                        selectedList.add(new Entrant(uid, userName, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+
+                                    }).addOnFailureListener(e1 -> {
+                                        selectedList.add(new Entrant(uid, uid, responded));
+                                        adapter.notifyDataSetChanged();
+                                        tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
+                                    });
+                                    }
+                        } else {
+                            //no chosen entrants
+                            adapter.notifyDataSetChanged();
+                            tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                     }
-                    adapter.notifyDataSetChanged();
-                    tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                 });
+
+
+
     }
 
     /**
@@ -195,20 +277,34 @@ public class SelectEntrantsFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(snap -> {
                     if (snap == null || snap.isEmpty()) {
-                        Toast.makeText(requireContext(), "No one on the waiting list.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(),
+                                "No one on the waiting list.",
+                                Toast.LENGTH_SHORT).show();
                         btnRunDraw.setEnabled(true);
                         return;
                     }
 
-                    // Shuffle and pick the first N
-
-// Shuffle and pick the first N
+                    // All waiting entrants
                     List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
                     Collections.shuffle(waiting, new Random());
 
-                    int maxWinners = Math.min(numberOfWinners, waiting.size());
+                    int available = waiting.size();
+
+                    //warning if they asked for more than available
+                    if (numberOfWinners > available) {
+                        Toast.makeText(
+                                requireContext(),
+                                "You asked to pick " + numberOfWinners
+                                        + " entrants, but only " + available
+                                        + " are left. Running draw for " + available + ".",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+
+                    int maxWinners = Math.min(numberOfWinners, available);
                     List<DocumentSnapshot> winners    = waiting.subList(0, maxWinners);
                     List<DocumentSnapshot> nonWinners = waiting.subList(maxWinners, waiting.size());
+
 
                     WriteBatch batch = db.batch();
                     for (DocumentSnapshot d : winners) {
@@ -307,6 +403,104 @@ public class SelectEntrantsFragment extends Fragment {
                 });
     }
 
+    /**
+     * Draws a single replacement from the waiting pool:
+     * - Finds one WAITING entrant at random,
+     * - Promotes them to CHOSEN (responded = pending),
+     * - Sends them a notification.
+     *
+     * US 02.05.03: As an organizer I want to be able to draw a replacement
+     * applicant from the pooling system when a previously selected applicant
+     * cancels or rejects the invitation.
+     */
+    private void drawReplacementsFromWaitingList(int numSlots) {
+
+        if (numSlots <= 0) return;
+
+        db.collection("org_events").document(eventId)
+                .collection("waiting_list")
+                .whereEqualTo("status", "waiting")
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap == null || snap.isEmpty()) {
+                        Toast.makeText(requireContext(),
+                                "No one left on the waiting list.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<DocumentSnapshot> waiting = new ArrayList<>(snap.getDocuments());
+                    Collections.shuffle(waiting, new Random());
+
+                    int winnersCount = Math.min(numSlots, waiting.size());
+                    List<DocumentSnapshot> replacements = waiting.subList(0, winnersCount);
+
+                    WriteBatch batch = db.batch();
+                    for (DocumentSnapshot d : replacements) {
+                        String uid = d.getId();
+                        DocumentReference ref = db.collection("org_events")
+                                .document(eventId)
+                                .collection("waiting_list")
+                                .document(uid);
+
+                        Map<String, Object> upd = new HashMap<>();
+                        upd.put("status", "chosen");
+                        upd.put("responded", "pending");
+                        upd.put("selectedAt", FieldValue.serverTimestamp());
+                        batch.set(ref, upd, SetOptions.merge());
+                    }
+
+                    batch.commit()
+                            .addOnSuccessListener(v -> {
+                                Toast.makeText(requireContext(),
+                                        "Selected " + replacements.size() + " replacement entrant(s).",
+                                        Toast.LENGTH_SHORT).show();
+
+                                // Notify each replacement
+                                String msg = "A spot has opened up for "
+                                        + (eventTitle != null ? eventTitle : "this event")
+                                        + ". You have been selected from the waiting list. "
+                                        + "Please open the app to accept or decline.";
+
+                                for (DocumentSnapshot d : replacements) {
+                                    String uid = d.getId();
+
+                                    EventNotifier.notifySingle(
+                                            db,
+                                            eventId,
+                                            eventTitle != null ? eventTitle : "",
+                                            uid,
+                                            "chosen",
+                                            msg,
+                                            /* includePoster */ true,
+                                            /* linkUrl */ null,
+                                            new EventNotifier.Callback() {
+                                                @Override
+                                                public void onSuccess(int delivered, @NonNull String broadcastId) { }
+
+                                                @Override
+                                                public void onError(@NonNull Exception e) { }
+                                            }
+                                    );
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(),
+                                        "Failed to pick replacement(s): " + e.getMessage(),
+                                        Toast.LENGTH_LONG).show();
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(),
+                            "Failed to load waiting pool: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
+    }
+
+
+
+
 
     /**
      * Lightweight model for a single entrant row in the list.
@@ -340,13 +534,20 @@ public class SelectEntrantsFragment extends Fragment {
      */
     static class SelectedAdapter extends RecyclerView.Adapter<VH> {
         private final List<Entrant> items;
-        SelectedAdapter(List<Entrant> items) { this.items = items; }
+        private final OnCancelClick onCancelClick;
+        SelectedAdapter(List<Entrant> items, OnCancelClick onCancelClick) {
+            this.items = items;
+            this.onCancelClick = onCancelClick;
+        }
+
         @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
             View view = LayoutInflater.from(p.getContext())
                     .inflate(R.layout.item_selected_entrant, p, false);
             return new VH(view);
         }
-        @Override public void onBindViewHolder(@NonNull VH h, int pos) { h.bind(items.get(pos)); }
+        @Override public void onBindViewHolder(@NonNull VH h, int pos) {
+            h.bind(items.get(pos), onCancelClick);
+        }
         @Override public int getItemCount() { return items.size(); }
     }
 
@@ -358,7 +559,7 @@ public class SelectEntrantsFragment extends Fragment {
      */
     static class VH extends RecyclerView.ViewHolder {
         private final TextView tvName, tvBadge;
-        private final ImageView ivAvatar;
+        private final ImageView ivAvatar, ivCancel;
 
         /**
          * Constructs a ViewHolder for a selected entrant row view.
@@ -370,18 +571,26 @@ public class SelectEntrantsFragment extends Fragment {
             tvName = itemView.findViewById(R.id.tvName);
             tvBadge = itemView.findViewById(R.id.tvBadge);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
+            ivCancel = itemView.findViewById(R.id.ivCancel);
         }
         /**
          * Binds an {@link Entrant}'s details to the row, including avatar and status label.
          *
          * @param e Entrant data for this row.
          */
-        void bind(Entrant e) {
+        void bind(Entrant e, OnCancelClick onCancelClick) {
             tvName.setText(e.nameOrUid);
             // Pending/Accepted/Declined
             tvBadge.setText(cap(e.responded));
             // simple placeholder avatar
             ivAvatar.setImageResource(R.drawable.jazz);
+
+            if ("accepted".equalsIgnoreCase(e.responded)) {
+                ivCancel.setVisibility(View.GONE);
+            } else {
+                ivCancel.setVisibility(View.VISIBLE);
+                ivCancel.setOnClickListener(x -> onCancelClick.onCancel(e));
+            }
         }
         /**
          * Capitalizes the first letter of a response status.

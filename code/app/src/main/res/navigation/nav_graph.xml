@@ -35,5 +35,10 @@
        android:name="com.example.ajilore.code.ui.events.ManageEventQRFragment"
        android:label="fragment_manage_event_q_r"
        tools:layout="@layout/fragment_manage_event_q_r" />
+   <fragment
+       android:id="@+id/scanQrFragment2"
+       android:name="com.example.ajilore.code.ui.events.ScanQrFragment"
+       android:label="fragment_scan_qr"
+       tools:layout="@layout/fragment_scan_qr" />
 
 </navigation>

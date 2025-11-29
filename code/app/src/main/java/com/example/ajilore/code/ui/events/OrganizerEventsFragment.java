@@ -1,7 +1,8 @@
 package com.example.ajilore.code.ui.events;
+import com.example.ajilore.code.ui.events.list.EventItem;
+import com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter;
 
-import android.content.Context;
-import android.content.Intent;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
-import com.example.ajilore.code.activities.OrganizerEntrantsActivity;
-import com.example.ajilore.code.ui.events.list.EventItem;
-import com.example.ajilore.code.ui.events.list.OrganizerEventsAdapter;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -33,6 +31,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import android.provider.Settings;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 /**
  * OrganizerEventsFragment
@@ -44,6 +47,7 @@ import java.util.List;
  *
  */
 
+
 public class OrganizerEventsFragment extends Fragment {
 
     private RecyclerView rv;
@@ -51,20 +55,26 @@ public class OrganizerEventsFragment extends Fragment {
     private final List<EventItem> data = new ArrayList<>();
     private FirebaseFirestore db;
 
+    private ImageView ivAvatar;
+    private TextView tvName;
+
     /**
      * Inflates the organizer events screen.
      */
     @Nullable
     @Override
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_organizer_events, container, false);
     }
 
+
     /**
      * Sets up RecyclerView, adapter, click handlers, and Firestore listening.
      */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -74,6 +84,10 @@ public class OrganizerEventsFragment extends Fragment {
         btnBack.setOnClickListener(view -> requireActivity().onBackPressed());
 
         db = FirebaseFirestore.getInstance();
+
+        ivAvatar = v.findViewById(R.id.ivAvatar);
+        tvName   = v.findViewById(R.id.tvName);
+        loadOrganizerHeader();
 
         Button btnCreate = v.findViewById(R.id.btnCreateEvent);
         rv = v.findViewById(R.id.rvMyEvents);
@@ -86,21 +100,57 @@ public class OrganizerEventsFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
-
-        // NEW by Kulnoor: Set as organizer to show the "Manage Entrants" button
-        adapter.setIsOrganizer(true);
-
         rv.setAdapter(adapter);
 
         btnCreate.setOnClickListener(x -> requireActivity().getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.nav_host_fragment, new CreateEventFragment())
-                .addToBackStack(null)
-                .commit()
+                .addToBackStack(null) .commit()
         );
 
         loadEvents();
     }
+
+
+    private void loadOrganizerHeader() {
+        // same device ID scheme you use everywhere else
+        String deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (deviceId == null || deviceId.isEmpty()) {
+            return;
+        }
+
+        db.collection("users")
+                .document(deviceId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!isAdded() || doc == null || !doc.exists()) return;
+
+                    String name = doc.getString("name");
+                    String profileUrl = doc.getString("profilepicture");
+
+                    if (name != null && !name.isEmpty() && tvName != null) {
+                        tvName.setText(name);
+                    }
+
+                    if (profileUrl != null && !profileUrl.isEmpty() && ivAvatar != null) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.organizer_profileimage)
+                                .error(R.drawable.organizer_profileimage)
+                                .into(ivAvatar);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 
     /**
      * Subscribes to /org_events ordered by startsAt (desc) and updates the list on changes.
@@ -110,8 +160,7 @@ public class OrganizerEventsFragment extends Fragment {
                 .orderBy("createdAt", Query.Direction.DESCENDING);
 
         q.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot snap, @Nullable FirebaseFirestoreException e) {
+            @Override public void onEvent(@Nullable QuerySnapshot snap, @Nullable FirebaseFirestoreException e) {
                 if (e != null) {
                     Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     return;
@@ -143,17 +192,18 @@ public class OrganizerEventsFragment extends Fragment {
                             capacity = (String) capacityObj;
                         }
 
+
                         String subtitle = "";
-                        if (type != null && !type.isEmpty()) {
+                        if(type != null && !type.isEmpty()){
                             subtitle = type;
                         }
 
-                        if (location != null && !location.isEmpty()) {
+                        if(location != null && !location.isEmpty()){
                             subtitle = subtitle.isEmpty() ? location : (subtitle + " · " + location);
                         }
 
                         //I think we can include capacity if its present
-                        if (capacity != null && !capacity.isEmpty()) {
+                        if(capacity != null && !capacity.isEmpty()){
                             subtitle = subtitle.isEmpty() ? (capacity + " ppl") :
                                     (subtitle + " · " + capacity + " ppl");
                         }
@@ -176,10 +226,10 @@ public class OrganizerEventsFragment extends Fragment {
 
     /**
      * Maps a posterKey from Firestore to a local drawable resource.
-     *
      * @param key string like "jazz", "band", etc. (nullable)
      * @return drawable resource id to show in the list
      */
+
     private int mapPoster(String key) {
         if (key == null) return R.drawable.jazz;
         switch (key) {
