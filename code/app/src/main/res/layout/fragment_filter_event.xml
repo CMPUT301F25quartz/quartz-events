@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -43,25 +42,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Menu Button (optional) -->
-        <ImageButton
-            android:id="@+id/btnMenu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Menu"
-            android:src="@drawable/ic_more_vert"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#000000" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="80dp"
         app:layout_constraintBottom_toTopOf="@id/buttonLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -73,7 +59,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- ========== DATE RANGE SECTION ========== -->
+            <!-- DATE RANGE SECTION -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -146,34 +132,28 @@
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="S" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="M" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="T" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="W" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="T" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="F" />
-
                 <TextView
                     style="@style/WeekDayLabel"
                     android:text="S" />
 
             </LinearLayout>
 
-            <!-- Date Chips (Calendar Grid) -->
+            <!-- Date Chips -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupDates"
                 android:layout_width="match_parent"
@@ -184,14 +164,13 @@
                 app:selectionRequired="false"
                 app:singleLine="false" />
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="24dp"
                 android:background="#E0E0E0" />
 
-            <!-- ========== LOCATION SECTION ========== -->
+            <!-- LOCATION SECTION -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -216,21 +195,12 @@
 
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="8dp"
-                android:text="Search Location..."
-                android:textColor="#999999"
-                android:textSize="14sp" />
-
             <CheckBox
                 android:id="@+id/cbWithin10km"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:text="Within 10km"
                 android:textColor="#333333" />
 
@@ -250,14 +220,13 @@
                 android:text="Within 50km"
                 android:textColor="#333333" />
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="24dp"
                 android:background="#E0E0E0" />
 
-            <!-- ========== CATEGORY SECTION ========== -->
+            <!-- CATEGORY SECTION -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -299,14 +268,13 @@
                 android:text="Sports"
                 android:textColor="#333333" />
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="24dp"
                 android:background="#E0E0E0" />
 
-            <!-- ========== AVAILABILITY SECTION ========== -->
+            <!-- AVAILABILITY SECTION -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

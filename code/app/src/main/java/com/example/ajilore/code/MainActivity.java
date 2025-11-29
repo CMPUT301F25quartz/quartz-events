@@ -19,7 +19,6 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.admin.AdminEventsFragment;
 import com.example.ajilore.code.ui.admin.AdminProfilesFragment;
-import com.example.ajilore.code.ui.events.EntrantEventsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;

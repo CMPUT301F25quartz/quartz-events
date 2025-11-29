@@ -1,18 +1,19 @@
 package com.example.ajilore.code.ui.events;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.list.EventRow;
@@ -20,228 +21,269 @@ import com.example.ajilore.code.ui.events.list.UserEventsAdapter;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Base fragment displaying a list of events.
- * Meant to be subclassed for specific event list screens.
- * Handles event list loading, RecyclerView setup, and empty/progress views.
+ * US 01.01.04: Fragment for displaying and filtering events
+ * Events are fetched live from Firestore and can be filtered by:
+ * - Date range
+ * - Location
+ * - Category
+ * - Availability
  */
-public abstract class EventsFragment extends Fragment {
-
-    /**
-     * Provides the layout resource ID for one row in the event list.
-     * Subclasses must supply a layout with correct binding IDs.
-     * @return Layout resource for an event row.
-     */
-    protected abstract @LayoutRes int getRowLayoutId();
-
-    /**
-     * Supplies the Firestore query used to load events.
-     * Subclasses can control ordering and filtering.
-     * @return Firestore {@link Query} fetching events.
-     */
-    protected abstract Query getEventsQuery();
-
-    /**
-     * Handles the user tapping an event row in the list.
-     * @param row The {@link EventRow} that was clicked.
-     */
-    protected abstract void onEventClick(@NonNull EventRow row);
+public class EventsFragment extends Fragment implements FilterEventsDialogFragment.OnFiltersAppliedListener {
 
     private RecyclerView rvEvents;
-    private View progress, emptyView;
+    private ProgressBar progress;
+    private TextView emptyView;
     private UserEventsAdapter adapter;
     private FirebaseFirestore db;
 
+    private List<EventRow> allEvents = new ArrayList<>();
+    private FilterEventsDialogFragment.EventFilters currentFilters;
+    private ImageButton btnFilter;
 
-    /**
-     * Inflates the event list fragment view.
-     * @param inflater LayoutInflater for view creation.
-     * @param container Parent ViewGroup, if any.
-     * @param savedInstanceState Previously saved state, if any.
-     * @return The root view for this fragment.
-     */
-
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_events, container, false);
     }
 
-    /**
-     * Initializes RecyclerView, starts event loading, binds click handlers, and sets up progress/empty views.
-     * @param v Root fragment view after inflation.
-     * @param s Saved instance state, if any.
-     */
     @Override
-    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
-        super.onViewCreated(v, s);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        rvEvents  = v.findViewById(R.id.rvEvents);
-        progress  = v.findViewById(R.id.progress);
-        emptyView = v.findViewById(R.id.emptyView);
+        android.util.Log.d("EventsFragment", "=== Fragment loaded ===");
 
+        db = FirebaseFirestore.getInstance();
+
+        // Initialize views
+        rvEvents = view.findViewById(R.id.rvEvents);
+        progress = view.findViewById(R.id.progress);
+        emptyView = view.findViewById(R.id.emptyView);
+        btnFilter = view.findViewById(R.id.btnFilter);
+
+        // Setup RecyclerView
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        // Adapter uses our item layout and click callback
-        adapter = new UserEventsAdapter(R.layout.item_event, row -> {
-            Fragment f = EventDetailsFragment.newInstance(row.id, row.title);
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.nav_host_fragment, f)
-                    .addToBackStack(null)
-                    .commit();
-        });
+        adapter = new UserEventsAdapter(R.layout.item_event, this::onEventClick);
         rvEvents.setAdapter(adapter);
 
-        // Load events from /org_events by time
-        showLoading(true);
-        FirebaseFirestore.getInstance()
-                .collection("org_events")
-                .orderBy("startsAt", Query.Direction.ASCENDING) // or by createdAt if you prefer
-                .addSnapshotListener((snap, e) -> {
-                    showLoading(false);
-                    if (e != null) {
-                        Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        return;
-                    }
+        // Setup filter button
+        if (btnFilter != null) {
+            btnFilter.setOnClickListener(v -> {
+                android.util.Log.d("EventsFragment", "Filter button clicked!");
+                openFilterDialog();
+            });
+        }
 
-                    List<EventRow> rows = new ArrayList<>();
-                    if (snap != null) {
-                        for (DocumentSnapshot doc : snap.getDocuments()) {
-                            /*
-                            String id        = d.getId();
-                            String title     = safe(d.getString("title"), "(Untitled)");
-                            String location  = safe(d.getString("location"), "TBA");
-                            String status    = safe(d.getString("status"), "Open");
-                            String posterKey = d.getString("posterUrl");
-                            Timestamp ts     = d.getTimestamp("startsAt");
-                            String dateText  = (ts != null)
-                                    ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
-                                    : "";
-                              */
-                            rows.add(toEventRow(doc)
-                            );
-                        }
-                    }
-                    //I'm trying to sort then to show the events in order (Open -> Published -> Closed)
-                    Collections.sort(rows, (a,b) ->{
-                        int rankA = statusRank(a.status);
-                        int rankB = statusRank(b.status);
-                        int cmp = Integer.compare(rankA, rankB);
-                        if (cmp != 0) return cmp;
-                        return 0;
-                    });
-
-                    adapter.replaceAll(rows);
-                    emptyView.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
-                });
-    }
-
-
-     //---helpers----
-    /**
-     * Returns a string or a default if the value is null or empty.
-     * @param s The string to check
-     * @param def The default value
-     * @return The original string or the default if blank.
-     */
-    private String safe(String s, String def){
-        return (s == null || s.trim().isEmpty()) ? def:s;
-
+        // Load events
+        loadAvailableEvents();
     }
 
     /**
-     * Helper function to sort the events based on their status
-     * @param status
-     * @return the rank of the status
+     * Loads all available events from Firestore
      */
-    private int statusRank(String status){
-        if(status == null) return 3;
-        String s = status.trim().toLowerCase();
-        if("open".equals(s)) return 1;
-        if("published".equals(s)) return 2;
-        if("closed".equals(s)) return 3;
-        return 4; //anything else but we shouldnt have this
+    private void loadAvailableEvents() {
+        progress.setVisibility(View.VISIBLE);
+        emptyView.setVisibility(View.GONE);
+
+        Query query = db.collection("org_events")
+                .orderBy("startsAt", Query.Direction.ASCENDING);
+
+        query.addSnapshotListener((QuerySnapshot snapshot, FirebaseFirestoreException e) -> {
+            progress.setVisibility(View.GONE);
+
+            if (e != null) {
+                Toast.makeText(requireContext(),
+                        "Failed to load events: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            allEvents.clear();
+
+            if (snapshot != null && !snapshot.isEmpty()) {
+                android.util.Log.d("Firebase", "Found " + snapshot.size() + " events");
+
+                for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                    String eventId = doc.getId();
+                    String title = doc.getString("title");
+                    String location = doc.getString("location");
+                    String status = doc.getString("status");
+                    String category = doc.getString("category");
+                    Timestamp startsAt = doc.getTimestamp("startsAt");
+                    Timestamp regOpens = doc.getTimestamp("regOpens");
+                    Timestamp regCloses = doc.getTimestamp("regCloses");
+                    String posterUrl = doc.getString("posterUrl");
+
+                    android.util.Log.d("Firebase", "Event: " + title);
+                    android.util.Log.d("EventsCheck", "Event ID: " + eventId);
+
+                    String dateText = (startsAt != null)
+                            ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                            .format(startsAt.toDate())
+                            : "Date TBA";
+
+                    EventRow eventRow = new EventRow(
+                            eventId,
+                            title != null ? title : "Untitled Event",
+                            location != null ? location : "TBA",
+                            dateText,
+                            mapPoster(posterUrl),
+                            posterUrl,
+                            status != null ? status : ""
+                    );
+
+                    // Store additional data for filtering
+                    eventRow.category = category;
+                    eventRow.startsAt = startsAt != null ? startsAt.toDate() : null;
+                    eventRow.regOpens = regOpens != null ? regOpens.toDate() : null;
+                    eventRow.regCloses = regCloses != null ? regCloses.toDate() : null;
+
+                    allEvents.add(eventRow);
+                }
+            }
+
+            applyFilters();
+        });
     }
 
-
-
     /**
-     * Shows or hides the progress view.
-     * @param show True to show, false to hide.
+     * Opens the filter dialog
      */
-    private void showLoading(boolean show){
-        if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
+    private void openFilterDialog() {
+        android.util.Log.d("EventsFragment", "Opening filter dialog");
+
+        try {
+            FilterEventsDialogFragment filterDialog = FilterEventsDialogFragment.newInstance();
+            filterDialog.setFiltersListener(this);
+            filterDialog.show(getChildFragmentManager(), "FilterDialog");
+            android.util.Log.d("EventsFragment", "Filter dialog shown");
+        } catch (Exception e) {
+            android.util.Log.e("EventsFragment", "Error showing filter", e);
+            Toast.makeText(requireContext(), "Error opening filter: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onFiltersApplied(FilterEventsDialogFragment.EventFilters filters) {
+        android.util.Log.d("EventsFragment", "Filters applied");
+        currentFilters = filters;
+        applyFilters();
+    }
+
+    @Override
+    public void onFiltersCancelled() {
+        // Keep current filters
     }
 
     /**
-     * Converts a Firestore poster key to a drawable resource.
-     * @param key Poster key.
-     * @return The drawable resource ID.
+     * Apply filters to the event list
      */
-    private int mapPoster(String key){
-        if(key == null) return R.drawable.jazz;
-        switch(key){
+    private void applyFilters() {
+        List<EventRow> filtered = new ArrayList<>();
+
+        if (currentFilters == null || !currentFilters.hasFilters()) {
+            filtered.addAll(allEvents);
+        } else {
+            for (EventRow event : allEvents) {
+                if (matchesFilters(event)) {
+                    filtered.add(event);
+                }
+            }
+        }
+
+        adapter.replaceAll(filtered);
+
+        if (filtered.isEmpty()) {
+            emptyView.setVisibility(View.VISIBLE);
+            emptyView.setText(currentFilters != null && currentFilters.hasFilters()
+                    ? "No events match your filters"
+                    : "No upcoming events yet.");
+        } else {
+            emptyView.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Check if an event matches the current filters
+     */
+    private boolean matchesFilters(EventRow event) {
+        if (currentFilters == null) return true;
+
+        // Date range filter
+        if (currentFilters.startDate != null && currentFilters.endDate != null) {
+            if (event.startsAt == null) {
+                return false;
+            }
+            if (event.startsAt.before(currentFilters.startDate) ||
+                    event.startsAt.after(currentFilters.endDate)) {
+                return false;
+            }
+        }
+
+        // Category filter
+        if (currentFilters.categories != null && !currentFilters.categories.isEmpty()) {
+            if (event.category == null || !currentFilters.categories.contains(event.category)) {
+                return false;
+            }
+        }
+
+        // Location filter (placeholder)
+        if (currentFilters.locationRange != null) {
+            // TODO: Implement distance calculation
+        }
+
+        // Availability filter
+        if (currentFilters.availabilityFilter != null) {
+            Date now = new Date();
+
+            if ("open".equals(currentFilters.availabilityFilter)) {
+                if (event.regOpens == null || event.regCloses == null) {
+                    return true;
+                }
+                if (now.before(event.regOpens) || now.after(event.regCloses)) {
+                    return false;
+                }
+            } else if ("waiting".equals(currentFilters.availabilityFilter)) {
+                if (event.regOpens == null || event.regCloses == null) {
+                    return true;
+                }
+                if (event.startsAt != null && now.after(event.startsAt)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private int mapPoster(String key) {
+        if (key == null) return R.drawable.jazz;
+        switch (key) {
             case "jazz": return R.drawable.jazz;
-            case "band" : return R.drawable.jazz;
-            case "jimi" : return R.drawable.jazz;
-            case "gala" : return R.drawable.jazz;
+            case "band": return R.drawable.jazz;
+            case "jimi": return R.drawable.jazz;
+            case "gala": return R.drawable.jazz;
             default: return R.drawable.jazz;
         }
     }
 
-    /**
-     * Helper function to compute the "Upcoming"/"Open"/"Closed" based on registration window
-     */
-    private String computeStatus(Timestamp regStartTime, Timestamp regEndTime, Date now){
-        if (regStartTime == null || regEndTime == null) {
-            return "Open";
-        }
-        Date start = regStartTime.toDate();
-        Date end = regEndTime.toDate();
-        if (now.before(start)) {
-            return "Upcoming";
-        } else if (now.after(end)) {
-            return "Closed";
-        } else {
-            return "Open";
-        }
-
+    private void onEventClick(EventRow item) {
+        Fragment detailsFragment = EventDetailsFragment.newInstance(item.id, item.title);
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.nav_host_fragment, detailsFragment)
+                .addToBackStack(null)
+                .commit();
     }
-
-    private EventRow toEventRow(DocumentSnapshot doc) {
-        String id = doc.getId();
-        String title = doc.getString("title");
-        String location = doc.getString("location");
-        String posterUrl = doc.getString("posterUrl");
-
-        Timestamp startsAt = doc.getTimestamp("startsAt");
-        Timestamp regStartTime = doc.getTimestamp("regOpens");
-        Timestamp regEndTime = doc.getTimestamp("regCloses");
-
-        String dateText;
-        if (startsAt != null) {
-            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-            dateText = df.format(startsAt.toDate());
-
-        } else {
-            dateText = "Date TBA";
-        }
-
-        Date now = new Date();
-        String status = computeStatus(regStartTime, regEndTime, now);
-
-        return new EventRow(id, title, location, dateText, R.drawable.jazz, posterUrl, status);
-
-    }
-
 }
