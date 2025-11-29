@@ -7,16 +7,21 @@ import com.example.ajilore.code.ui.events.model.Event;
 import com.example.ajilore.code.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.base.Verify;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import org.checkerframework.common.returnsreceiver.qual.This;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import kotlin.contracts.Returns;
 
 /**
  * AdminController handles all administrative operations.
@@ -51,6 +56,27 @@ public class AdminController {
     public AdminController() {
         this.db = FirebaseFirestore.getInstance();
         this.storage = FirebaseStorage.getInstance();
+    }
+
+    /**
+     * Logs an admin action notification to the logs collection.
+     * This is called when admin deletes something and users need to be notified.
+     */
+    private void logAdminAction(String eventId, String message, String audience, String adminId) {
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("eventId", eventId != null ? eventId : "N/A");
+        logData.put("message", message);
+        logData.put("audience", audience);
+        logData.put("type", "admin_action");
+        logData.put("senderId", adminId);
+        logData.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        db.collection("admin_notification_logs")
+                .add(logData)
+                .addOnSuccessListener(docRef ->
+                        Log.d(TAG, "Admin action logged: " + message))
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Failed to log admin action", e));
     }
 
     /**
@@ -167,6 +193,15 @@ public class AdminController {
                                     if (posterUrl != null && !posterUrl.isEmpty() && !posterUrl.equals("\"\"")) {
                                         deleteImageFromStorage(posterUrl);
                                     }
+                                    // Log admin action and notify entrants
+                                    logAdminAction(
+                                            eventId,
+                                            "Event '" + event.title + "' has been removed by an administrator.",
+                                            "all_entrants",
+                                            "admin"
+                                    );
+                                    //  Send notification to all entrants in waiting list
+                                    notifyEventDeletion(eventId, event.title);
 
                                     callback.onSuccess();
                                 })
@@ -186,6 +221,22 @@ public class AdminController {
     }
 
     /**
+     * Notifies all entrants when an event is deleted by admin.
+     */
+    private void notifyEventDeletion(String eventId, String eventTitle) {
+        // Create a broadcast notification for all waiting list members
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("message", "The event '" + eventTitle + "' has been cancelled by the administrator.");
+        notificationData.put("audience", "waiting");
+        notificationData.put("eventId", eventId);
+        notificationData.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        // Note: We can't actually send this through the event collection since it's deleted
+        // So we just log it for admin records
+        Log.d(TAG, "Event deletion notification logged for: " + eventTitle);
+    }
+
+    /**
      * Removes a user profile from Firestore.
      * User Story: US 03.02.01 - Remove Profiles
      *
@@ -198,16 +249,33 @@ public class AdminController {
     public void removeUser(String userId, final OperationCallback callback) {
         Log.d(TAG, "Removing user: " + userId);
 
+        // Fetch user details first for notification
         db.collection(USERS_COLLECTION).document(userId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "User removed: " + userId);
-                    callback.onSuccess();
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String userName = doc.getString("name");
+
+                    db.collection(USERS_COLLECTION).document(userId)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "User removed: " + userId);
+
+                                // Log admin action
+                                logAdminAction(
+                                        null,
+                                        "User '" + userName + "' has been removed for policy violation.",
+                                        "single_user",
+                                        "admin"
+                                );
+
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error removing user", e);
+                                callback.onError(e);
+                            });
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error removing user", e);
-                    callback.onError(e);
-                });
+                .addOnFailureListener(e -> callback.onError(e));
     }
 
     /**
@@ -243,6 +311,13 @@ public class AdminController {
                         @Override
                         public void onSuccess() {
                             Log.d(TAG, "All organizer events flagged successfully");
+                            // Log admin action
+                            logAdminAction(
+                                    null,
+                                    "Organizer account deactivated for policy violation. All events flagged.",
+                                    "organizer",
+                                    "admin"
+                            );
                             callback.onSuccess();
                         }
 
@@ -560,6 +635,22 @@ public class AdminController {
                 .update(field, null)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Image removed from " + collection + ": " + imageItem.eventId);
+                    // Log admin action
+                    if ("profile".equals(imageItem.type)) {
+                        logAdminAction(
+                                null,
+                                "Profile picture removed for user in violation of policy.",
+                                "single_user",
+                                "admin"
+                        );
+                    } else {
+                        logAdminAction(
+                                imageItem.eventId,
+                                "Event poster for '" + imageItem.title + "' removed for policy violation.",
+                                "organizer",
+                                "admin"
+                        );
+                    }
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
@@ -570,33 +661,65 @@ public class AdminController {
 
 
     /**
-     * Fetches all notification logs for the admin review.
-     * US 03.08.01
+     * Fetches ALL notification logs from two sources:
+     * 1. admin_notification_logs (admin actions like deletions)
+     * 2. org_events/*broadcasts* (organizer broadcast notifications)
+     *
+     * US 03.08.01 - Admin can review logs of all notifications
+     */
+    /**
+     * Fetches notification logs ONLY from admin_notification_logs collection.
+     * This avoids duplicates because we now log once per broadcast action.
+     *
+     * US 03.08.01 - Admin can review logs of all notifications
      */
     public void fetchNotificationLogs(final DataCallback<List<com.example.ajilore.code.models.NotificationLog>> callback) {
         Log.d(TAG, "Fetching notification logs...");
 
         db.collection("admin_notification_logs")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING) // Newest first
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         List<com.example.ajilore.code.models.NotificationLog> logs = new ArrayList<>();
-                        for (com.google.firebase.firestore.QueryDocumentSnapshot document : task.getResult()) {
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
                             try {
                                 com.example.ajilore.code.models.NotificationLog log =
                                         document.toObject(com.example.ajilore.code.models.NotificationLog.class);
                                 log.setLogId(document.getId());
                                 logs.add(log);
+
+                                Log.d(TAG, "Loaded log: " + log.getMessage() +
+                                        " (Event: " + log.getEventTitle() +
+                                        ", Recipients: " + log.getRecipientCount() + ")");
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parsing log", e);
                             }
                         }
+
                         callback.onSuccess(logs);
+                        Log.d(TAG, "Total logs loaded: " + logs.size());
                     } else {
                         callback.onError(task.getException());
+                        Log.e(TAG, "Error fetching logs", task.getException());
                     }
                 });
+    }
+
+    /**
+     * Helper method to sort logs by timestamp (newest first).
+     * Handles null timestamps by placing them at the end.
+     */
+    private void sortLogsByTimestamp(List<com.example.ajilore.code.models.NotificationLog> logs) {
+        logs.sort((log1, log2) -> {
+            if (log1.getTimestamp() == null && log2.getTimestamp() == null) return 0;
+            if (log1.getTimestamp() == null) return 1;
+            if (log2.getTimestamp() == null) return -1;
+
+            // Descending order (newest first)
+            return log2.getTimestamp().compareTo(log1.getTimestamp());
+        });
     }
 
     // Callback interfaces

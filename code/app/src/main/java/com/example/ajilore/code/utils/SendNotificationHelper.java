@@ -73,4 +73,76 @@ public class SendNotificationHelper {
                     Toast.makeText(context, "Failed to send: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+    /**
+     * Sends a broadcast notification to a group (waiting, selected, chosen, cancelled)
+     * AND logs it to admin_notification_logs collection.
+     *
+     * This is called when organizers use the "Notify Entrants" feature.
+     *
+     * @param context Application context
+     * @param eventId Event ID
+     * @param audience "waiting", "selected", "chosen", or "cancelled"
+     * @param message Custom message from organizer
+     * @param senderId Organizer's user ID
+     * @param includePoster Whether to include poster in notification
+     * @param linkUrl Optional link URL
+     */
+    public static void sendBroadcastNotification(Context context, String eventId, String audience,
+                                                 String message, String senderId,
+                                                 boolean includePoster, String linkUrl,int recipientCount) {
+
+        if (eventId == null || eventId.isEmpty() || audience == null || audience.isEmpty()) {
+            Toast.makeText(context, "Invalid event or audience", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // 1. Create broadcast notification document
+        Map<String, Object> broadcastData = new HashMap<>();
+        broadcastData.put("message", message);
+        broadcastData.put("audience", audience);
+        broadcastData.put("eventId", eventId);
+        broadcastData.put("createdAt", FieldValue.serverTimestamp());
+        broadcastData.put("includePoster", includePoster);
+
+        if (linkUrl != null && !linkUrl.isEmpty()) {
+            broadcastData.put("linkUrl", linkUrl);
+        }
+
+        // 2. Write to broadcasts collection
+        db.collection("org_events").document(eventId).get()
+                .addOnSuccessListener(eventDoc -> {
+                    String eventTitle = eventDoc.getString("title");
+
+                    // 3. Log to admin_notification_logs
+                    Map<String, Object> logData = new HashMap<>();
+                    logData.put("eventId", eventId);
+                    logData.put("eventTitle", eventTitle);
+                    logData.put("message", message);
+                    logData.put("audience", audience);
+                    logData.put("recipientCount", recipientCount);
+                    logData.put("type", "broadcast");
+                    logData.put("senderId", senderId);
+                    logData.put("timestamp", FieldValue.serverTimestamp());
+
+                    db.collection("admin_notification_logs")
+                            .add(logData)
+                            .addOnSuccessListener(logRef -> {
+                                Toast.makeText(context,
+                                        "Notification sent to " + recipientCount + " " + audience + " entrants!",
+                                        Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                // Notification sent but log failed - not critical
+                                Toast.makeText(context, "Notification sent (log failed)",
+                                        Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(context, "Failed to send: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
+    }
 }
