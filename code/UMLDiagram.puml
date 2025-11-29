@@ -100,6 +100,8 @@ class HistoryAdapter {
 + onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
 + getItemCount() : int
 }
+interface HistoryAdapter$OnHistoryClickListener {
+}
 class HistoryAdapter$ViewHolder {
 }
 class AdminImagesAdapter {
@@ -397,6 +399,7 @@ Adapter <|-- AdminLogsAdapter
 AdminLogsAdapter +.. AdminLogsAdapter$LogViewHolder
 ViewHolder <|-- AdminLogsAdapter$LogViewHolder
 Adapter <|-- HistoryAdapter
+HistoryAdapter +.. HistoryAdapter$OnHistoryClickListener
 HistoryAdapter +.. HistoryAdapter$ViewHolder
 ViewHolder <|-- HistoryAdapter$ViewHolder
 Adapter <|-- AdminImagesAdapter
