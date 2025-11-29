@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -97,14 +98,26 @@ public class HistoryFragment extends Fragment {
         progressBar = v.findViewById(R.id.progressHistory);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new HistoryAdapter(historyList);
-        recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
         deviceId = Settings.Secure.getString(
                 requireContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID
         );
+        adapter = new HistoryAdapter(historyList, item -> {
+            String eventId = (String) item.get("eventId");
+            String title   = (String) item.get("eventTitle");
+
+            if (eventId != null) {
+                EventDetailsFragment f = EventDetailsFragment.newInstance(eventId, title);
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, f)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+        recyclerView.setAdapter(adapter);
 
         loadHistory();
     }
