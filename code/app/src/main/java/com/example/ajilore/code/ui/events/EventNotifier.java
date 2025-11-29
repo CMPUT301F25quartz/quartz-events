@@ -242,8 +242,11 @@ public final class EventNotifier {
                             .document(inboxId);
 
                     Map<String, Object> inbox = new HashMap<>();
-                    inbox.put("type", targetStatus.equals("selected") ? "selected_notice"
-                            : targetStatus.equals("cancelled") ? "cancelled_notice" : "broadcast");
+                    inbox.put("type",
+                            targetStatus.equals("selected")  ? "selected_notice"  :
+                                    targetStatus.equals("cancelled") ? "cancelled_notice" :
+                                            targetStatus.equals("removed")   ? "removed_notice"   :
+                                                    "broadcast");
                     inbox.put("audience", targetStatus);
                     inbox.put("eventId", eventId);
                     inbox.put("eventTitle", eventTitle);
@@ -350,8 +353,10 @@ public final class EventNotifier {
 
                 batch.set(inboxRef, inbox);
                 batch.set(userInboxRef, inbox);
+                batch.set(userInboxRef, inbox);   // NEW
                 thisBatchCount++;
             }
+
 
             batches.add(batch);
             batchSizes.add(thisBatchCount);
