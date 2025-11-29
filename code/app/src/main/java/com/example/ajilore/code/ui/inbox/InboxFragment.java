@@ -160,6 +160,7 @@ public class InboxFragment extends Fragment {
             @Override
             public void onAction(NotificationModel notification) {
                 markNotificationAsRead(notification);
+                updateInboxBadgeFromLists();
                 String eventId = notification.getEventId();
                 if (eventId == null || eventId.isEmpty()) {
                     Toast.makeText(getContext(),

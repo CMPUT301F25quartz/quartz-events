@@ -33,12 +33,18 @@ import com.example.ajilore.code.utils.AdminAuthManager;
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.cloudinary.android.MediaManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MainActivity - The main entry point of the application.
@@ -50,8 +56,20 @@ import java.util.Map;
  * - Navigation to admin browse screens
  */
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private String userId;
+
+    // to clean up listeners
+    private ListenerRegistration registrationsListener;
+    private final List<ListenerRegistration> inboxListeners = new ArrayList<>();
+    // keep per-event unread counts
+    private final Map<String, Integer> unreadPerEvent = new HashMap<>();
+
+
+
     private BottomNavigationView bottomNavigationView;
-    private boolean isAdmin = false;  // NEW: Track if current user is admin
+    private boolean isAdmin = false;  // Track if current user is admin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +97,16 @@ public class MainActivity extends AppCompatActivity {
         //hide the nav bar
         //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
 
+        db = FirebaseFirestore.getInstance();
+
+        userId = Settings.Secure.getString(
+                getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId != null && !userId.isEmpty()) {
+            startInboxBadgeListener();
+        }
 
 
         // Apply window insets (should be right after setContentView)
@@ -211,10 +239,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void updateInboxBadge(int unreadCount) {
-        BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); //  nav view id
+        BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); // View id
         if (nav == null) return;
 
-        BadgeDrawable badge = nav.getOrCreateBadge(R.id.inboxFragment); // your inbox menu id
+        BadgeDrawable badge = nav.getOrCreateBadge(R.id.inboxFragment);
 
         if (unreadCount <= 0) {
             badge.clearNumber();
@@ -224,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
             badge.setNumber(unreadCount);
         }
     }
+
 
 
 
@@ -321,6 +350,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 
@@ -414,4 +444,68 @@ public class MainActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 });
     }
+
+    private void startInboxBadgeListener() {
+        // Clean up previous if any
+        if (registrationsListener != null) {
+            registrationsListener.remove();
+            registrationsListener = null;
+        }
+        for (ListenerRegistration l : inboxListeners) {
+            l.remove();
+        }
+        inboxListeners.clear();
+        unreadPerEvent.clear();
+
+        registrationsListener = db.collection("users")
+                .document(userId)
+                .collection("registrations")
+                .addSnapshotListener((regSnap, e) -> {
+                    if (e != null || regSnap == null) {
+                        return;
+                    }
+
+                    // Which events still exist
+                    Set<String> currentEventIds = new HashSet<>();
+                    for (DocumentSnapshot d : regSnap.getDocuments()) {
+                        currentEventIds.add(d.getId());
+                    }
+
+                    // Remove counts for deleted registrations
+                    unreadPerEvent.keySet().removeIf(id -> !currentEventIds.contains(id));
+
+                    // Clear previous inbox listeners
+                    for (ListenerRegistration l : inboxListeners) {
+                        l.remove();
+                    }
+                    inboxListeners.clear();
+
+                    // Attach a listener to each event's inbox
+                    for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                        final String eventId = regDoc.getId();
+
+                        ListenerRegistration inboxListener = regDoc.getReference()
+                                .collection("inbox")
+                                .whereEqualTo("archived", false)
+                                .whereEqualTo("read", false)
+                                .addSnapshotListener((inboxSnap, err) -> {
+                                    if (err != null) return;
+
+                                    int count = (inboxSnap == null) ? 0 : inboxSnap.size();
+                                    unreadPerEvent.put(eventId, count);
+
+                                    int totalUnread = 0;
+                                    for (int c : unreadPerEvent.values()) {
+                                        totalUnread += c;
+                                    }
+
+                                    updateInboxBadge(totalUnread);
+                                });
+
+                        inboxListeners.add(inboxListener);
+                    }
+                });
+    }
+
+
 }
