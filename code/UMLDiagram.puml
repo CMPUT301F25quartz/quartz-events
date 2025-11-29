@@ -252,7 +252,6 @@ abstract class EventsFragment {
 class AdminAuthManager {
 + {static} getDeviceId(arg0 : Context) : String
 + {static} isAdmin(arg0 : Context) : boolean
-+ {static} addCurrentDeviceAsAdmin(arg0 : Context) : void
 }
 class SelectEntrantsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : SelectEntrantsFragment
