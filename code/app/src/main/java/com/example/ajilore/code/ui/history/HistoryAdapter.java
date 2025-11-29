@@ -26,10 +26,17 @@ import java.util.Map;
  */
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
-    private final List<Map<String, Object>> items;
+    public interface OnHistoryClickListener {
+        void onHistoryClick(Map<String, Object> item);
+    }
 
-    public HistoryAdapter(List<Map<String, Object>> items) {
+    private final List<Map<String, Object>> items;
+    private final OnHistoryClickListener listener;
+
+    public HistoryAdapter(List<Map<String, Object>> items, OnHistoryClickListener listener) {
+
         this.items = items;
+        this.listener = listener;
     }
 
     @NonNull
@@ -52,7 +59,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         holder.tvLocation.setText(location != null ? location : "Location unavailable");
 
 
-
         if (ts != null) {
             Date d = ts.toDate();
             SimpleDateFormat fmt = new SimpleDateFormat("EEE, MMM d • h:mm a", Locale.ENGLISH);
@@ -71,6 +77,12 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         } else {
             holder.imgPoster.setImageResource(R.drawable.image_placeholder);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onHistoryClick(data);
+            }
+        });
 
     }
 
