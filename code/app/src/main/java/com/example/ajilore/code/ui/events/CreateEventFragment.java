@@ -498,7 +498,7 @@ public class CreateEventFragment extends Fragment {
                 event.put("createdByUid", deviceId);
                 db.collection("org_events").add(event)
                         .addOnSuccessListener(ref -> {
-
+                            //role change to organizer
                             db.collection("users")
                                     .document(deviceId)
                                     .update("role", "organizer")
