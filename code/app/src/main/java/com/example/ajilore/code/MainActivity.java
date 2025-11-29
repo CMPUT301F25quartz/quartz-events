@@ -4,6 +4,7 @@ import android.Manifest; // Kulnoor ADDED: Import for notification permission
 import android.content.Intent;
 import android.content.pm.PackageManager; // Kulnoor ADDED: Import for permission handling
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -200,19 +201,15 @@ public class MainActivity extends AppCompatActivity {
     private void checkAdminStatus() {
         // Get this device's unique ID
         String deviceId = AdminAuthManager.getDeviceId(this);
-        Log.d("ADMIN_CHECK", "📱 Device ID: " + deviceId);
+        Log.d("ADMIN_CHECK", "Checking Admin Status for Device ID: " + deviceId);
 
-        // TEMPORARY: Auto-grant admin access for testing
-        // TODO: Remove this line in production! Admins should be pre-configured.
-        AdminAuthManager.addCurrentDeviceAsAdmin(this);
-
-        // Check if this device is in the admin list
+        // Verify against the hardcoded allowlist
         isAdmin = AdminAuthManager.isAdmin(this);
         Log.d("ADMIN_CHECK", "Admin Status: " + isAdmin);
 
         // Show notification if admin mode is active
         if (isAdmin) {
-            Toast.makeText(this, " Admin Mode Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Administrator Access Granted", Toast.LENGTH_LONG).show();
             // Recreate options menu to show admin items
             invalidateOptionsMenu();
         }

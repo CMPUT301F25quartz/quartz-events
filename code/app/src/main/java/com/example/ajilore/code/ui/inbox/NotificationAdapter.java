@@ -1,8 +1,5 @@
 package com.example.ajilore.code.ui.inbox;
 
-
-
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,47 +7,28 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-
+import com.bumptech.glide.Glide;
 
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-
-
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 
-
-
-
 import java.util.List;
 
-
-
-
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
-
-
-
 
     private Context context;
     private List<NotificationModel> notificationList;
     private OnNotificationActionListener listener;
     private boolean isArchivedView;
 
-
-
-
     public interface OnNotificationActionListener {
         void onDismiss(NotificationModel item);
         void onAction(NotificationModel item);
     }
-
-
-
 
     public NotificationAdapter(Context context, List<NotificationModel> notificationList,
                                OnNotificationActionListener listener, boolean isArchivedView) {
@@ -60,9 +38,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         this.isArchivedView = isArchivedView;
     }
 
-
-
-
     @NonNull
     @Override
     public NotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -70,38 +45,40 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         return new NotificationViewHolder(view);
     }
 
-
-
-
     @Override
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         NotificationModel notification = notificationList.get(position);
 
+        // 🔹 load profile image from imageUrl
+        String imageUrl = notification.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_profile)
+                    .error(R.drawable.ic_profile)
+                    .into(holder.imageProfile);
+        } else {
+            holder.imageProfile.setImageResource(R.drawable.ic_profile);
+        }
 
-
-
-        holder.imageProfile.setImageResource(R.drawable.ic_profile);
+        // 🔹 text fields
         holder.textMessage.setText(notification.getMessage());
         holder.textTime.setText(
-                notification.getTime() != null && !notification.getTime().isEmpty() ? notification.getTime() : "Just now"
+                notification.getTime() != null && !notification.getTime().isEmpty()
+                        ? notification.getTime()
+                        : "Just now"
         );
-        holder.btnAction.setText(notification.getActionText() != null ? notification.getActionText() : "View");
+        holder.btnAction.setText(
+                notification.getActionText() != null ? notification.getActionText() : "View"
+        );
 
-
-
-
-        // Hide dismiss button in archived view
+        // 🔹 hide dismiss button in archived view
         holder.btnDismiss.setVisibility(isArchivedView ? View.GONE : View.VISIBLE);
-
-
-
 
         holder.btnDismiss.setOnClickListener(v -> {
             if (listener != null) listener.onDismiss(notification);
         });
-
-
-
 
         holder.btnAction.setOnClickListener(v -> {
             if (listener != null) listener.onAction(notification);
@@ -109,24 +86,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
 
-
-
     @Override
     public int getItemCount() {
         return notificationList != null ? notificationList.size() : 0;
     }
-
-
-
 
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView imageProfile;
         TextView textMessage, textTime;
         LinearLayout buttonContainer;
         MaterialButton btnDismiss, btnAction;
-
-
-
 
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -138,9 +107,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             btnAction = itemView.findViewById(R.id.btnAction);
         }
     }
-
-
-
 
     public void updateList(List<NotificationModel> newList, boolean isArchivedView) {
         this.notificationList = newList;
