@@ -21,18 +21,22 @@
     <!-- Filter + Archive Buttons -->
     <LinearLayout
         android:id="@+id/filterButtonsLayout"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toBottomOf="@id/textInboxTitle"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMarkAllRead"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/mark_all_read"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="16dp"
             style="?attr/materialButtonOutlinedStyle" />
 
         <com.google.android.material.button.MaterialButton
@@ -40,6 +44,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/show_unread"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="16dp"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_marginStart="8dp"/>
 
@@ -47,7 +54,10 @@
             android:id="@+id/btnViewArchived"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="View Archived"
+            android:text="@string/view_archived"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="16dp"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
