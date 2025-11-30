@@ -31,31 +31,35 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="24dp">
 
-        <!-- Delete button -->
-        <Button
-            android:id="@+id/btn_delete"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Delete"
-            android:textColor="@color/white"
-            android:background="@drawable/button_delete_background"
-            android:textAllCaps="false"
-            android:textSize="16sp" />
-
-        <!-- Cancel button -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_cancel"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/button_cancel"
             android:text="Cancel"
-            android:textColor="@color/black"
-            android:background="@drawable/button_cancel_background"
+            android:textColor="#616161"
             android:textAllCaps="false"
-            android:textSize="16sp" />
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:minHeight="40dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_delete"
+            android:text="Delete"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:minHeight="40dp" />
 
     </LinearLayout>
 

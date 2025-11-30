@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,7 +14,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -40,10 +40,17 @@ public class WaitingListFragment extends Fragment {
     private EditText etSearch;
     private WaitingListAdapter adapter;
     private List<Entrant> entrantList = new ArrayList<>();
+
+    // NEW: Store original list for filtering (added by Kulnoor)
+    private List<Entrant> originalEntrantList = new ArrayList<>(); // Store original list for filtering
     private FirebaseFirestore db;
     private String eventId;
 
     private ImageButton btnBack;
+
+    // // NEW: Adding filter button and filter state (added by Kulnoor)
+    private ImageButton btnFilter;
+    private String currentFilter = "ALL"; // NEW: Current filter state: "ALL", "ACCEPTED", "DECLINED", "PENDING"
 
     /**
      * Default public constructor for {@link WaitingListFragment}.
@@ -112,11 +119,39 @@ public class WaitingListFragment extends Fragment {
         btnBack = view.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(x -> requireActivity().onBackPressed());
 
+        // NEW: Initialize filter button as image button
+        btnFilter = view.findViewById(R.id.btnFilter);
+        if (btnFilter != null) {
+            btnFilter.setOnClickListener(v -> showFilterOptions());
+        }
 
         rvEntrants.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new WaitingListAdapter(requireContext(), entrantList);
         rvEntrants.setAdapter(adapter);
 
+        // NEW: Load and listen for real-time updates (added by Kulnoor)
+        loadAndListenForUpdates();
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            /**
+             * Called after the text is changed in the search EditText.
+             * Filters the entrants list based on the query.
+             *
+             * @param s The text after it has changed.
+             */
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // CHANGED: Use applyFilters instead of direct filter (added by Kulnoor)
+                applyFilters();
+            }
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
+        });
+    }
+
+    // NEW: Method to load data and set up real-time listener (added by Kulnoor)
+    private void loadAndListenForUpdates() {
         db.collection("org_events").document(eventId)
                 .collection("waiting_list")
                 .addSnapshotListener((snap, err) -> {
@@ -140,77 +175,167 @@ public class WaitingListFragment extends Fragment {
                             } else if ("waiting".equalsIgnoreCase(status)) {
                                 displayStatus = "Waiting";
                             } else {
-                                // fallback if anything else
                                 displayStatus = responded != null ? responded : "Pending";
                             }
-                           // entrantList.add(new Entrant(uid, name, displayStatus));
 
+                            String finalDisplayStatus = displayStatus;
 
-                            total++;
-                            // NEW: classify based on status + responded
-                            String r = responded != null ? responded.toLowerCase() : "";
-                            String s = status != null ? status.toLowerCase() : "";
-
-                            // Pending = chosen in draw and still pending
-                            if ("chosen".equals(s) && "pending".equals(r)) {
-                                pending++;
-                            }
-                            // Accepted = responded accepted
-                            else if ("accepted".equals(r) || "selected".equals(s)) {
-                                accepted++;
-                            }
-                            // Declined = responded declined
-                            else if ("declined".equals(r) || "cancelled".equals(s)) {
-                                declined++;
-                            }
-
-// hide "chosen + declined" people from the visible list
-                            if ("chosen".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
-                                // we already counted them in "declined", just don't show them in the RecyclerView
-                                continue;
-                            }
-
-                            //Fetch the user's name from the "user" collection
+                            // NEW: Fetch user's name and update entrant in real-time (added by Kulnoor)
                             db.collection("users")
                                     .document(uid)
                                     .get()
                                     .addOnSuccessListener(userDoc -> {
                                         String userName = userDoc.getString("name");
-                                        if(userName == null || userName.isEmpty()){
+                                        if (userName == null || userName.isEmpty()) {
                                             userName = uid; // just use the device id
                                         }
                                         String photoUrl = userDoc.getString("profilepicture");
-                                        entrantList.add(new Entrant(uid, userName, displayStatus, photoUrl));
-                                        adapter.updateList(new ArrayList<>(entrantList));
-                                        tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
+                                        Entrant newEntrant = new Entrant(uid, userName, finalDisplayStatus, photoUrl);
+
+                                        // NEW: Update existing entrant or add new one (added by Kulnoor)
+                                        updateEntrantList(newEntrant);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle case where user doc doesn't exist
+                                        Entrant newEntrant = new Entrant(uid, uid, finalDisplayStatus,null);
+                                        updateEntrantList(newEntrant);
                                     });
                         }
+
+                        // NEW: Update statistics in real-time (added by Kulnoor)
+                        updateStatsFromFirestore(snap);
                     }
-
-                    adapter.updateList(entrantList);
-                    tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
-                    tvTotal.setText(total + " Total");
-                    tvAccepted.setText(accepted + " Accepted");
-                    tvDeclined.setText(declined + " Declined");
-                    tvPending.setText(pending + " Pending");
                 });
-
-        etSearch.addTextChangedListener(new TextWatcher() {
-            /**
-             * Called after the text is changed in the search EditText.
-             * Filters the entrants list based on the query.
-             *
-             * @param s The text after it has changed.
-             */
-            @Override
-            public void afterTextChanged(Editable s) {
-                filterEntrants(s.toString());
-            }
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
-        });
     }
 
+    // NEW: Method to update the entrant lists in real-time (added by Kulnoor)
+    private void updateEntrantList(Entrant newEntrant) {
+        // NEW: Remove existing entrant with same UID if it exists (added by Kulnoor)
+        entrantList.removeIf(entrant -> entrant.uid.equals(newEntrant.uid));
+        originalEntrantList.removeIf(entrant -> entrant.uid.equals(newEntrant.uid));
+
+        // NEW: Add the updated entrant (added by Kulnoor)
+        originalEntrantList.add(newEntrant);
+
+        // NEW: Apply current filter to update visible list (added by Kulnoor)
+        applyFilters();
+    }
+
+    // NEW: Method to update statistics from Firestore snapshot (added by Kulnoor)
+    private void updateStatsFromFirestore(com.google.firebase.firestore.QuerySnapshot snap) {
+        int total = 0, accepted = 0, declined = 0, pending = 0;
+
+        for (DocumentSnapshot d : snap.getDocuments()) {
+            String status = d.getString("status");
+            String responded = d.getString("responded");
+
+            String displayStatus;
+            if ("chosen".equalsIgnoreCase(status) && "pending".equalsIgnoreCase(responded)) {
+                displayStatus = "Pending";
+            } else if ("selected".equalsIgnoreCase(status) && "accepted".equalsIgnoreCase(responded)) {
+                displayStatus = "Accepted";
+            } else if ("waiting".equalsIgnoreCase(status) && "declined".equalsIgnoreCase(responded)) {
+                displayStatus = "Declined";
+            } else if ("waiting".equalsIgnoreCase(status)) {
+                displayStatus = "Waiting";
+            } else {
+                displayStatus = responded != null ? responded : "Pending";
+            }
+
+            String safeResponded = responded != null ? responded.toLowerCase() : "pending";
+
+            switch (safeResponded) {
+                case "accepted": accepted++; break;
+                case "declined": declined++; break;
+                case "waiting" :
+                    pending++; break;
+                default: pending++; break;
+            }
+        }
+
+        total = snap.size();
+
+        // NEW: Update UI with new statistics (added by Kulnoor)
+        tvTotal.setText(total + " Total");
+        tvAccepted.setText(accepted + " Accepted");
+        tvDeclined.setText(declined + " Declined");
+        tvPending.setText(pending + " Pending");
+    }
+
+    // NEW: Separate method to update adapter (added by Kulnoor)
+    private void updateAdapter() {
+        applyFilters();
+    }
+
+    // NEW: Method to show filter options dialog (added by Kulnoor)
+    private void showFilterOptions() {
+        String[] filters = {"All", "Accepted/Enrolled", "Declined/Cancelled", "Pending/Invited"};
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter By Status")
+                .setItems(filters, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            // CHANGED: Set current filter to ALL (added by Kulnoor)
+                            currentFilter = "ALL";
+                            break;
+                        case 1:
+                            // CHANGED: Set current filter to ACCEPTED (added by Kulnoor)
+                            currentFilter = "ACCEPTED";
+                            break;
+                        case 2:
+                            // CHANGED: Set current filter to DECLINED (added by Kulnoor)
+                            currentFilter = "DECLINED";
+                            break;
+                        case 3:
+                            // CHANGED: Set current filter to PENDING (added by Kulnoor)
+                            currentFilter = "PENDING";
+                            break;
+                    }
+                    applyFilters();
+                })
+                .show();
+    }
+
+    // NEW: Method to apply both search and filter (added by Kulnoor)
+    private void applyFilters() {
+        List<Entrant> filtered = new ArrayList<>();
+        String searchTerm = etSearch.getText().toString().toLowerCase();
+
+        // NEW: Loop through original list and apply both search and filter (added by Kulnoor)
+        for (Entrant entrant : originalEntrantList) {
+            //Check if search matches
+            boolean matchesSearch = searchTerm.isEmpty() ||
+                    entrant.nameOrUid.toLowerCase().contains(searchTerm);
+
+            //Check if filter matches (added by Kulnoor)
+            boolean matchesFilter = true;
+            switch (currentFilter) {
+                case "ACCEPTED":
+                    matchesFilter = "Accepted".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "DECLINED":
+                    matchesFilter = "Declined".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "PENDING":
+                    matchesFilter = "Pending".equalsIgnoreCase(entrant.displayStatus) ||
+                            "Waiting".equalsIgnoreCase(entrant.displayStatus);
+                    break;
+                case "ALL":
+                default:
+                    matchesFilter = true;
+                    break;
+            }
+
+            // NEW: Only add if both search and filter match (added by Kulnoor)
+            if (matchesSearch && matchesFilter) {
+                filtered.add(entrant);
+            }
+        }
+
+        adapter.updateList(filtered);
+        tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+    }
 
     /**
      * Filters {@link #entrantList} based on the search query and updates the adapter.
@@ -218,13 +343,7 @@ public class WaitingListFragment extends Fragment {
      * @param query The search string to filter entrants by.
      */
     private void filterEntrants(String query) {
-        List<Entrant> filtered = new ArrayList<>();
-        for (Entrant e : entrantList) {
-            if (e.nameOrUid.toLowerCase().contains(query.toLowerCase())) {
-                filtered.add(e);
-            }
-        }
-        adapter.updateList(filtered);
-        tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+        // CHANGED: Now calls applyFilters instead of direct filter (added by Kulnoor)
+        applyFilters();
     }
 }

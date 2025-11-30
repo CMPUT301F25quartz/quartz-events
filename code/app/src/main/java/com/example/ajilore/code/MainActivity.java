@@ -1,11 +1,12 @@
 package com.example.ajilore.code;
 
+import android.Manifest; // Kulnoor ADDED: Import for notification permission
 import android.content.Intent;
+import android.content.pm.PackageManager; // Kulnoor ADDED: Import for permission handling
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat; // Kulnoor ADDED: Import for requesting permissions
+import androidx.core.content.ContextCompat; // Kulnoor ADDED: Import for checking permissions
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private BottomNavigationView bottomNavigationView;
-    private boolean isAdmin = false;  // Track if current user is admin
+    private boolean isAdmin = false;  // NEW: Track if current user is admin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,6 +141,18 @@ public class MainActivity extends AppCompatActivity {
         // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
+
+        // Kulnoor ADDED: Check and request notification permission
+        checkNotificationPermission();
+    }
+
+    // Kulnoor ADDED: Method to check and request notification permission for Android 13+
+    private void checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     /**

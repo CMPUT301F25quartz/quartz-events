@@ -76,12 +76,27 @@ public class SendNotificationHelper {
 
                     // ON SUCCESS: Write to Admin Log
                     db.collection("notification_logs")
-                            .add(logData)
-                            .addOnSuccessListener(logRef -> {
-                                // Log created silently
-                            });
+                            .add(logData);
 
-                    Toast.makeText(context, "Notification sent!", Toast.LENGTH_SHORT).show();
+                    db.collection("users")
+                            .document(userId)
+                            .collection("preferences")
+                            .document("notifications")
+                            .get()
+                            .addOnSuccessListener(prefDoc -> {
+                                boolean popupEnabled = true;
+                                if (prefDoc.exists()) {
+                                    Boolean flag = prefDoc.getBoolean("enabled");
+                                    popupEnabled = flag != null && flag;
+                                }
+
+                                if (popupEnabled) {
+                                    Toast.makeText(context, "Notification sent!", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // NEW: Inbox still receives notifications even when disabled (added by Kulnoor)
+                                    // (No popup Toast shown)
+                                }
+                            });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(context, "Failed to send: " + e.getMessage(), Toast.LENGTH_SHORT).show();

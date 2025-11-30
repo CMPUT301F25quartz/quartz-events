@@ -148,9 +148,6 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
             if (listener != null) listener.onImageClick(imageItem);
         });
 
-        holder.btnDelete.setOnClickListener(v -> {
-            if (listener != null) listener.onDeleteClick(imageItem);
-        });
     }
 
     /**
@@ -167,7 +164,6 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
     static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
         TextView tvImageTitle;
-        ImageButton btnDelete;
 
         /**
          * Binds view references from inflated layout.
@@ -177,7 +173,6 @@ public class AdminImagesAdapter extends RecyclerView.Adapter<AdminImagesAdapter.
             super(itemView);
             ivImage = itemView.findViewById(R.id.iv_image);
             tvImageTitle = itemView.findViewById(R.id.tv_image_title);
-            btnDelete = itemView.findViewById(R.id.btn_delete);
         }
     }
 }

@@ -113,5 +113,19 @@
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_menu_edit"
             android:contentDescription="Edit" />
+
+        <!-- NEW: Manage Entrants button -->
+        <Button
+            android:id="@+id/btnManageEntrants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Entrants"
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_background"
+            android:padding="4dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
