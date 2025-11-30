@@ -192,24 +192,46 @@ public class LoginFragment extends Fragment {
                     return;
                 }
 
-                Map<String, Object> user = new HashMap<>();
-                user.put("name", name);
-                user.put("email", email);
-                user.put("phone", phone);
-                user.put("role", "entrant");
-                user.put("createdAt", FieldValue.serverTimestamp());
-                user.put("preferences", "yes");
-                user.put("profilepicture", null);
-                user.put("locationEnabled", switchLocation.isChecked());
+                // Check for ban before creation
+                // Use the initialized 'deviceId' variable
+                db.collection("banned_users").document(deviceId).get()
+                        .addOnSuccessListener(banDoc -> {
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("name", name);
+                            user.put("email", email);
+                            user.put("phone", phone);
+                            user.put("createdAt", FieldValue.serverTimestamp());
+                            user.put("preferences", "yes");
+                            user.put("profilepicture", null);
+                            user.put("locationEnabled", switchLocation.isChecked());
 
-                if(!switchLocation.isChecked()){
-                    saveUserToFirestore(user);
-                    return;
-                }
+                            // --- CRITICAL SECURITY CHECK ---
+                            if (banDoc.exists()) {
+                                //  USER IS BANNED
+                                // Force them to be an entrant and REVOKE creating privileges
+                                user.put("role", "entrant");
+                                user.put("canCreateEvent", false);
 
-                requestCurrentLocation(user);
+                                // Notify them nicely but firmly
+                                Toast.makeText(getContext(),
+                                        "Note: Your account is restricted due to a previous ban.",
+                                        Toast.LENGTH_LONG).show();
+                            } else {
+                                //  USER IS CLEAN
+                                user.put("role", "entrant"); // Default role
+                                user.put("canCreateEvent", true); // Grant standard privileges
+                            }
+
+
+                            if (!switchLocation.isChecked()) {
+                                saveUserToFirestore(user);
+                                return;
+                            }
+
+                            requestCurrentLocation(user);
+                        });
             });
-        }
+    }
 
     private void requestCurrentLocation(Map<String, Object> user) {
         if (ActivityCompat.checkSelfPermission(requireContext(),

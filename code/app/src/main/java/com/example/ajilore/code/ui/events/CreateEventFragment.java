@@ -480,7 +480,7 @@ public class CreateEventFragment extends Fragment {
             event.put("regCloses", new Timestamp(regCloseCal.getTime()));
             event.put("posterUrl", posterUrl);
             event.put("status", "published");
-            event.put("createdByUid", "deviceId"); // Replace with actual user ID in production
+            event.put("createdByUid", deviceId); // Replace with actual user ID in production
             event.put("createdAt", FieldValue.serverTimestamp());
             event.put("updatedAt", FieldValue.serverTimestamp());
             event.put("geolocationRequired", geoRequired);
@@ -498,11 +498,11 @@ public class CreateEventFragment extends Fragment {
                 event.put("createdByUid", deviceId);
                 db.collection("org_events").add(event)
                         .addOnSuccessListener(ref -> {
-                            //role change to organizer
+                            //role change to organiser
                             db.collection("users")
                                     .document(deviceId)
-                                    .update("role", "organizer")
-                                    .addOnSuccessListener(v -> Log.d("CreateEvent", "User is now an organizer"))
+                                    .update("role", "organiser")
+                                    .addOnSuccessListener(v -> Log.d("CreateEvent", "User is now an organiser"))
                                     .addOnFailureListener(err -> Log.e("CreateEvent", "Failed to update role: " + err.getMessage()));
                             btnSave.setEnabled(true);
                             Toast.makeText(requireContext(), "Event saved!", Toast.LENGTH_SHORT).show();

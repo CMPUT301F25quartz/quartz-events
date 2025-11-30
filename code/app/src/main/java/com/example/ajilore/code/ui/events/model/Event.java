@@ -66,4 +66,9 @@ public class Event implements Serializable {
     public String flaggedReason;
 
     public Event() {}
+
+    // Helper to check flagged status easily
+    public boolean isFlagged() {
+        return "flagged".equalsIgnoreCase(this.status);
+    }
 }

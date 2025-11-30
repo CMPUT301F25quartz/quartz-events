@@ -131,6 +131,10 @@ public abstract class EventsFragment extends Fragment {
                     List<EventRow> rows = new ArrayList<>();
                     if (snap != null) {
                         for (DocumentSnapshot doc : snap.getDocuments()) {
+                            String dbStatus = doc.getString("status");
+                            if ("flagged".equals(dbStatus)) {
+                                continue;
+                            }
                             /*
                             String id        = d.getId();
                             String title     = safe(d.getString("title"), "(Untitled)");

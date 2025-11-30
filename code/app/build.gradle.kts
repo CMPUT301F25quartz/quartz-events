@@ -43,6 +43,9 @@ android {
     //stuff I added
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        unitTests {
+            isReturnDefaultValues = true
+        }
     }
 
 

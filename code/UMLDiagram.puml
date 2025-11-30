@@ -77,12 +77,15 @@ class EventItem {
 + subtitle : String
 + posterRes : int
 + posterUrl : String
++ status : String
 }
 class MainActivity {
 # onCreate(arg0 : Bundle) : void
 # onNewIntent(arg0 : Intent) : void
 + showBottomNav() : void
 + hideBottomNav() : void
++ openEventDetailsFromInbox(arg0 : String) : void
++ updateInboxBadge(arg0 : int) : void
 + onCreateOptionsMenu(arg0 : Menu) : boolean
 + onOptionsItemSelected(arg0 : MenuItem) : boolean
 }
@@ -99,6 +102,8 @@ class HistoryAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ViewHolder
 + onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
 + getItemCount() : int
+}
+interface HistoryAdapter$OnHistoryClickListener {
 }
 class HistoryAdapter$ViewHolder {
 }
@@ -158,6 +163,7 @@ class Event {
 + createdByUid : String
 + createdAt : Timestamp
 + flaggedReason : String
++ isFlagged() : boolean
 }
 class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
@@ -262,6 +268,7 @@ class SelectEntrantsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : SelectEntrantsFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
++ {static} drawReplacementsFromWaitingList(arg0 : FirebaseFirestore, arg1 : android.content.Context, arg2 : String, arg3 : String, arg4 : int) : void
 }
 interface SelectEntrantsFragment$OnCancelClick {
 }
@@ -317,7 +324,7 @@ class AdminController {
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
-+ deactivateOrganizer(arg0 : String, arg1 : OperationCallback) : void
++ removeOrganizer(arg0 : String, arg1 : OperationCallback) : void
 + getOrganizerEvents(arg0 : String, arg1 : DataCallback<List<Event>>) : void
 + fetchAllImages(arg0 : DataCallback<List<com.example.ajilore.code.models.ImageItem>>) : void
 + removeImage(arg0 : com.example.ajilore.code.models.ImageItem, arg1 : OperationCallback) : void
@@ -397,6 +404,7 @@ Adapter <|-- AdminLogsAdapter
 AdminLogsAdapter +.. AdminLogsAdapter$LogViewHolder
 ViewHolder <|-- AdminLogsAdapter$LogViewHolder
 Adapter <|-- HistoryAdapter
+HistoryAdapter +.. HistoryAdapter$OnHistoryClickListener
 HistoryAdapter +.. HistoryAdapter$ViewHolder
 ViewHolder <|-- HistoryAdapter$ViewHolder
 Adapter <|-- AdminImagesAdapter
