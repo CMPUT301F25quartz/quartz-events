@@ -1,6 +1,7 @@
 package com.example.ajilore.code.ui.events;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,15 +83,12 @@ public class EventDetailsFragment extends Fragment {
     private boolean isSelectedForLottery = false;
     private int waitingListCount = 0;
     private int capacity = 0;
-    private Button btnAcceptSpot;
-    private Button btnDecline;
-    private View layoutInvitationActions;
 
     /**
      * Factory for creating a new instance of this fragment for a specific event and user.
      *
-     * @param eventId   The unique event document ID.
-     * @param title     The event title (for display).
+     * @param eventId The unique event document ID.
+     * @param title   The event title (for display).
      * @return Configured EventDetailsFragment instance.
      */
     public static EventDetailsFragment newInstance(String eventId, String title) {
@@ -102,6 +100,7 @@ public class EventDetailsFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     /**
      * Inflate the event details layout.
      */
@@ -121,14 +120,26 @@ public class EventDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
-        // Get authenticated user's ID
-        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
+        //TEMI ADDED (REMOVED FIREBASE AUTH AND REPLACED IT WITH DEVICE ID)
+        userId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId == null || userId.isEmpty()) {
             Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
-            requireActivity().onBackPressed();
+            requireActivity().getSupportFragmentManager().popBackStack();
             return;
         }
-        userId = currentUser.getUid(); // Use authenticated user's ID
+
+//        // Get authenticated user's ID
+//        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        if (currentUser == null) {
+//            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+//            requireActivity().onBackPressed();
+//            return;
+//        }
+//        userId = currentUser.getUid(); // Use authenticated user's ID
         // Get arguments
         Bundle args = getArguments();
         if (args != null) {
@@ -153,16 +164,13 @@ public class EventDetailsFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
 
-
+        //Adding this to see if i can fix the bug by using an initial default state
         isRegistrationOpen = false;
         isOnWaitingList = false;
         updateJoinLeaveButton();
 
         // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
-
-        // join/leave button click listener
-        btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
 
         // Load event details
         loadEventDetails();
@@ -171,13 +179,7 @@ public class EventDetailsFragment extends Fragment {
         checkWaitingListStatus();
 
         // Setup button click
-        btnAcceptSpot = view.findViewById(R.id.btnAcceptSpot);
-        btnDecline = view.findViewById(R.id.btnDecline);
-        layoutInvitationActions = view.findViewById(R.id.layoutInvitationActions);
-
-
-        btnAcceptSpot.setOnClickListener(v -> handleAcceptInvitation());
-        btnDecline.setOnClickListener(v -> handleDeclineInvitation());
+        btnJoinLeave.setOnClickListener(v -> handleWaitingListAction());
     }
 
     /**
@@ -212,6 +214,22 @@ public class EventDetailsFragment extends Fragment {
                         Timestamp startsAt = doc.getTimestamp("startsAt");
                         Timestamp regStartTime = doc.getTimestamp("regOpens");
                         Timestamp regEndTime = doc.getTimestamp("regCloses");
+
+                        //geolocation
+                        Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                        Button btnViewMap = getView().findViewById(R.id.btnMap);
+
+                        if (btnViewMap != null) {
+                            if (geoRequired != null && !geoRequired) {
+                                // Geolocation disabled → hide button
+                                btnViewMap.setVisibility(View.GONE);
+                            } else {
+                                // Geolocation enabled → show button
+                                btnViewMap.setVisibility(View.VISIBLE);
+                            }
+                        }
+
 
                         // Update UI
                         tvTitle.setText(title != null ? title : "Untitled Event");
@@ -278,22 +296,26 @@ public class EventDetailsFragment extends Fragment {
                         return;
                     }
 
-                    isOnWaitingList = (doc != null && doc.exists());
-
-                    // Check if user is selected for lottery
                     if (doc != null && doc.exists()) {
-                        String status = doc.getString("status");
-                        isSelectedForLottery = "chosen".equals(status);
+                        String status    = doc.getString("status");
+                        String responded = doc.getString("responded");
+
+                        // Treat cancelled / declined as NOT on the waiting list
+                        boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                || "declined".equalsIgnoreCase(responded);
+
+                        isOnWaitingList = !cancelled;
+
                     } else {
-                        isSelectedForLottery = false;
+                        isOnWaitingList = false;
                     }
 
                     if (eventListener != null) {
                         updateJoinLeaveButton();
-                        updateInvitationUI(); // New method call
                     }
                 });
     }
+
 
     /**
      * Loads and updates the displayed waiting list count.
@@ -313,10 +335,24 @@ public class EventDetailsFragment extends Fragment {
                     }
 
                     if (snapshot != null) {
-                        waitingListCount = snapshot.size();
+                        int count = 0;
+                        for (DocumentSnapshot d : snapshot.getDocuments()) {
+                            String status    = d.getString("status");
+                            String responded = d.getString("responded");
+
+                            boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                    || "declined".equalsIgnoreCase(responded);
+
+                            if (!cancelled) {
+                                count++;
+                            }
+                        }
+
+                        waitingListCount = count;
                         tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
+
                 });
     }
 
@@ -474,65 +510,10 @@ public class EventDetailsFragment extends Fragment {
         }
     }
 
-    /**
-     * US 01.05.02 & 01.05.03: Show/hide accept/decline buttons based on lottery selection
-     */
-    private void updateInvitationUI() {
-        if (isSelectedForLottery) {
-            // Show accept/decline buttons container, hide join/leave button
-            layoutInvitationActions.setVisibility(View.VISIBLE);
-            btnJoinLeave.setVisibility(View.GONE);
-        } else {
-            // Hide accept/decline buttons container, show join/leave button
-            layoutInvitationActions.setVisibility(View.GONE);
-            btnJoinLeave.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * US 01.05.02: Accept invitation to participate in event
-     */
-    /**
-     * US 01.05.02: Accept invitation to participate in event
-     */
-    private void handleAcceptInvitation() {
-        btnAcceptSpot.setEnabled(false);
-        btnDecline.setEnabled(false);
-
-        DocumentReference waitingListRef = db.collection("org_events")
-                .document(eventId)
-                .collection("waiting_list")
-                .document(userId);
-
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("status", "chosen");
-        updateData.put("acceptedAt", FieldValue.serverTimestamp());
-
-        waitingListRef.update(updateData)
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Invitation accepted! You're registered for the event.",
-                                Toast.LENGTH_LONG).show();
-                    }
-                    // Hide the buttons container after accepting
-                    layoutInvitationActions.setVisibility(View.GONE);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to accept invitation: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
-                    btnAcceptSpot.setEnabled(true);
-                    btnDecline.setEnabled(true);
-                });
-    }
-
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
-        if (getActivity() instanceof MainActivity){
+        if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).hideBottomNav();
         }
     }
@@ -541,7 +522,7 @@ public class EventDetailsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (getActivity() instanceof MainActivity){
+        if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showBottomNav();
         }
 
@@ -591,76 +572,56 @@ public class EventDetailsFragment extends Fragment {
         return now.after(start) && now.before(end);
     }
 
-    /**
-     * US 01.05.03: Decline invitation to participate in event
-     */
-    private void handleDeclineInvitation() {
-        // Show confirmation dialog
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Decline Invitation")
-                .setMessage("Are you sure you want to decline this invitation? This action cannot be undone and your spot will be given to another participant.")
-                .setPositiveButton("Decline", (dialog, which) -> confirmDeclineInvitation())
-                .setNegativeButton("Cancel", null)
-                .show();
+
+    // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
+    // Commented out for later sprints
+
+    /*
+    // US 01.04.01: Accept invitation (future implementation)
+    private Button btnAcceptSpot;
+    private Button btnDecline;
+
+    private void handleAcceptSpot() {
+        // Will be implemented when lottery system is ready
     }
 
-    /**
-     * Confirms and processes the decline action
-     */
-    private void confirmDeclineInvitation() {
-        btnAcceptSpot.setEnabled(false);
-        btnDecline.setEnabled(false);
-
-        DocumentReference waitingListRef = db.collection("org_events")
-                .document(eventId)
-                .collection("waiting_list")
-                .document(userId);
-
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("status", "declined");
-        updateData.put("declinedAt", FieldValue.serverTimestamp());
-
-        waitingListRef.update(updateData)
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Invitation declined. You have been removed from this event.",
-                                Toast.LENGTH_LONG).show();
-                    }
-                    // Hide the buttons container after declining
-                    layoutInvitationActions.setVisibility(View.GONE);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to decline invitation: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
-                    btnAcceptSpot.setEnabled(true);
-                    btnDecline.setEnabled(true);
-                });
+    private void handleDeclineSpot() {
+        // Will be implemented when lottery system is ready
     }
-
+    */
     //method to log the history of the events that the user has registered for in registrations collection
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,
                                           @NonNull String eventTitle) {
-        Map<String, Object> reg = new HashMap<>();
-        reg.put("userId", userId);
-        reg.put("eventId", eventId);
-        reg.put("eventTitle", eventTitle);
-        reg.put("registeredAt", FieldValue.serverTimestamp());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(userId)
-                .collection("registrations")
-                .document(eventId)
-                .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+        db.collection("org_events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+                    if (!eventDoc.exists()) return;
+
+                    Map<String, Object> reg = new HashMap<>();
+                    reg.put("userId", userId);
+                    reg.put("eventId", eventId);
+                    reg.put("eventTitle", eventDoc.getString("title"));
+                    reg.put("posterUrl", eventDoc.getString("posterUrl"));
+                    reg.put("location", eventDoc.getString("location"));
+                    reg.put("startsAt", eventDoc.getTimestamp("startsAt"));
+                    reg.put("registeredAt", FieldValue.serverTimestamp());
+
+
+                    db.collection("users")
+                            .document(userId)
+                            .collection("registrations")
+                            .document(eventId)
+                            .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Failed to save registration history: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show());
+                })
                 .addOnFailureListener(e ->
                         Toast.makeText(requireContext(),
-                                "Failed to save registration history: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show()
-                );
+                                "Failed to fetch event info: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
     }
 }
+
