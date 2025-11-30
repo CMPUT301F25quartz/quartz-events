@@ -215,12 +215,8 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
      */
     @Override
     public void onImageClick(ImageItem imageItem) {
-        // Show image details in a toast
-        Toast.makeText(requireContext(),
-                "Event: " + imageItem.title,
-                Toast.LENGTH_SHORT).show();
-
-        // Future enhancement: Open full-screen image viewer
+        // Open the inspection/action dialog
+        showImageActionDialog(imageItem);
     }
 
     /**
@@ -265,7 +261,48 @@ public class AdminImagesFragment extends Fragment implements AdminImagesAdapter.
 
         dialog.show();
     }
+    /**
+     * Shows a dialog to inspect and optionally delete an image.
+     */
+    private void showImageActionDialog(ImageItem imageItem) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View view = getLayoutInflater().inflate(R.layout.dialog_admin_image_action, null);
 
+        // Find views
+        android.widget.ImageView ivPreview = view.findViewById(R.id.iv_dialog_preview);
+        Button btnDelete = view.findViewById(R.id.btn_delete);
+        Button btnCancel = view.findViewById(R.id.btn_cancel);
+
+        // Load image using Glide
+        // NOTE: We use .imageUrl directly as the class has public fields
+        if (imageItem.imageUrl != null && !imageItem.imageUrl.isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(imageItem.imageUrl)
+                    .placeholder(R.drawable.image_placeholder_background)
+                    .into(ivPreview);
+        }
+
+        AlertDialog dialog = builder.setView(view).create();
+
+        // Make background transparent for rounded corners
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+        }
+
+        // Close Action
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Delete Action
+        btnDelete.setOnClickListener(v -> {
+            // Call your existing delete logic
+            // You can call showDeleteDialog(imageItem) here if you want a second confirmation
+            // Or call deleteImage(imageItem) directly since they are already in a "Delete" context
+            deleteImage(imageItem);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
     /**
      * Deletes an image from Firebase Storage and updates Firestore.
      * @param imageItem The image item to delete
