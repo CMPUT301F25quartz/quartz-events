@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -143,6 +144,7 @@ public class InboxFragment extends Fragment {
                             // Snapshot listener will add it to archivedList when 'archived' becomes true.
                             notificationList.remove(notification);
                             adapter.updateList(getCurrentList(), showingArchived);
+                            updateInboxBadgeFromLists();
                             Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
                         })
 
@@ -157,10 +159,21 @@ public class InboxFragment extends Fragment {
 
             @Override
             public void onAction(NotificationModel notification) {
-                Toast.makeText(getContext(),
-                        "Open details for: " + notification.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                markNotificationAsRead(notification);
+                updateInboxBadgeFromLists();
+                String eventId = notification.getEventId();
+                if (eventId == null || eventId.isEmpty()) {
+                    Toast.makeText(getContext(),
+                            "No event attached to this notification",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).openEventDetailsFromInbox(eventId);
+                }
             }
+
         };
 
         adapter = new NotificationAdapter(getContext(), getCurrentList(), listener, showingArchived);
@@ -224,6 +237,7 @@ public class InboxFragment extends Fragment {
                 .addOnSuccessListener(regSnapshots -> {
                     if (regSnapshots == null || regSnapshots.isEmpty()) {
                         adapter.updateList(getCurrentList(), showingArchived);
+                        updateInboxBadgeFromLists();
                         return;
                     }
 
@@ -287,6 +301,7 @@ public class InboxFragment extends Fragment {
                                     }
 
                                     adapter.updateList(getCurrentList(), showingArchived);
+                                    updateInboxBadgeFromLists();
                                 });
                     }
                 })
@@ -301,8 +316,34 @@ public class InboxFragment extends Fragment {
     private void markAllRead() {
         for (NotificationModel n : notificationList) n.setRead(true);
         adapter.updateList(getCurrentList(), showingArchived);
+        updateInboxBadgeFromLists();
         Toast.makeText(getContext(), "All notifications marked as read", Toast.LENGTH_SHORT).show();
     }
+
+    private void markNotificationAsRead(@NonNull NotificationModel notification) {
+        if (userId == null || userId.isEmpty()) return;
+
+        String eventId = notification.getEventId();
+        String docId   = notification.getFirestoreDocId();
+        if (eventId == null || docId == null) return;
+
+        // Firestore: mark as read in user inbox path
+        DocumentReference userInboxRef = db.collection("users")
+                .document(userId)
+                .collection("registrations")
+                .document(eventId)
+                .collection("inbox")
+                .document(docId);
+
+        userInboxRef.update("read", true);
+
+        // Local model: mark as read so UI + badge update instantly
+        notification.setRead(true); // make sure NotificationModel has setRead(boolean)
+
+        adapter.updateList(getCurrentList(), showingArchived);
+        updateInboxBadgeFromLists();   //  update  red indicator
+    }
+
 
     private void toggleUnreadFilter() {
         showOnlyUnread = !showOnlyUnread;
@@ -325,4 +366,19 @@ public class InboxFragment extends Fragment {
         }
         return filteredList;
     }
+
+
+
+    private void updateInboxBadgeFromLists() {
+        int unreadCount = 0;
+        // Only count non-archived notifications
+        for (NotificationModel n : notificationList) {
+            if (!n.isRead()) unreadCount++;
+        }
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).updateInboxBadge(unreadCount);
+        }
+    }
+
 }

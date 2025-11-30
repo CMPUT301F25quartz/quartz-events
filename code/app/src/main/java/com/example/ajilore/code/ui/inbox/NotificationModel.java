@@ -44,6 +44,8 @@ public class NotificationModel {
     public String getTime() { return time; }
     public String getImageUrl() { return imageUrl; }
     public boolean isRead() { return isRead; }
+
+
     public String getActionText() { return actionText; }
     public String getType() { return type; }
 
