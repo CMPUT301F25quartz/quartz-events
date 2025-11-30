@@ -149,7 +149,7 @@ public class ProfileFragment extends Fragment {
     private boolean onMenuItemClick(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_switch_organizer) {
-            Toast.makeText(getContext(), "Switch to Organizer", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Switch to Organiser", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.nav_host_fragment,

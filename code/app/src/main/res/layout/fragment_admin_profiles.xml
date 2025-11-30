@@ -102,7 +102,7 @@
                 android:id="@+id/rb_organizers"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Organizers"/>
+                android:text="Organisers"/>
         </RadioGroup>
     </LinearLayout>
 

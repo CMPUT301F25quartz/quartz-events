@@ -158,6 +158,14 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
             holder.ivEventPoster.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
+        if ("flagged".equalsIgnoreCase(event.status)) {
+            holder.ivFlagIcon.setVisibility(View.VISIBLE);
+            holder.itemView.setAlpha(0.9f);
+        } else {
+            holder.ivFlagIcon.setVisibility(View.GONE);
+            holder.itemView.setAlpha(1.0f);
+        }
+
         // Click listeners
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onEventClick(event);
@@ -203,6 +211,8 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
         LinearLayout layoutLocation;
         TextView tvEventLocation;
         ImageButton btnDelete;
+        ImageView ivFlagIcon;
+
 
         /**
          * Binds view references from inflated layout.
@@ -216,6 +226,7 @@ public class AdminEventsAdapter extends RecyclerView.Adapter<AdminEventsAdapter.
             layoutLocation = itemView.findViewById(R.id.layout_location);
             tvEventLocation = itemView.findViewById(R.id.tv_event_location);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            ivFlagIcon = itemView.findViewById(R.id.iv_flag_icon);
         }
     }
 }

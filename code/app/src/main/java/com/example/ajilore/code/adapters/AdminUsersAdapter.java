@@ -154,7 +154,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         holder.tvRoleBadge.setVisibility(View.VISIBLE);
 
         if ("organiser".equalsIgnoreCase(user.getRole())) {
-            holder.tvRoleBadge.setText("Organizer");
+            holder.tvRoleBadge.setText("Organiser");
             holder.tvRoleBadge.setBackgroundResource(R.drawable.badge_organizer);
             holder.tvRoleBadge.setTextColor(android.graphics.Color.parseColor("#E65100")); // Dark Orange text
         } else {
