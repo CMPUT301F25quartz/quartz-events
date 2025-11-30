@@ -211,7 +211,7 @@ public class OrganizerEventsFragment extends Fragment {
                         data.add(new EventItem(id,
                                 title != null ? title : "(untitled)",
                                 dateText,
-                                mapPoster(posterKey), subtitle, posterKey));
+                                mapPoster(posterKey), subtitle, posterKey, d.getString("status")));
 
                         android.util.Log.d("OrgList", "subtitle=" + subtitle);
 

@@ -273,7 +273,7 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         AlertDialog dialog = builder.setView(dialogView).create();
 
         btnDelete.setOnClickListener(v -> {
-            deactivateOrganizer(user);
+            removeOrganizer(user);
             dialog.dismiss();
         });
         btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -286,13 +286,19 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     /**
      * Deactivates an organizer account via Controller.
      */
-    private void deactivateOrganizer(User user) {
-        adminController.deactivateOrganizer(user.getUserId(), new AdminController.OperationCallback() {
+    /**
+     * Permanently removes an organizer account via Controller.
+     * This calls the new atomic batch method that bans the ID and flags events.
+     */
+    private void removeOrganizer(User user) {
+        adminController.removeOrganizer(user.getUserId(), new AdminController.OperationCallback() {
             @Override
             public void onSuccess() {
+                // Check if fragment is still attached to avoid crash on rotation/exit
                 if (!isAdded()) return;
-                Toast.makeText(requireContext(), "Organizer deactivated", Toast.LENGTH_LONG).show();
-                loadUsers(); // Refresh list
+
+                Toast.makeText(requireContext(), "Organizer removed & banned successfully", Toast.LENGTH_LONG).show();
+                loadUsers(); // Refresh the RecyclerView to show they are gone
             }
 
             @Override

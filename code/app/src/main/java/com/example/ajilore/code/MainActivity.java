@@ -74,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setupRealtimeBanListener();
+
         EdgeToEdge.enable(this);
 
         //Setting up the Cloudinary connection
@@ -127,11 +130,9 @@ public class MainActivity extends AppCompatActivity {
         handleNavigationIntent();
 
 
-        // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, new LoginFragment())
-                    .commit();
+            // Intercept startup to check for bans first
+            checkBanStatusAndLogin();
         }
         // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
         // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
@@ -350,7 +351,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
 
@@ -508,4 +508,115 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    /**
+     * SECURITY: Checks if the device is banned before allowing login.
+     * This prevents removed organizers from simply creating new accounts.
+     */
+    private void checkBanStatusAndLogin() {
+        // 1. Get the device ID
+        String deviceId = com.example.ajilore.code.utils.AdminAuthManager.getDeviceId(this);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // 2. Check "banned_users" collection
+        db.collection("banned_users").document(deviceId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // CASE 1: USER IS BANNED
+                        Log.w("Auth", "Banned device attempted login: " + deviceId);
+                        handleBannedUser();
+                    } else {
+                        // CASE 2: USER IS CLEAN -> Proceed to normal login
+                        Log.d("Auth", "Device is clean. Proceeding to login.");
+                        loadLoginFragment();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Fail safe: If check fails (network error), block or retry.
+                    // For now, we allow proceed or show error.
+                    Log.e("Auth", "Failed to check ban status", e);
+                    Toast.makeText(this, "Connection Error: Verifying account status...", Toast.LENGTH_SHORT).show();
+                    // Optional: Retry logic here
+                });
+    }
+
+    /**
+     * Loads the standard LoginFragment (moved from onCreate).
+     */
+    private void loadLoginFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.nav_host_fragment, new com.example.ajilore.code.ui.profile.LoginFragment())
+                .commit();
+    }
+
+    /**
+     * blocks access for banned users.
+     */
+    private void handleBannedUser() {
+        // Hide navigation to prevent bypass
+        if (bottomNavigationView != null) bottomNavigationView.setVisibility(View.GONE);
+
+        // Show a strict dialog or toast
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Account Suspended")
+                .setMessage("Your device has been banned due to policy violations. You cannot access this application.")
+                .setCancelable(false) // Prevent clicking away
+                .setPositiveButton("Close App", (dialog, which) -> finishAffinity())
+                .show();
+    }
+
+    /**
+     * WATCHDOG: Listens for changes to the current user's profile in real-time.
+     * If the profile is deleted by an Admin, this detects it instantly.
+     */
+    private void setupRealtimeBanListener() {
+        String deviceId = com.example.ajilore.code.utils.AdminAuthManager.getDeviceId(this);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Add a listener to the USER document
+        db.collection("users").document(deviceId).addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.e("Auth", "Listen failed.", e);
+                return;
+            }
+
+            // If snapshot is not null but exists() is false, the document was DELETED.
+            if (snapshot != null && !snapshot.exists()) {
+                Log.w("Auth", "User profile disappeared. Checking for ban...");
+
+                // Double-check the "banned_users" collection to confirm it was a ban
+                db.collection("banned_users").document(deviceId).get()
+                        .addOnSuccessListener(banDoc -> {
+                            if (banDoc.exists()) {
+                                // CONFIRMED: User was banned by Admin
+                                // Run on UI thread to ensure dialog shows up
+                                runOnUiThread(() -> showBanDialog());
+                            }
+                        });
+            }
+        });
+    }
+
+    /**
+     * Display a strict alert dialog that blocks all interaction and closes the app.
+     */
+    private void showBanDialog() {
+        // 1. Immediately hide the navigation bar so they can't switch tabs
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+
+        // 2. Check if the activity is valid before showing dialog (prevents crashes)
+        if (!isFinishing() && !isDestroyed()) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Account Removed")
+                    .setMessage("Your account has been permanently removed by an administrator due to a policy violation.\n\nYou have been logged out.")
+                    .setCancelable(false) // CRITICAL: Users cannot click outside to dismiss
+                    .setPositiveButton("Exit App", (dialog, which) -> {
+                        // 3. Close the app completely
+                        finishAffinity();
+                    })
+                    .show();
+        }
+    }
 }
