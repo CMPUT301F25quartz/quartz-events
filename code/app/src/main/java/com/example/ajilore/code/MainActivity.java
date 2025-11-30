@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment;
 import com.example.ajilore.code.ui.admin.AdminEventsFragment;
 import com.example.ajilore.code.ui.admin.AdminProfilesFragment;
 import com.example.ajilore.code.ui.events.EntrantEventsFragment;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
@@ -32,14 +33,21 @@ import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.LoginFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.example.ajilore.code.utils.AdminAuthManager;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.cloudinary.android.MediaManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MainActivity - The main entry point of the application.
@@ -51,6 +59,18 @@ import java.util.Map;
  * - Navigation to admin browse screens
  */
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private String userId;
+
+    // to clean up listeners
+    private ListenerRegistration registrationsListener;
+    private final List<ListenerRegistration> inboxListeners = new ArrayList<>();
+    // keep per-event unread counts
+    private final Map<String, Integer> unreadPerEvent = new HashMap<>();
+
+
+
     private BottomNavigationView bottomNavigationView;
     private boolean isAdmin = false;  // NEW: Track if current user is admin
 
@@ -80,6 +100,18 @@ public class MainActivity extends AppCompatActivity {
         //hide the nav bar
         //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
 
+        db = FirebaseFirestore.getInstance();
+
+        userId = Settings.Secure.getString(
+                getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId != null && !userId.isEmpty()) {
+            startInboxBadgeListener();
+        }
+
+
         // Apply window insets (should be right after setContentView)
         // Apply window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -96,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if we should navigate to a specific fragment
         handleNavigationIntent();
+
 
         // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
@@ -189,6 +222,55 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public void openEventDetailsFromInbox(@NonNull String eventId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Fetch the event so we can pass the title into EventDetailsFragment
+        db.collection("org_events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String title = "";
+                    if (doc != null && doc.exists()) {
+                        String t = doc.getString("title");
+                        if (t != null) title = t;
+                    }
+
+                    Fragment frag = EventDetailsFragment.newInstance(eventId, title);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.nav_host_fragment, frag) //
+                            .addToBackStack(null)
+                            .commit();
+                })
+                .addOnFailureListener(e -> Toast.makeText(
+                        this,
+                        "Could not open event: " + e.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show());
+    }
+
+
+    public void updateInboxBadge(int unreadCount) {
+        BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); // View id
+        if (nav == null) return;
+
+        BadgeDrawable badge = nav.getOrCreateBadge(R.id.inboxFragment);
+
+        if (unreadCount <= 0) {
+            badge.clearNumber();
+            badge.setVisible(false);
+        } else {
+            badge.setVisible(true);
+            badge.setNumber(unreadCount);
+        }
+    }
+
+
+
+
     /**
      * Check if the current device is an admin device
      * This method:
@@ -280,6 +362,9 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("NAVIGATION", "Navigated to: " + tag);
     }
+
+
+
 
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
@@ -374,4 +459,68 @@ public class MainActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 });
     }
+
+    private void startInboxBadgeListener() {
+        // Clean up previous if any
+        if (registrationsListener != null) {
+            registrationsListener.remove();
+            registrationsListener = null;
+        }
+        for (ListenerRegistration l : inboxListeners) {
+            l.remove();
+        }
+        inboxListeners.clear();
+        unreadPerEvent.clear();
+
+        registrationsListener = db.collection("users")
+                .document(userId)
+                .collection("registrations")
+                .addSnapshotListener((regSnap, e) -> {
+                    if (e != null || regSnap == null) {
+                        return;
+                    }
+
+                    // Which events still exist
+                    Set<String> currentEventIds = new HashSet<>();
+                    for (DocumentSnapshot d : regSnap.getDocuments()) {
+                        currentEventIds.add(d.getId());
+                    }
+
+                    // Remove counts for deleted registrations
+                    unreadPerEvent.keySet().removeIf(id -> !currentEventIds.contains(id));
+
+                    // Clear previous inbox listeners
+                    for (ListenerRegistration l : inboxListeners) {
+                        l.remove();
+                    }
+                    inboxListeners.clear();
+
+                    // Attach a listener to each event's inbox
+                    for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                        final String eventId = regDoc.getId();
+
+                        ListenerRegistration inboxListener = regDoc.getReference()
+                                .collection("inbox")
+                                .whereEqualTo("archived", false)
+                                .whereEqualTo("read", false)
+                                .addSnapshotListener((inboxSnap, err) -> {
+                                    if (err != null) return;
+
+                                    int count = (inboxSnap == null) ? 0 : inboxSnap.size();
+                                    unreadPerEvent.put(eventId, count);
+
+                                    int totalUnread = 0;
+                                    for (int c : unreadPerEvent.values()) {
+                                        totalUnread += c;
+                                    }
+
+                                    updateInboxBadge(totalUnread);
+                                });
+
+                        inboxListeners.add(inboxListener);
+                    }
+                });
+    }
+
+
 }
