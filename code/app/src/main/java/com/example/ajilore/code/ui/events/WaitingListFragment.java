@@ -179,7 +179,8 @@ public class WaitingListFragment extends Fragment {
                                         if(userName == null || userName.isEmpty()){
                                             userName = uid; // just use the device id
                                         }
-                                        entrantList.add(new Entrant(uid, userName, displayStatus));
+                                        String photoUrl = userDoc.getString("profilepicture");
+                                        entrantList.add(new Entrant(uid, userName, displayStatus, photoUrl));
                                         adapter.updateList(new ArrayList<>(entrantList));
                                         tvEmpty.setVisibility(entrantList.isEmpty() ? View.VISIBLE : View.GONE);
                                     });
