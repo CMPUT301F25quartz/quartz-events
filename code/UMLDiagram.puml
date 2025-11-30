@@ -77,6 +77,7 @@ class EventItem {
 + subtitle : String
 + posterRes : int
 + posterUrl : String
++ status : String
 }
 class MainActivity {
 # onCreate(arg0 : Bundle) : void
@@ -160,6 +161,7 @@ class Event {
 + createdByUid : String
 + createdAt : Timestamp
 + flaggedReason : String
++ isFlagged() : boolean
 }
 class EventDetailsFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : EventDetailsFragment
@@ -319,7 +321,7 @@ class AdminController {
 + fetchAllUsers(arg0 : DataCallback<List<User>>) : void
 + removeEvent(arg0 : String, arg1 : OperationCallback) : void
 + removeUser(arg0 : String, arg1 : OperationCallback) : void
-+ deactivateOrganizer(arg0 : String, arg1 : OperationCallback) : void
++ removeOrganizer(arg0 : String, arg1 : OperationCallback) : void
 + getOrganizerEvents(arg0 : String, arg1 : DataCallback<List<Event>>) : void
 + fetchAllImages(arg0 : DataCallback<List<com.example.ajilore.code.models.ImageItem>>) : void
 + removeImage(arg0 : com.example.ajilore.code.models.ImageItem, arg1 : OperationCallback) : void
