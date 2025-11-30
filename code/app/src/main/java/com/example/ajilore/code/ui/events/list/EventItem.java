@@ -23,6 +23,10 @@ public class EventItem {
     /** Poster Cloudinary URL (if event poster is uploaded remotely); may be null. */
     public final String posterUrl;
 
+    /** Status of the event (e.g., "flagged"). */
+    public final String status;
+
+
 
 
     /**
@@ -34,13 +38,15 @@ public class EventItem {
      * @param posterRes Drawable resource for the list image (for fallback or asset posters)
      * @param subtitle  Optional subtitle (location, type, capacity, etc.), or null
      * @param posterUrl Remote poster image URL if set (Cloudinary or similar), or null
+     * @param status    Status of the event (e.g., "flagged")
      */
-    public EventItem(String eventId, String title, String dateText, int posterRes, String subtitle, String posterUrl) {
+    public EventItem(String eventId, String title, String dateText, int posterRes, String subtitle, String posterUrl, String status) {
         this.eventId = eventId;
         this.title = title;
         this.dateText = dateText;
         this.posterRes = posterRes;
         this.subtitle = subtitle;
         this.posterUrl = posterUrl;
+        this.status = status;
     }
 }

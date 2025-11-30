@@ -35,7 +35,7 @@ import java.util.Map;
  * <li><b>US 03.01.01:</b> Remove Events ({@link #removeEvent})</li>
  * <li><b>US 03.02.01:</b> Remove Profiles ({@link #removeUser})</li>
  * <li><b>US 03.03.01:</b> Remove Images ({@link #removeImage})</li>
- * <li><b>US 03.07.01:</b> Remove Organizers ({@link #deactivateOrganizer})</li>
+ * <li><b>US 03.07.01:</b> Remove Organizers ({@link #removeOrganizer})</li>
  * <li><b>US 03.08.01:</b> Review Notification Logs ({@link #fetchNotificationLogs})</li>
  * </ul>
  *
@@ -58,6 +58,11 @@ public class AdminController {
     /**
      * Initializes the AdminController with default Firebase instances.
      */
+
+    public AdminController(FirebaseFirestore db, FirebaseStorage storage) {
+        this.db = db;
+        this.storage = storage;
+    }
     public AdminController() {
         this.db = FirebaseFirestore.getInstance();
         this.storage = FirebaseStorage.getInstance();
@@ -250,7 +255,7 @@ public class AdminController {
      * User Story: US 03.02.01 - Remove Profiles
      *
      * Note: This permanently deletes the user document.
-     * For organizers, use deactivateOrganizer() instead.
+     * For organizers, use removeOrganizer() instead.
      *
      * @param userId User's document ID.
      * @param callback OperationCallback for success/error.
@@ -288,128 +293,79 @@ public class AdminController {
     }
 
     /**
-     * Deactivates an organizer's account and recursively flags all their events.
+     * Atomically removes an organizer, bans them, and flags all their events.
+     * This ensures policy violations are enforced strictly.
      *
-     * <p><b>Implements US 03.07.01:</b> This method enforces policy violations by:
+     * <p><b>Actions Performed in Batch:</b></p>
      * <ol>
-     * <li>Setting the user's `accountStatus` to "deactivated".</li>
-     * <li>Revoking `canCreateEvents` permissions.</li>
-     * <li>Triggering {@link #flagOrganizerEvents} to mark all existing events as flagged.</li>
+     * <li>Flags all events created by this organizer (status="flagged").</li>
+     * <li>Creates a record in 'banned_users' with the device ID.</li>
+     * <li>Deletes the user profile from 'users' collection.</li>
      * </ol>
-     * </p>
      *
-     * @param organizerId The Firestore document ID of the organizer.
-     * @param callback    Callback to handle the operation result.
+     * @param organizerId The Firestore ID (Device ID) of the organizer.
+     * @param callback    Callback for success/error.
      */
-    public void deactivateOrganizer(String organizerId, final OperationCallback callback) {
-        Log.i(TAG, "Initiating deactivation for organizer: " + organizerId);
+    public void removeOrganizer(String organizerId, final OperationCallback callback) {
+        Log.i(TAG, "Starting atomic removal for organizer: " + organizerId);
 
-        Map<String, Object> deactivationData = new HashMap<>();
-        deactivationData.put("accountStatus", "deactivated");
-        deactivationData.put("canCreateEvents", false);
-        deactivationData.put("deactivatedAt", System.currentTimeMillis());
-        deactivationData.put("deactivatedBy", "admin");
+        // Fetch user details first to log the name
+        db.collection(USERS_COLLECTION).document(organizerId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String organizerName = userDoc.exists() ? userDoc.getString("name") : "Unknown User";
 
-        db.collection(USERS_COLLECTION).document(organizerId)
-                .update(deactivationData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Organizer status updated. Proceeding to flag events.");
-                    flagOrganizerEvents(organizerId, new OperationCallback() {
-                        @Override
-                        public void onSuccess() {
-                            logAdminAction(null, "Organizer deactivated & events flagged.", "organizer", "admin");
-                            callback.onSuccess();
-                        }
+                    // 1. Query all events by this organizer
+                    db.collection(EVENTS_COLLECTION)
+                            .whereEqualTo("createdByUid", organizerId)
+                            .get()
+                            .addOnSuccessListener(snapshots -> {
+                                // Create a new WriteBatch
+                                com.google.firebase.firestore.WriteBatch batch = db.batch();
 
-                        @Override
-                        public void onError(Exception e) {
-                            Log.w(TAG, "Organizer deactivated, but event flagging failed partially.", e);
-                            callback.onSuccess(); // We consider the primary goal (deactivation) achieved
-                        }
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Critical failure deactivating organizer", e);
-                    callback.onError(e);
-                });
-    }
-    /**
-     * Flags all events created by a specific organizer.
-     * User Story: US 03.07.01 - Remove organizers that violate app policy
-     *
-     * This is called automatically by deactivateOrganizer().
-     * Flags prevent new registrations and mark events for review.
-     *
-     * NOTE: Uses "createdByUid" field to match your Event model!
-     *
-     * @param organizerId The organizer's user ID
-     * @param callback OperationCallback for success/error handling
-     */
-    private void flagOrganizerEvents(String organizerId, final OperationCallback callback) {
-        Log.d(TAG, "Flagging events for organizer: " + organizerId);
+                                // A. Flag all events
+                                for (QueryDocumentSnapshot doc : snapshots) {
+                                    batch.update(doc.getReference(), "status", "flagged");
+                                    batch.update(doc.getReference(), "flaggedReason", "Organizer removed for policy violation");
+                                }
 
-        // Query all events by this organizer
-        // IMPORTANT: Using "createdByUid" to match your Event model!
-        db.collection(EVENTS_COLLECTION)
-                .whereEqualTo("createdByUid", organizerId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (querySnapshot.isEmpty()) {
-                        Log.d(TAG, "No events found for organizer: " + organizerId);
-                        callback.onSuccess();
-                        return;
-                    }
+                                // B. Ban the User (Add to banned_users collection)
+                                // We use the organizerId as the document key for O(1) lookup during login
+                                Map<String, Object> banData = new HashMap<>();
+                                banData.put("bannedAt", FieldValue.serverTimestamp());
+                                banData.put("originalRole", "organiser");
+                                banData.put("originalName", organizerName); // Store name in ban record too
+                                banData.put("reason", "Policy Violation - Account Removed");
 
-                    // Prepare flag data
-                    Map<String, Object> flagData = new HashMap<>();
-                    flagData.put("status", "flagged");
-                    flagData.put("flaggedReason", "Organizer account deactivated");
-                    flagData.put("flaggedAt", System.currentTimeMillis());
+                                com.google.firebase.firestore.DocumentReference banRef = db.collection("banned_users").document(organizerId);
+                                batch.set(banRef, banData);
 
-                    // Track completion of all updates
-                    final int totalEvents = querySnapshot.size();
-                    final int[] completedUpdates = {0};
-                    final boolean[] hasError = {false};
+                                // C. Delete the User Profile
+                                com.google.firebase.firestore.DocumentReference userRef = db.collection(USERS_COLLECTION).document(organizerId);
+                                batch.delete(userRef);
 
-                    Log.d(TAG, "Flagging " + totalEvents + " events");
-
-                    // Update each event
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        String eventId = document.getId();
-
-                        db.collection(EVENTS_COLLECTION).document(eventId)
-                                .update(flagData)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Flagged event: " + eventId);
-                                    completedUpdates[0]++;
-
-                                    // Check if all updates completed
-                                    if (completedUpdates[0] >= totalEvents) {
-                                        if (hasError[0]) {
-                                            callback.onError(new Exception("Some events failed to flag"));
-                                        } else {
+                                // D. Commit the Batch
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.i(TAG, "Success: Organizer banned, profile deleted, events flagged.");
+                                            // LOG WITH NAME
+                                            logAdminAction(null, "Organizer '" + organizerName + "' has been removed & banned for policy violation.", "organizer", "admin");
                                             callback.onSuccess();
-                                        }
-                                    }
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error flagging event: " + eventId, e);
-                                    hasError[0] = true;
-                                    completedUpdates[0]++;
-
-                                    // Check if all updates completed
-                                    if (completedUpdates[0] >= totalEvents) {
-                                        callback.onError(new Exception("Some events failed to flag"));
-                                    }
-                                });
-                    }
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Batch commit failed", e);
+                                            callback.onError(e);
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to fetch organizer events for removal", e);
+                                callback.onError(e);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error querying organizer events", e);
+                    Log.e(TAG, "Failed to fetch user details for logging", e);
                     callback.onError(e);
                 });
     }
-
     /**
      * Fetches all events created by a specific organizer.
      * User Story: US 03.07.01 - Remove organizers that violate app policy

@@ -23,6 +23,26 @@
             android:background="@drawable/image_placeholder_background"
             android:contentDescription="@string/event_poster" />
 
+        <ImageView
+            android:id="@+id/iv_flag_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_flag_red"
+            android:visibility="gone"
+            android:contentDescription="Flagged Event"
+
+            android:layout_alignTop="@id/iv_event_poster"
+            android:layout_alignStart="@id/iv_event_poster"
+
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="4dp"
+
+            android:background="@drawable/circle_background"
+            android:padding="4dp"
+
+            android:elevation="6dp"
+            />
+
         <!-- Event details container -->
         <LinearLayout
             android:id="@+id/layout_event_details"
