@@ -121,6 +121,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
 
+    //for location
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+
 }
 
 fun Javadoc.configureAndroidJavadocTask() {

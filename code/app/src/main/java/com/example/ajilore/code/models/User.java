@@ -1,10 +1,10 @@
 package com.example.ajilore.code.models;
+import java.io.Serializable;
 
 /**
- * User model class representing a user in the system.
- * Maps to the "users" collection in Firestore.
+ * Represents a user in the system.
  */
-public class User {
+public class User implements Serializable {
 
     /** Unique device or Firestore document ID for the user. */
     private String userId;
@@ -17,7 +17,6 @@ public class User {
 
     /** User's phone number. */
     private String phone;
-
     /** User's role in the system. */
     private String role;
 
@@ -26,6 +25,9 @@ public class User {
 
     /** Whether notifications are enabled for the user. */
     private boolean notificationsEnabled;
+
+    private String accountStatus = "active"; // "active" or "deactivated"
+    private boolean canCreateEvents = true;
 
     /**
      * No-arg constructor required for Firestore deserialization.
@@ -98,4 +100,10 @@ public class User {
     public void setNotificationsEnabled(boolean enabled) {
         this.notificationsEnabled = enabled;
     }
+
+    public String getAccountStatus() { return accountStatus; }
+    public void setAccountStatus(String accountStatus) { this.accountStatus = accountStatus; }
+
+    public boolean isCanCreateEvents() { return canCreateEvents; }
+    public void setCanCreateEvents(boolean canCreateEvents) { this.canCreateEvents = canCreateEvents; }
 }

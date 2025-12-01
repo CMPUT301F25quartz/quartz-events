@@ -1,10 +1,12 @@
 package com.example.ajilore.code;
 
+import android.Manifest; // Kulnoor ADDED: Import for notification permission
 import android.content.Intent;
+import android.content.pm.PackageManager; // Kulnoor ADDED: Import for permission handling
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -12,6 +14,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat; // Kulnoor ADDED: Import for requesting permissions
+import androidx.core.content.ContextCompat; // Kulnoor ADDED: Import for checking permissions
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,6 +23,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.ui.admin.AdminEventsFragment;
 import com.example.ajilore.code.ui.admin.AdminProfilesFragment;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
 import com.example.ajilore.code.ui.events.EventsFragment;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
 import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
@@ -27,14 +32,21 @@ import com.example.ajilore.code.ui.inbox.InboxFragment;
 import com.example.ajilore.code.ui.profile.LoginFragment;
 import com.example.ajilore.code.ui.profile.ProfileFragment;
 import com.example.ajilore.code.utils.AdminAuthManager;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.cloudinary.android.MediaManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MainActivity - The main entry point of the application.
@@ -46,12 +58,27 @@ import java.util.Map;
  * - Navigation to admin browse screens
  */
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseFirestore db;
+    private String userId;
+
+    // to clean up listeners
+    private ListenerRegistration registrationsListener;
+    private final List<ListenerRegistration> inboxListeners = new ArrayList<>();
+    // keep per-event unread counts
+    private final Map<String, Integer> unreadPerEvent = new HashMap<>();
+
+
+
     private BottomNavigationView bottomNavigationView;
     private boolean isAdmin = false;  // NEW: Track if current user is admin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setupRealtimeBanListener();
+
         EdgeToEdge.enable(this);
 
         //Setting up the Cloudinary connection
@@ -75,6 +102,16 @@ public class MainActivity extends AppCompatActivity {
         //hide the nav bar
         //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
 
+        db = FirebaseFirestore.getInstance();
+
+        userId = Settings.Secure.getString(
+                getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId != null && !userId.isEmpty()) {
+            startInboxBadgeListener();
+        }
 
 
         // Apply window insets (should be right after setContentView)
@@ -95,16 +132,26 @@ public class MainActivity extends AppCompatActivity {
         handleNavigationIntent();
 
 
-        // Load default fragment on startup (unchanged)
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, new LoginFragment())
-                    .commit();
+            // Intercept startup to check for bans first
+            checkBanStatusAndLogin();
         }
         // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
         // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
+
+        // Kulnoor ADDED: Check and request notification permission
+        checkNotificationPermission();
+    }
+
+    // Kulnoor ADDED: Method to check and request notification permission for Android 13+
+    private void checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
     }
 
     /**
@@ -158,6 +205,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "onNewIntent called - processing navigation");
     }
 
+    /**
+     * Show the bottom navigation bar
+     */
     public void showBottomNav() {
         if (bottomNavigationView != null){
             bottomNavigationView.setVisibility(View.VISIBLE);
@@ -173,6 +223,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void openEventDetailsFromInbox(@NonNull String eventId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Fetch the event so we can pass the title into EventDetailsFragment
+        db.collection("org_events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String title = "";
+                    if (doc != null && doc.exists()) {
+                        String t = doc.getString("title");
+                        if (t != null) title = t;
+                    }
+
+                    Fragment frag = EventDetailsFragment.newInstance(eventId, title);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.nav_host_fragment, frag) //
+                            .addToBackStack(null)
+                            .commit();
+                })
+                .addOnFailureListener(e -> Toast.makeText(
+                        this,
+                        "Could not open event: " + e.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show());
+    }
+
+
+    public void updateInboxBadge(int unreadCount) {
+        BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); // View id
+        if (nav == null) return;
+
+        BadgeDrawable badge = nav.getOrCreateBadge(R.id.inboxFragment);
+
+        if (unreadCount <= 0) {
+            badge.clearNumber();
+            badge.setVisible(false);
+        } else {
+            badge.setVisible(true);
+            badge.setNumber(unreadCount);
+        }
+    }
+
+
+
 
     /**
      * Check if the current device is an admin device
@@ -186,19 +283,15 @@ public class MainActivity extends AppCompatActivity {
     private void checkAdminStatus() {
         // Get this device's unique ID
         String deviceId = AdminAuthManager.getDeviceId(this);
-        Log.d("ADMIN_CHECK", "📱 Device ID: " + deviceId);
+        Log.d("ADMIN_CHECK", "Checking Admin Status for Device ID: " + deviceId);
 
-        // TEMPORARY: Auto-grant admin access for testing
-        // TODO: Remove this line in production! Admins should be pre-configured.
-        AdminAuthManager.addCurrentDeviceAsAdmin(this);
-
-        // Check if this device is in the admin list
+        // Verify against the hardcoded allowlist
         isAdmin = AdminAuthManager.isAdmin(this);
         Log.d("ADMIN_CHECK", "Admin Status: " + isAdmin);
 
         // Show notification if admin mode is active
         if (isAdmin) {
-            Toast.makeText(this, " Admin Mode Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Administrator Access Granted", Toast.LENGTH_LONG).show();
             // Recreate options menu to show admin items
             invalidateOptionsMenu();
         }
@@ -364,5 +457,180 @@ public class MainActivity extends AppCompatActivity {
                             "Firebase error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 });
+    }
+
+    private void startInboxBadgeListener() {
+        // Clean up previous if any
+        if (registrationsListener != null) {
+            registrationsListener.remove();
+            registrationsListener = null;
+        }
+        for (ListenerRegistration l : inboxListeners) {
+            l.remove();
+        }
+        inboxListeners.clear();
+        unreadPerEvent.clear();
+
+        registrationsListener = db.collection("users")
+                .document(userId)
+                .collection("registrations")
+                .addSnapshotListener((regSnap, e) -> {
+                    if (e != null || regSnap == null) {
+                        return;
+                    }
+
+                    // Which events still exist
+                    Set<String> currentEventIds = new HashSet<>();
+                    for (DocumentSnapshot d : regSnap.getDocuments()) {
+                        currentEventIds.add(d.getId());
+                    }
+
+                    // Remove counts for deleted registrations
+                    unreadPerEvent.keySet().removeIf(id -> !currentEventIds.contains(id));
+
+                    // Clear previous inbox listeners
+                    for (ListenerRegistration l : inboxListeners) {
+                        l.remove();
+                    }
+                    inboxListeners.clear();
+
+                    // Attach a listener to each event's inbox
+                    for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                        final String eventId = regDoc.getId();
+
+                        ListenerRegistration inboxListener = regDoc.getReference()
+                                .collection("inbox")
+                                .whereEqualTo("archived", false)
+                                .whereEqualTo("read", false)
+                                .addSnapshotListener((inboxSnap, err) -> {
+                                    if (err != null) return;
+
+                                    int count = (inboxSnap == null) ? 0 : inboxSnap.size();
+                                    unreadPerEvent.put(eventId, count);
+
+                                    int totalUnread = 0;
+                                    for (int c : unreadPerEvent.values()) {
+                                        totalUnread += c;
+                                    }
+
+                                    updateInboxBadge(totalUnread);
+                                });
+
+                        inboxListeners.add(inboxListener);
+                    }
+                });
+    }
+
+
+
+    /**
+     * SECURITY: Checks if the device is banned before allowing login.
+     * This prevents removed organizers from simply creating new accounts.
+     */
+    private void checkBanStatusAndLogin() {
+        // 1. Get the device ID
+        String deviceId = com.example.ajilore.code.utils.AdminAuthManager.getDeviceId(this);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // 2. Check "banned_users" collection
+        db.collection("banned_users").document(deviceId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // CASE 1: USER IS BANNED
+                        Log.w("Auth", "Banned device attempted login: " + deviceId);
+                        handleBannedUser();
+                    } else {
+                        // CASE 2: USER IS CLEAN -> Proceed to normal login
+                        Log.d("Auth", "Device is clean. Proceeding to login.");
+                        loadLoginFragment();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Fail safe: If check fails (network error), block or retry.
+                    // For now, we allow proceed or show error.
+                    Log.e("Auth", "Failed to check ban status", e);
+                    Toast.makeText(this, "Connection Error: Verifying account status...", Toast.LENGTH_SHORT).show();
+                    // Optional: Retry logic here
+                });
+    }
+
+    /**
+     * Loads the standard LoginFragment (moved from onCreate).
+     */
+    private void loadLoginFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.nav_host_fragment, new com.example.ajilore.code.ui.profile.LoginFragment())
+                .commit();
+    }
+
+    /**
+     * blocks access for banned users.
+     */
+    private void handleBannedUser() {
+        // Hide navigation to prevent bypass
+        if (bottomNavigationView != null) bottomNavigationView.setVisibility(View.GONE);
+
+        // Show a strict dialog or toast
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Account Suspended")
+                .setMessage("Your device has been banned due to policy violations. You cannot access this application.")
+                .setCancelable(false) // Prevent clicking away
+                .setPositiveButton("Close App", (dialog, which) -> finishAffinity())
+                .show();
+    }
+
+    /**
+     * WATCHDOG: Listens for changes to the current user's profile in real-time.
+     * If the profile is deleted by an Admin, this detects it instantly.
+     */
+    private void setupRealtimeBanListener() {
+        String deviceId = com.example.ajilore.code.utils.AdminAuthManager.getDeviceId(this);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Add a listener to the USER document
+        db.collection("users").document(deviceId).addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.e("Auth", "Listen failed.", e);
+                return;
+            }
+
+            // If snapshot is not null but exists() is false, the document was DELETED.
+            if (snapshot != null && !snapshot.exists()) {
+                Log.w("Auth", "User profile disappeared. Checking for ban...");
+
+                // Double-check the "banned_users" collection to confirm it was a ban
+                db.collection("banned_users").document(deviceId).get()
+                        .addOnSuccessListener(banDoc -> {
+                            if (banDoc.exists()) {
+                                // CONFIRMED: User was banned by Admin
+                                // Run on UI thread to ensure dialog shows up
+                                runOnUiThread(() -> showBanDialog());
+                            }
+                        });
+            }
+        });
+    }
+
+    /**
+     * Display a strict alert dialog that blocks all interaction and closes the app.
+     */
+    private void showBanDialog() {
+        // 1. Immediately hide the navigation bar so they can't switch tabs
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+
+        // 2. Check if the activity is valid before showing dialog (prevents crashes)
+        if (!isFinishing() && !isDestroyed()) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Account Removed")
+                    .setMessage("Your account has been permanently removed by an administrator due to a policy violation.\n\nYou have been logged out.")
+                    .setCancelable(false) // CRITICAL: Users cannot click outside to dismiss
+                    .setPositiveButton("Exit App", (dialog, which) -> {
+                        // 3. Close the app completely
+                        finishAffinity();
+                    })
+                    .show();
+        }
     }
 }

@@ -64,4 +64,13 @@ public class EventRow {
         this.posterRes = posterRes;
         this.posterUrl = posterUrl;
     }
+
+    /**
+     * Returns the Firestore document ID for this event.
+     * @return The event ID.
+     */
+    public String getId() {
+        return id;
+    }
+
 }

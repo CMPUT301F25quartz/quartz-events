@@ -2,6 +2,7 @@ package com.example.ajilore.code.ui.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.AdminActivity;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
@@ -27,9 +29,13 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.junit.After;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.firestore.DocumentReference;
+
 
 /**
  * {@code ProfileFragment} displays and manages a user's profile information
@@ -65,9 +71,8 @@ public class ProfileFragment extends Fragment {
     private BottomNavigationView bottomNavigationView;
 
     //firebase
-    private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String uid;
+    private String deviceId;
     /** Default constructor required for Fragment instantiation. */
     public ProfileFragment() { }
 
@@ -96,7 +101,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
-        AdminAuthManager.addCurrentDeviceAsAdmin(requireContext());
 
         // Bind views
         toolbar        = v.findViewById(R.id.profileToolbar);
@@ -108,15 +112,16 @@ public class ProfileFragment extends Fragment {
         btnDeleteProfile = v.findViewById(R.id.btnDeleteProfile);
         tvProfileHeader = v.findViewById(R.id.tvProfileHeader);
 
-        bottomNavigationView = requireActivity().findViewById(R.id.menu_bottom_nav);
-
-
-
-        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        FirebaseUser current = auth.getCurrentUser();
-        uid = (current != null) ? current.getUid() : null;
+        bottomNavigationView = requireActivity().findViewById(R.id.menu_bottom_nav);
+
+        // Get device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
         //three dots
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
         btnEditProfile.setOnClickListener(view -> openEditProfile());
@@ -144,7 +149,7 @@ public class ProfileFragment extends Fragment {
     private boolean onMenuItemClick(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_switch_organizer) {
-            Toast.makeText(getContext(), "Switch to Organizer", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Switch to Organiser", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.nav_host_fragment,
@@ -164,7 +169,7 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Signed out", Toast.LENGTH_SHORT).show();
             FirebaseAuth.getInstance().signOut();
             requireActivity().getSupportFragmentManager().beginTransaction()
-                   .replace(R.id.nav_host_fragment, new LoginFragment())
+                    .replace(R.id.nav_host_fragment, new LoginFragment())
                     .commit();
             return true;
         }
@@ -176,34 +181,47 @@ public class ProfileFragment extends Fragment {
      * Displays default placeholders if user data is unavailable.
      */
     private void loadProfile() {
-        var user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            tvProfileHeader.setText("Hi User");
-            tvName.setText("Name: —");
-            tvEmail.setText("Email: —");
-            tvPhone.setText("Phone: —");
-            return;
-        }
-
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(user.getUid())
-                .get()
-                .addOnSuccessListener(doc -> {
-                    String name  = doc.getString("name");
+        db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
+                    if (!isAdded() || getActivity() == null) {
+                        return;
+                    }
+                    if (!doc.exists()) {
+                        tvProfileHeader.setText("Hi User");
+                        tvName.setText("Name: —");
+                        tvEmail.setText("Email: —");
+                        tvPhone.setText("Phone: —");
+                        // Default profile picture
+                        //imgProfile.setImageResource(R.drawable.circle_placeholder);
+                        return;
+                    }
+                    String name = doc.getString("name");
                     String email = doc.getString("email");
                     String phone = doc.getString("phone");
+                    String profileUrl = doc.getString("profilepicture");
 
                     tvProfileHeader.setText((name != null && !name.isEmpty()) ? "Hi " + name : "Hi User");
                     tvName.setText("Name: " + (name == null || name.isEmpty() ? "—" : name));
                     tvEmail.setText("Email: " + (email == null || email.isEmpty() ? "—" : email));
                     tvPhone.setText("Phone: " + (phone == null || phone.isEmpty() ? "—" : phone));
+
+                    if (profileUrl != null && !profileUrl.isEmpty()) {
+                        Glide.with(this)
+                                .load(profileUrl)
+                                .circleCrop()
+                                .error(android.R.drawable.sym_def_app_icon)
+                                .into(imgProfile);
+                    } else {
+                        // Keep your default icon from XML
+                        imgProfile.setImageResource(android.R.drawable.sym_def_app_icon);
+                    }
+
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
-    private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 
     /**
      * Opens the Edit Profile screen by replacing the current fragment.
@@ -232,58 +250,90 @@ public class ProfileFragment extends Fragment {
      * If deletion fails due to authentication constraints, the user is signed out instead.
      */
     private void performDelete() {
-        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
-        if (current == null) {
-            Toast.makeText(getContext(), "Not signed in.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        uid = current.getUid();
+        // 1) For every event, remove this device from waiting_list
+        //    AND clear its inbox under org_events/{eventId}/waiting_list/{deviceId}/inbox
+        db.collection("org_events")
+                .get()
+                .addOnSuccessListener(events -> {
 
-        // 1) Read user doc to get nameLower for secondary index
-        db.collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    String nameLower = doc.getString("nameLower");
+                    for (DocumentSnapshot eventDoc : events.getDocuments()) {
+                        String eventId = eventDoc.getId();
 
-                    // 2) Batch delete Firestore docs
-                    var batch = db.batch();
-                    batch.delete(db.collection("users").document(uid));
-                    if (nameLower != null && !nameLower.trim().isEmpty()) {
-                        batch.delete(db.collection("usersByName").document(nameLower));
+                        // waiting_list/{deviceId}
+                        DocumentReference waitingRef = db.collection("org_events")
+                                .document(eventId)
+                                .collection("waiting_list")
+                                .document(deviceId);
+
+                        // delete inbox docs under waiting_list/{deviceId}/inbox
+                        waitingRef.collection("inbox")
+                                .get()
+                                .addOnSuccessListener(inboxSnap -> {
+                                    WriteBatch inboxBatch = db.batch();
+                                    for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                        inboxBatch.delete(d.getReference());
+                                    }
+                                    inboxBatch.commit();
+                                });
+
+                        // delete the waiting_list doc itself
+                        waitingRef.delete();
                     }
 
-                    batch.commit()
-                            .addOnSuccessListener(x -> {
-                                // 3) Delete Auth user (falls back to signOut if reauth is required)
-                                current.delete()
-                                        .addOnSuccessListener(v -> {
-                                            Toast.makeText(getContext(), "Profile deleted", Toast.LENGTH_SHORT).show();
-                                            navigateToLogin();
+                    // 2) Delete registration history AND inbox under users/{deviceId}/registrations
+                    db.collection("users")
+                            .document(deviceId)
+                            .collection("registrations")
+                            .get()
+                            .addOnSuccessListener(regSnap -> {
+                                for (DocumentSnapshot regDoc : regSnap.getDocuments()) {
+                                    // clear inbox subcollection for this registration
+                                    regDoc.getReference()
+                                            .collection("inbox")
+                                            .get()
+                                            .addOnSuccessListener(inboxSnap -> {
+                                                WriteBatch batch = db.batch();
+                                                for (DocumentSnapshot d : inboxSnap.getDocuments()) {
+                                                    batch.delete(d.getReference());
+                                                }
+                                                batch.commit();
+                                            });
+
+                                    // delete the registration doc itself
+                                    regDoc.getReference().delete();
+                                }
+
+                                //Delete the main users/{deviceId} doc
+                                db.collection("users")
+                                        .document(deviceId)
+                                        .delete()
+                                        .addOnSuccessListener(x -> {
+                                            Toast.makeText(getContext(),
+                                                    "Profile deleted",
+                                                    Toast.LENGTH_SHORT).show();
+
+                                            requireActivity().getSupportFragmentManager()
+                                                    .beginTransaction()
+                                                    .replace(R.id.nav_host_fragment,
+                                                            new LoginFragment())
+                                                    .commit();
                                         })
-                                        .addOnFailureListener(err -> {
-                                            // If delete requires recent login or fails, just sign out
-                                            FirebaseAuth.getInstance().signOut();
-                                            Toast.makeText(getContext(), "Profile data deleted. Signed out.", Toast.LENGTH_SHORT).show();
-                                            navigateToLogin();
-                                        });
+                                        .addOnFailureListener(err ->
+                                                Toast.makeText(getContext(),
+                                                        "Delete failed: " + err.getMessage(),
+                                                        Toast.LENGTH_LONG).show()
+                                        );
                             })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                            .addOnFailureListener(err ->
+                                    Toast.makeText(getContext(),
+                                            "Delete failed: " + err.getMessage(),
+                                            Toast.LENGTH_LONG).show()
                             );
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                .addOnFailureListener(err ->
+                        Toast.makeText(getContext(),
+                                "Delete failed: " + err.getMessage(),
+                                Toast.LENGTH_LONG).show()
                 );
     }
-    /**
-     * Navigates the user back to the Login screen after sign-out or deletion.
-     */
-    private void navigateToLogin() {
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.nav_host_fragment, new LoginFragment())
-                .commit();
-    }
-
-
-
 }

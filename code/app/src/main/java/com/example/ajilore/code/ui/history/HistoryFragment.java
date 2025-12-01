@@ -1,6 +1,7 @@
 package com.example.ajilore.code.ui.history;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -65,7 +67,7 @@ public class HistoryFragment extends Fragment {
     private List<Map<String, Object>> historyList = new ArrayList<>();
     //firebase
     private FirebaseFirestore db;
-    private String uid;
+    private String deviceId;
     /**
             * Inflates the layout for the history screen.
      *
@@ -96,11 +98,26 @@ public class HistoryFragment extends Fragment {
         progressBar = v.findViewById(R.id.progressHistory);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new HistoryAdapter(historyList);
-        recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        adapter = new HistoryAdapter(historyList, item -> {
+            String eventId = (String) item.get("eventId");
+            String title   = (String) item.get("eventTitle");
+
+            if (eventId != null) {
+                EventDetailsFragment f = EventDetailsFragment.newInstance(eventId, title);
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, f)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+        recyclerView.setAdapter(adapter);
 
         loadHistory();
     }
@@ -118,7 +135,7 @@ public class HistoryFragment extends Fragment {
     private void loadHistory() {
         progressBar.setVisibility(View.VISIBLE);
         db.collection("users")
-                .document(uid)
+                .document(deviceId)
                 .collection("registrations")
                 .orderBy("registeredAt", Query.Direction.DESCENDING)
                 .get()
