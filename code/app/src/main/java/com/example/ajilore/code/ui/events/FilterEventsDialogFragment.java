@@ -56,6 +56,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private Set<String> selectedCategories;
     private String availabilityFilter;
 
+    // ✅ NEW: Store current filters to persist across dialog opens
+    private static EventFilters currentFilters = new EventFilters();
+
     // Callback interface
     private OnFiltersAppliedListener filtersListener;
 
@@ -66,6 +69,11 @@ public class FilterEventsDialogFragment extends DialogFragment {
 
     public static FilterEventsDialogFragment newInstance() {
         return new FilterEventsDialogFragment();
+    }
+
+    // ✅ NEW: Method to get current filters from outside
+    public static EventFilters getCurrentFilters() {
+        return currentFilters;
     }
 
     @NonNull
@@ -108,6 +116,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
         currentMonth = Calendar.getInstance();
         selectedCategories = new HashSet<>();
 
+        // ✅ NEW: Restore previous filters
+        restorePreviousFilters();
+
         // Initialize views
         initializeViews(view);
 
@@ -116,6 +127,44 @@ public class FilterEventsDialogFragment extends DialogFragment {
 
         // Display current month
         updateMonthDisplay();
+
+        // ✅ NEW: Restore UI state after views are initialized
+        restoreUIState();
+    }
+
+    // ✅ NEW: Restore filters from static storage
+    private void restorePreviousFilters() {
+        if (currentFilters != null) {
+            startDate = currentFilters.startDate;
+            endDate = currentFilters.endDate;
+            selectedCategories = new HashSet<>(currentFilters.categories);
+            availabilityFilter = currentFilters.availabilityFilter;
+
+            // Set currentMonth to the month of startDate if exists
+            if (startDate != null) {
+                currentMonth.setTime(startDate);
+            }
+        }
+    }
+
+    // Restore UI state based on saved filters
+    private void restoreUIState() {
+        // Restore category checkboxes
+        cbParty.setChecked(selectedCategories.contains("party"));
+        cbWorkshop.setChecked(selectedCategories.contains("workshop"));
+        cbOther.setChecked(selectedCategories.contains("other"));
+
+        // Restore availability checkboxes
+        if ("open".equals(availabilityFilter)) {
+            cbStatusOpen.setChecked(true);
+        } else if ("closed".equals(availabilityFilter)) {
+            cbStatusClosed.setChecked(true);
+        }
+
+        // Restore date selection
+        if (startDate != null && endDate != null) {
+            selectDateRange();
+        }
     }
 
     private void initializeViews(View view) {
@@ -143,7 +192,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
     }
 
     private void setupListeners() {
-        // Back button - dismiss dialog
+        // Back button - dismiss dialog without changing filters
         btnBack.setOnClickListener(v -> {
             if (filtersListener != null) {
                 filtersListener.onFiltersCancelled();
@@ -224,7 +273,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         for (int day = 1; day <= daysInMonth; day++) {
-            final int currentDay = day;  // ✅ Make final for lambda
+            final int currentDay = day;
 
             Chip chip = new Chip(requireContext());
             chip.setText(String.valueOf(day));
@@ -234,7 +283,6 @@ public class FilterEventsDialogFragment extends DialogFragment {
 
             chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
-                    // ✅ Create date with time set to midnight
                     Calendar selectedCal = (Calendar) currentMonth.clone();
                     selectedCal.set(Calendar.DAY_OF_MONTH, currentDay);
                     selectedCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -247,8 +295,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
                         startDate = selectedDate;
                     } else if (endDate == null) {
                         if (selectedDate.after(startDate)) {
-                            // ✅ FIXED: Clone currentMonth to preserve month/year
-                            Calendar endCal = (Calendar) selectedCal.clone();  // Changed this line
+                            Calendar endCal = (Calendar) selectedCal.clone();
                             endCal.set(Calendar.HOUR_OF_DAY, 23);
                             endCal.set(Calendar.MINUTE, 59);
                             endCal.set(Calendar.SECOND, 59);
@@ -267,6 +314,11 @@ public class FilterEventsDialogFragment extends DialogFragment {
             });
 
             chipGroupDates.addView(chip);
+        }
+
+        // Restore date selection after recreating chips
+        if (startDate != null && endDate != null) {
+            selectDateRange();
         }
     }
 
@@ -344,6 +396,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
         filters.categories = new HashSet<>(selectedCategories);
         filters.availabilityFilter = availabilityFilter;
 
+        // Save filters to static variable
+        currentFilters = filters;
+
         if (filtersListener != null) {
             filtersListener.onFiltersApplied(filters);
         }
@@ -363,6 +418,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
         cbStatusClosed.setChecked(false);
         cbStatusOpen.setChecked(false);
         availabilityFilter = null;
+
+        // Clear static filters
+        currentFilters = new EventFilters();
 
         // Apply empty filters and dismiss
         EventFilters emptyFilters = new EventFilters();
