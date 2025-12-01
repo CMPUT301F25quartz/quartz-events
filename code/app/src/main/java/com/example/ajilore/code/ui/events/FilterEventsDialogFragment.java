@@ -28,8 +28,33 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * US 01.01.04: Filter events based on interests and availability
- * DialogFragment for filtering events by date range, location, category, and availability
+ * DialogFragment that provides filtering controls for the Events list.
+ *
+ * <p>This component supports US 01.01.04 — allowing entrants to filter events
+ * based on date range, event type (category), and availability (open/closed).
+ * It is displayed as a fullscreen modal dialog, giving users an intuitive UI
+ * for selecting multiple criteria.</p>
+ *
+ * <h3>Supported Filter Types</h3>
+ * <ul>
+ *     <li><b>Date Range:</b> Select a continuous range via calendar chips.</li>
+ *     <li><b>Categories:</b> Party, Workshop, Other (multi-select).</li>
+ *     <li><b>Availability:</b> Open or Closed (single-select).</li>
+ * </ul>
+ *
+ * <h3>Persistent Filter State</h3>
+ * <p>The dialog stores the most recently applied filters in a static
+ * {@link EventFilters} object, and restores them when reopened.</p>
+ *
+ * <h3>Usage</h3>
+ * <pre>
+ * FilterEventsDialogFragment dialog = FilterEventsDialogFragment.newInstance();
+ * dialog.setFiltersListener(filters -> { ... });
+ * dialog.show(getSupportFragmentManager(), "filters");
+ * </pre>
+ *
+ * <p>When the user applies or clears filters, the dialog passes results to the host
+ * through {@link OnFiltersAppliedListener}.</p>
  */
 public class FilterEventsDialogFragment extends DialogFragment {
 
@@ -67,15 +92,33 @@ public class FilterEventsDialogFragment extends DialogFragment {
         void onFiltersCancelled();
     }
 
+    /**
+     * Creates a new instance of the filter dialog.
+     *
+     * @return A fresh {@link FilterEventsDialogFragment}.
+     */
     public static FilterEventsDialogFragment newInstance() {
         return new FilterEventsDialogFragment();
     }
 
-    // Method to get current filters from outside
+    /**
+     * Returns the most recently applied filter selections.
+     *
+     * <p>This allows the Events screen to show active filter badges or reapply
+     * the filter to the Firestore query.</p>
+     *
+     * @return The saved {@link EventFilters} instance.
+     */
     public static EventFilters getCurrentFilters() {
         return currentFilters;
     }
 
+    /**
+     * Removes the default dialog title bar to create a fullscreen modal appearance.
+     *
+     * @param savedInstanceState Previous state, if any.
+     * @return Customized {@link Dialog} instance.
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -87,6 +130,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
         return dialog;
     }
 
+    /**
+     * Expands the dialog to full width and height, giving it a full-screen layout.
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -100,6 +146,14 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Inflates the filter dialog UI layout.
+     *
+     * @param inflater LayoutInflater used to inflate XML.
+     * @param container Optional parent container.
+     * @param savedInstanceState Prior saved state.
+     * @return Inflated root view for the dialog.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -108,6 +162,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         return inflater.inflate(R.layout.fragment_filter_event, container, false);
     }
 
+    /**
+     * Initializes UI components, restores previously selected filters,
+     * attaches listeners, and populates the month/day chip views.
+     *
+     * @param view Inflated root view.
+     * @param savedInstanceState Saved state bundle, if any.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -132,7 +193,17 @@ public class FilterEventsDialogFragment extends DialogFragment {
         restoreUIState();
     }
 
-    // Restore filters from static storage
+    /**
+     * Restores the filter state from the static {@link #currentFilters} object.
+     *
+     * <p>This includes:</p>
+     * <ul>
+     *     <li>Date range (start/end)</li>
+     *     <li>Selected event categories</li>
+     *     <li>Availability setting</li>
+     *     <li>The month to display in the calendar</li>
+     * </ul>
+     */
     private void restorePreviousFilters() {
         if (currentFilters != null) {
             startDate = currentFilters.startDate;
@@ -147,7 +218,10 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
-    // Restore UI state based on saved filters
+    /**
+     * Restores UI checkboxes and calendar chip selections based on the
+     * previously stored filter values.
+     */
     private void restoreUIState() {
         // Restore category checkboxes
         cbParty.setChecked(selectedCategories.contains("party"));
@@ -167,6 +241,11 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Finds and initializes all view references from the layout.
+     *
+     * @param view The inflated root view.
+     */
     private void initializeViews(View view) {
         // Back button
         btnBack = view.findViewById(R.id.btnBack);
@@ -191,6 +270,16 @@ public class FilterEventsDialogFragment extends DialogFragment {
         btnClearFilter = view.findViewById(R.id.btnClearFilter);
     }
 
+    /**
+     * Binds all click listeners and checkbox listeners used for:
+     * <ul>
+     *     <li>Navigating between months</li>
+     *     <li>Selecting event categories</li>
+     *     <li>Toggling availability</li>
+     *     <li>Applying or clearing filters</li>
+     *     <li>Dismissing the dialog</li>
+     * </ul>
+     */
     private void setupListeners() {
         // Back button - dismiss dialog without changing filters
         btnBack.setOnClickListener(v -> {
@@ -262,6 +351,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         btnClearFilter.setOnClickListener(v -> clearAllFilters());
     }
 
+    /**
+     * Updates the displayed month title and regenerates the chip list
+     * showing each day of the selected month.
+     *
+     * <p>Also re-applies date range highlighting if the user has already selected
+     * a start and end date.</p>
+     */
     private void updateMonthDisplay() {
         SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         tvSelectedMonth.setText(monthFormat.format(currentMonth.getTime()));
@@ -322,6 +418,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Highlights all day chips that fall within the selected date range.
+     *
+     * <p>This method programmatically checks the chips between
+     * {@link #startDate} and {@link #endDate}, without triggering
+     * their listeners.</p>
+     */
     private void selectDateRange() {
         if (startDate == null || endDate == null) return;
 
@@ -379,6 +482,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Clears the selected start and end dates and unchecks all day chips.
+     */
     private void clearDateSelection() {
         startDate = null;
         endDate = null;
@@ -389,6 +495,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Collects all selected filter options, saves them to the static
+     * {@link #currentFilters} object, and notifies the listener via
+     * {@link OnFiltersAppliedListener}.
+     *
+     * <p>The dialog then closes.</p>
+     */
     private void applyFilters() {
         EventFilters filters = new EventFilters();
         filters.startDate = startDate;
@@ -406,6 +519,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         dismiss();
     }
 
+    /**
+     * Resets all filter controls (date, category, availability) to their
+     * default unselected state.
+     *
+     * <p>This also clears the persistent {@link #currentFilters} storage
+     * and notifies the listener with an empty {@link EventFilters} object.</p>
+     */
     private void clearAllFilters() {
         // Clear all selections in the UI
         clearDateSelection();
@@ -431,12 +551,28 @@ public class FilterEventsDialogFragment extends DialogFragment {
         dismiss();
     }
 
+    /**
+     * Registers a listener to receive callbacks when the user applies
+     * or cancels filtering.
+     *
+     * @param listener Callback to notify the host fragment or activity.
+     */
     public void setFiltersListener(OnFiltersAppliedListener listener) {
         this.filtersListener = listener;
     }
 
     /**
-     * Data class to hold filter criteria
+     * POJO-style data class representing a full set of event filter criteria.
+     *
+     * <p>Supports serialization so it can be stored or passed between components.</p>
+     *
+     * Fields include:
+     * <ul>
+     *     <li>{@link #startDate}</li>
+     *     <li>{@link #endDate}</li>
+     *     <li>{@link #categories}</li>
+     *     <li>{@link #availabilityFilter}</li>
+     * </ul>
      */
     public static class EventFilters implements Serializable {
         public Date startDate;

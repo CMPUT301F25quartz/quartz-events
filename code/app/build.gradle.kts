@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.espresso.intents)
     implementation(libs.fragment.testing)
     implementation(libs.espresso.contrib)
+    implementation(libs.firebase.functions)
     //added
     androidTestUtil("androidx.test:orchestrator:1.4.2")
     testImplementation(libs.junit)

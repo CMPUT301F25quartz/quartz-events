@@ -38,28 +38,27 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 /**
- * {@code LoginFragment} handles both the login and signup process for users.
- * <p>
- * It allows users to:
- * <ul>
- *     <li>Log in using a name (verified in Firestore)</li>
- *     <li>Sign up with a name, email, and optional phone number</li>
- *     <li>Automatically authenticate anonymously using FirebaseAuth</li>
- *     <li>Navigate to the main events screen once authenticated</li>
- * </ul>
+ * {@code LoginFragment} manages the login and signup flow for users in the app.
  *
- * <p>The fragment connects to Firestore to check or create user records and
- * ensures that names are unique across the system using the
- * {@code usersByName} collection.</p>
+ * <p>This fragment uses the device's {@code ANDROID_ID} as the unique identifier,
+ * meaning each physical device corresponds to one account in Firestore
+ * (no username/password system is used).</p>
  *
- * <p><b>Outstanding issues:</b>
+ * <h3>Features</h3>
  * <ul>
- *     <li>The sign up button does not do anything</li>
+ *     <li><b>Login</b> — If the device already has a Firestore user record, the user is logged in immediately.</li>
+ *     <li><b>Signup</b> — If the device is not recognized, the user may create a new account with name, email, and optional phone number.</li>
+ *     <li><b>Location Preference Toggle</b> — Users can enable/disable location collection.
+ *         This preference is saved to Firestore and used when registering for events.</li>
+ *     <li><b>Permission Handling</b> — If the user enables location, the fragment checks runtime
+ *         permissions and requests them when required.</li>
+ *     <li><b>Navigation</b> — Upon login or signup, users are sent to {@link GeneralEventsFragment}.</li>
  * </ul>
  *
  * @author
  *     Temi Akindele
  */
+
 public class LoginFragment extends Fragment {
 
     // Views
@@ -92,12 +91,14 @@ public class LoginFragment extends Fragment {
     }
 
     /**
-     * Called after the view has been created. Initializes Firebase authentication,
-     * sets up validation listeners, and handles both login and signup button logic.
+     * Initializes UI components, loads saved user data (including location preference),
+     * sets up listeners for login and signup, hides the bottom navigation,
+     * and configures Firestore and device identity.
      *
-     * @param v The fragment’s root view.
-     * @param savedInstanceState Saved state if available.
+     * @param v Root view returned from {@link #onCreateView}
+     * @param savedInstanceState Previously saved state (unused)
      */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -260,6 +261,15 @@ public class LoginFragment extends Fragment {
             });
     }
 
+    /**
+     * Saves the user's location-sharing preference to Firestore.
+     *
+     * <p>This is triggered when the user toggles the location switch,
+     * or after granting location permission.</p>
+     *
+     * @param enabled {@code true} if the user allows location collection, else {@code false}
+     */
+
     private void saveLocationPreference(boolean enabled) {
         db.collection("users")
                 .document(deviceId)
@@ -267,6 +277,15 @@ public class LoginFragment extends Fragment {
                 .addOnSuccessListener(x -> Log.d("Login", "Location preference updated"))
                 .addOnFailureListener(e -> Log.e("Login", "Failed to update location preference", e));
     }
+
+    /**
+     * Creates or overwrites a user document in Firestore using the device ID.
+     *
+     * <p>Called only during signup. After saving, the user is navigated to
+     * {@link GeneralEventsFragment} and the bottom navigation is shown.</p>
+     *
+     * @param user A map of all profile fields to store under {@code users/{deviceId}}
+     */
 
     private void saveUserToFirestore(Map<String, Object> user) {
         db.collection("users")
@@ -284,8 +303,9 @@ public class LoginFragment extends Fragment {
 
 
     /**
-     * Navigates to the general events fragment after successful log in or sign up
+     * Navigates to the {@link GeneralEventsFragment} after a successful login or signup.
      */
+
     private void navigateToEvents() {
         requireActivity()
                 .getSupportFragmentManager()
@@ -295,18 +315,50 @@ public class LoginFragment extends Fragment {
     }
 
 
-    /** Returns trimmed text from an EditText, or an empty string if null. */
+    /**
+     * Returns the trimmed string contents of a {@link TextInputEditText},
+     * or an empty string if the field is null.
+     *
+     * @param et The EditText field
+     * @return Trimmed text or empty string
+     */
+
     private String getText(TextInputEditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
-    /** Checks if a string is not null or empty. */
+
+    /**
+     * Checks whether a string is non-null and contains at least one non-space character.
+     *
+     * @param s The string to check
+     * @return {@code true} if non-blank, otherwise {@code false}
+     */
     private boolean isNonBlank(String s) {
         return s != null && s.trim().length() > 0;
     }
-    /** Basic validation to ensure email contains '@'. */
+
+    /**
+     * Performs basic email validation by checking if the string contains '@'.
+     *
+     * <p>This is not a full regex validation—just a lightweight check for UI enabling.</p>
+     *
+     * @param s Email string to validate
+     * @return {@code true} if it contains '@', else {@code false}
+     */
     private boolean isEmailOk(String s) {
         return s != null && s.contains("@");
     }
+
+    /**
+     * Handles the result of the runtime location permission request.
+     *
+     * <p>If the permission is granted, the user's Firestore preference is updated
+     * to reflect that location collection is enabled.</p>
+     *
+     * @param requestCode Unique code associated with the permission request
+     * @param permissions The permission(s) being requested
+     * @param grantResults Results of the user's response
+     */
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {

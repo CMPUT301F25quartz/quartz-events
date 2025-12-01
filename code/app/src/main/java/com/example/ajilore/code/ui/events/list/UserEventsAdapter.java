@@ -137,7 +137,7 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
          * @param onClick Callback for row or CTA button tap.
          */
         void bind(@NonNull EventRow row, @NonNull OnEventClick onClick) {
-            // 1) Poster image
+            //  Poster image
             //ivPoster.setImageResource(row.posterRes);
             if(row.posterUrl != null && row.posterUrl.startsWith("http")){
                 //This means that its a cloudinary image
@@ -150,7 +150,7 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
             }
                 //This means that its a cloudinary image
 
-            // 2) Title binding:
+            //  Title binding:
             //    - tvEventTitle = white ribbon on the banner (visual flare)
             //    - tvTitle      = main title text in content area
             //tvEventTitle.setText(row.title);

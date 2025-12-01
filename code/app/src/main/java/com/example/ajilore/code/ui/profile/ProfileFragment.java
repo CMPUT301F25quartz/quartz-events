@@ -43,7 +43,7 @@ import com.google.firebase.firestore.DocumentReference;
  *     It allows users to:
  *     <ul>
  *         <li>View their profile information including name, email and phone number</li>
- *         <li>Edit their profile information</li>
+ *         <li>Edit their profile information including generating a profile picture</li>
  *         <li>Delete their account</li>
  *         <li>switch to organizer or admin mode if allowed</li>
  *         <li>sign out of their account</li>
@@ -51,12 +51,7 @@ import com.google.firebase.firestore.DocumentReference;
  * </p>
  * <p>
  *     The fragment also interacts with Firebase Authentication and Firestore to handle user identity and data persistence.
- * </p><b>Outstanding issues:</b>
- * <ul>
- *     <li> There are no profile pictures for the users</li>
- *     <li> When you go to the profile page as an existing user, your profile information is not displayed properly</li>
- * </ul>
- *
+ * </p>
  * @author
  * Temi Akindele
  */
@@ -93,11 +88,14 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Initializes Firebase, binds UI elements, and loads user profile information.
+     * Called after layout inflation. Binds UI views, retrieves the user device ID,
+     * sets up toolbar interactions, attaches listeners, initializes Firestore,
+     * and loads current user profile information.
      *
-     * @param v Root view after layout inflation
-     * @param savedInstanceState Previously saved state (if any)
+     * @param v Root view returned by {@link #onCreateView}
+     * @param savedInstanceState Previously saved state
      */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -132,7 +130,13 @@ public class ProfileFragment extends Fragment {
         loadProfile();
     }
 
-    /** Refreshes profile information whenever the fragment becomes visible again. */
+    /**
+     * Refreshes user profile information every time the fragment becomes visible.
+     *
+     * <p>This ensures edited profile data appears immediately after returning
+     * from {@link EditProfileFragment}.</p>
+     */
+
     @Override
     public void onResume() {
         super.onResume();
@@ -141,11 +145,19 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Handles toolbar (3-dot) menu item clicks.
+     * Handles clicks on the profile toolbar's overflow menu (3-dot menu).
      *
-     * @param item Menu item selected by the user
-     * @return true if handled successfully, false otherwise
+     * Supported actions:
+     * <ul>
+     *     <li>Switch to organizer view</li>
+     *     <li>Launch admin mode (if authorized)</li>
+     *     <li>Sign out and return to {@link LoginFragment}</li>
+     * </ul>
+     *
+     * @param item Selected menu item
+     * @return {@code true} if the event was handled, else {@code false}
      */
+
     private boolean onMenuItemClick(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_switch_organizer) {
@@ -176,10 +188,15 @@ public class ProfileFragment extends Fragment {
         return false;
     }
     /**
-     * Loads user profile information from Firestore and updates the UI.
-     * <p>
-     * Displays default placeholders if user data is unavailable.
+     * Loads the user's profile document from Firestore using their device ID
+     * and populates the UI with name, email, phone number, and profile picture.
+     *
+     * <p>If the profile does not exist, default placeholder text and icons are shown.</p>
+     *
+     * <p>Handles UI safety by checking {@code isAdded()} to avoid crashes
+     * when fragment is no longer attached.</p>
      */
+
     private void loadProfile() {
         db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
                     if (!isAdded() || getActivity() == null) {
@@ -190,8 +207,6 @@ public class ProfileFragment extends Fragment {
                         tvName.setText("Name: —");
                         tvEmail.setText("Email: —");
                         tvPhone.setText("Phone: —");
-                        // Default profile picture
-                        //imgProfile.setImageResource(R.drawable.circle_placeholder);
                         return;
                     }
                     String name = doc.getString("name");
@@ -224,8 +239,12 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Opens the Edit Profile screen by replacing the current fragment.
+     * Navigates to {@link EditProfileFragment} for updating profile details.
+     *
+     * <p>Uses fragment transaction with {@code addToBackStack} so the user
+     * can return to the profile screen.</p>
      */
+
     private void openEditProfile(){
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -234,7 +253,9 @@ public class ProfileFragment extends Fragment {
                 .commit();
     }
     /**
-     * Displays a confirmation dialog before permanently deleting the user's profile.
+     * Displays a confirmation dialog before permanently deleting the user's account.
+     *
+     * <p>If confirmed, calls {@link #performDelete()}.</p>
      */
     private void confirmDelete() {
         new AlertDialog.Builder(requireContext())
@@ -245,13 +266,23 @@ public class ProfileFragment extends Fragment {
                 .show();
     }
     /**
-     * Deletes the user’s profile data from Firestore and Firebase Authentication.
-     * <p>
-     * If deletion fails due to authentication constraints, the user is signed out instead.
+     * Permanently deletes the user's account from Firestore, including:
+     *
+     * <ul>
+     *     <li>The user's main document in {@code users/{deviceId}}</li>
+     *     <li>All registrations under {@code users/{deviceId}/registrations}</li>
+     *     <li>All inbox messages under each registration</li>
+     *     <li>All waiting-list entries in any event</li>
+     *     <li>All inbox messages under each waiting-list entry</li>
+     * </ul>
+     *
+     * <p>After deletion, navigates back to {@link LoginFragment}.</p>
+     *
+     * <p><b>Note:</b> Because this uses the device ID instead of FirebaseAuth UID,
+     * actual FirebaseAuth account deletion is not required.</p>
      */
+
     private void performDelete() {
-        // 1) For every event, remove this device from waiting_list
-        //    AND clear its inbox under org_events/{eventId}/waiting_list/{deviceId}/inbox
         db.collection("org_events")
                 .get()
                 .addOnSuccessListener(events -> {
@@ -280,7 +311,6 @@ public class ProfileFragment extends Fragment {
                         waitingRef.delete();
                     }
 
-                    // 2) Delete registration history AND inbox under users/{deviceId}/registrations
                     db.collection("users")
                             .document(deviceId)
                             .collection("registrations")

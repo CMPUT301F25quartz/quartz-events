@@ -30,9 +30,29 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Fragment representing an inbox screen.
- * Use the  factory method to
- * create an instance with specific parameters.
+ * InboxFragment
+ *
+ * <p>Displays the authenticated user's notification inbox. Notifications are
+ * sourced from the Firestore path:</p>
+ *
+ * <pre>
+ * users/{deviceId}/registrations/{eventId}/inbox/{notificationId}
+ * </pre>
+ *
+ * <p>Supports the following features:</p>
+ * <ul>
+ *    <li>View notifications grouped by event</li>
+ *    <li>Mark notifications as read</li>
+ *    <li>Archive and unarchive notifications</li>
+ *    <li>Filter unread messages</li>
+ *    <li>Switch between inbox and archived tabs</li>
+ *    <li>Open event details directly from a notification</li>
+ *    <li>Navigate to Notification Settings</li>
+ * </ul>
+ *
+ * <p><b>Design Pattern:</b> Fragment as controller, with real-time Firestore
+ * listeners. UI state is delegated to {@link NotificationAdapter}, while data
+ * persistence is handled via Firestore batch updates.</p>
  */
 public class InboxFragment extends Fragment {
     private String userProfileUrl;
@@ -176,6 +196,14 @@ public class InboxFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Loads the user's profile document in Firestore in order to display their
+     * avatar image in notifications. Fetch is optional—if it fails, inbox
+     * still loads normally.
+     *
+     * <p>Once the profile is loaded or skipped, anonymous authentication is
+     * validated and notification listeners are attached.</p>
+     */
     private void loadUserProfileThenNotifications() {
         // If we somehow don't have a device ID, just proceed with notifications
         if (userId == null || userId.isEmpty()) {
@@ -233,6 +261,12 @@ public class InboxFragment extends Fragment {
     }
 
 
+    /**
+     * Ensures the device is signed into Firebase Authentication.
+     *
+     * <p>If no FirebaseUser is present, signs in anonymously before loading
+     * notifications. If a user already exists, proceeds directly.</p>
+     */
     private void signInAnonymouslyIfNeeded() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
@@ -245,6 +279,19 @@ public class InboxFragment extends Fragment {
         }
     }
 
+    /**
+     * Adds snapshot listeners to all notification subcollections under:
+     *
+     * <pre>
+     * users/{deviceId}/registrations/{eventId}/inbox
+     * </pre>
+     *
+     * <p>Each registration (event) has its own inbox. Changes across all events
+     * are aggregated into {@code notificationList} (active inbox) and
+     * {@code archivedList}.</p>
+     *
+     * <p>Supports live updates via DocumentChange events.</p>
+     */
     private void loadUserNotifications() {
         FirebaseUser user = auth.getCurrentUser();
         //Use ID as the key, still require that FirebaseAuth is not null
@@ -335,6 +382,15 @@ public class InboxFragment extends Fragment {
         Toast.makeText(getContext(), "All notifications marked as read", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Marks a specific notification as read both in Firestore and in the
+     * local UI model.
+     *
+     * <p>This ensures the unread badge updates instantly and the item’s
+     * styling changes (greyed out).</p>
+     *
+     * @param notification The notification that was opened or tapped.
+     */
     private void markNotificationAsRead(@NonNull NotificationModel notification) {
         if (userId == null || userId.isEmpty()) return;
         String eventId = notification.getEventId();

@@ -62,16 +62,31 @@ import com.cloudinary.android.callback.UploadCallback;
 import android.net.Uri;
 
 /**
- * A {@link Fragment} that provides a user interface for creating a new event.
- * <p>
- * This fragment contains a form with fields for event details such as title, type,
- * location, capacity, and various dates. It performs validation on user input and,
- * upon successful validation, saves the new event data to the Firebase Firestore
- * "org_events" collection.
+ * {@code CreateEventFragment} provides a full form interface allowing organizers
+ * to create or edit an event within the application.
+ *
+ * <p>This fragment supports:
+ * <ul>
+ *     <li>Creating brand-new events</li>
+ *     <li>Editing existing events when an {@code eventId} argument is provided</li>
+ *     <li>Uploading and previewing an event poster image via Cloudinary</li>
+ *     <li>Selecting dates for the event and registration windows using a Material-styled DatePicker</li>
+ *     <li>Enforcing Firestore permission rules (e.g., user bans, account deactivation)</li>
+ *     <li>Saving validated form data to the {@code org_events} Firestore collection</li>
+ * </ul>
+ * </p>
+ *
+ * <p>When editing an event, all previously saved values (title, dates, poster, etc.)
+ * are preloaded into the form. Otherwise, a blank form is shown for event creation.</p>
+ *
+ * <p><b>Poster Handling:</b> Users may attach an image from storage.
+ * The fragment uploads the image to Cloudinary and stores the resulting
+ * HTTPS URL under {@code posterUrl}.</p>
+ *
+ * @author
+ *      Temi Akindele
  */
 public class CreateEventFragment extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private TextInputEditText etTitle, etLocation, etDate, etRegOpens, etRegCloses;
     private TextView tvHeader;
@@ -121,8 +136,10 @@ public class CreateEventFragment extends Fragment {
     }
 
     /**
-     * Initializes the fragment, including poster picking launcher and argument parsing.
-     * @param savedInstanceState Saved bundle
+     * Initializes the fragment, sets up the poster picker launcher,
+     * and reads arguments such as {@code eventId} (for editing mode).
+     *
+     * @param savedInstanceState Saved instance state bundle, may be null.
      */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -388,15 +405,19 @@ public class CreateEventFragment extends Fragment {
 
 
     /**
-     * Validates all user input fields and, if valid, saves the event to Firestore.
-     * <p>
-     * This method performs the following steps:
-     * 1. Retrieves all text inputs from the form fields.
-     * 2. Performs null/empty checks on all required fields, setting errors if invalid.
-     * 3. Parses the capacity string into a numeric type.
-     * 4. If all data is valid, it constructs a data map and saves it as a new document
-     *    in the "org_events" Firestore collection.
-     * 5. Navigates back upon successful creation or displays an error on failure.
+     * Validates all form fields, checks Firebase user permissions,
+     * prepares an event object, uploads poster image if needed,
+     * and finally saves or updates the Firestore document.
+     *
+     * <p>Steps performed:</p>
+     * <ol>
+     *     <li>Read and trim all form fields</li>
+     *     <li>Validate required fields</li>
+     *     <li>Parse capacity to a numeric value</li>
+     *     <li>Check whether the organizer has permission to create events</li>
+     *     <li>Handle Cloudinary poster upload when applicable</li>
+     *     <li>Create or update the {@code org_events} Firestore document</li>
+     * </ol>
      */
     private void validateAndSave() {
 

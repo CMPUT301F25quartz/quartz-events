@@ -1,7 +1,31 @@
 package com.example.ajilore.code.ui.inbox;
 
 
-
+/**
+ * Model representing a single inbox notification for an entrant.
+ *
+ * <p>This class mirrors the Firestore structure stored under:</p>
+ * <pre>
+ * users/{deviceId}/registrations/{eventId}/inbox/{notificationId}
+ * </pre>
+ *
+ * <p>Each notification may include:</p>
+ * <ul>
+ *     <li>A reference to the related event</li>
+ *     <li>A message body written by the organizer</li>
+ *     <li>A formatted timestamp string</li>
+ *     <li>An optional sender profile image URL</li>
+ *     <li>A read/unread state</li>
+ *     <li>An action label (e.g., “See Details”)</li>
+ *     <li>A type (“general”, “chosen”, “selected”, etc.)</li>
+ * </ul>
+ *
+ * <p>Instances of this model are displayed inside the
+ * {@link com.example.ajilore.code.ui.inbox.NotificationAdapter} and controlled by
+ * {@link com.example.ajilore.code.ui.inbox.InboxFragment}.</p>
+ *
+ * <p>Firestore requires a public no-arg constructor for deserialization.</p>
+ */
 
 
 

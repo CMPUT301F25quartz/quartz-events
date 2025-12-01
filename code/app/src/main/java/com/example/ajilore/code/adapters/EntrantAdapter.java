@@ -12,6 +12,24 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * RecyclerView adapter used to display entrant information for different organizer views
+ * (Invited, Cancelled, Enrolled).
+ *
+ * <p>This adapter supports:</p>
+ * <ul>
+ *     <li>Dynamic row displays based on the list type (invited, cancelled, enrolled).</li>
+ *     <li>Showing entrant name, email, status, date, and cancellation reason (when relevant).</li>
+ *     <li>Callback handling via {@link OnEntrantClickListener} for row tap actions.</li>
+ * </ul>
+ *
+ * <p>Used by:</p>
+ * <ul>
+ *     <li>{@link com.example.ajilore.code.ui.events.list.InvitedEntrantsFragment}</li>
+ *     <li>{@link com.example.ajilore.code.ui.events.list.CancelledEntrantsFragment}</li>
+ *     <li>{@link com.example.ajilore.code.ui.events.list.EnrolledEntrantsFragment}</li>
+ * </ul>
+ */
 public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantViewHolder> {
     private List<Entrant> entrants;
     private OnEntrantClickListener listener;
@@ -25,15 +43,32 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         this.viewType = viewType;
     }
 
+    /**
+     * Updates the adapter with a new list of entrants.
+     *
+     * @param entrants List of {@link Entrant} objects to display.
+     */
     public void setEntrants(List<Entrant> entrants) {
         this.entrants = entrants;
         notifyDataSetChanged();
     }
 
+    /**
+     * Registers a listener that triggers whenever an entrant row is clicked.
+     *
+     * @param listener Callback implementing {@link OnEntrantClickListener}.
+     */
     public void setOnEntrantClickListener(OnEntrantClickListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Inflates the entrant row layout and creates a ViewHolder.
+     *
+     * @param parent  Parent ViewGroup into which the row will be attached.
+     * @param viewType Not used—single view type supported.
+     * @return A new {@link EntrantViewHolder}.
+     */
     @NonNull
     @Override
     public EntrantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -42,6 +77,12 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         return new EntrantViewHolder(view);
     }
 
+    /**
+     * Binds the data for a single entrant into the row UI.
+     *
+     * @param holder   The ViewHolder representing the row.
+     * @param position The position of the entrant in the adapter list.
+     */
     @Override
     public void onBindViewHolder(@NonNull EntrantViewHolder holder, int position) {
         if (entrants != null && position < entrants.size()) {
@@ -50,6 +91,9 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         }
     }
 
+    /**
+     * @return Number of entrants currently displayed.
+     */
     @Override
     public int getItemCount() {
         return entrants != null ? entrants.size() : 0;
@@ -67,6 +111,21 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
             reasonText = itemView.findViewById(R.id.text_entrant_reason);
         }
 
+        /**
+         * Binds an entrant's details into the row, adjusting the visible fields
+         * based on the adapter's view type (invited, cancelled, enrolled).
+         *
+         * <p>This includes:</p>
+         * <ul>
+         *     <li>Rendering the entrant's display status with color-coded badge</li>
+         *     <li>Formatting timestamps to "MMM dd, yyyy"</li>
+         *     <li>Showing cancellation reason only for cancelled entrants</li>
+         *     <li>Calling the click listener when a row is selected</li>
+         * </ul>
+         *
+         * @param entrant  The entrant record to bind.
+         * @param viewType The current list type being displayed.
+         */
         public void bind(Entrant entrant, String viewType) {
             nameText.setText(entrant.getName());
             emailText.setText(entrant.getEmail());
@@ -115,6 +174,22 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
             });
         }
 
+        /**
+         * Sets the entrant status label text and background color.
+         *
+         * <p>Color coding:</p>
+         * <ul>
+         *     <li>accepted → Green</li>
+         *     <li>declined → Red</li>
+         *     <li>pending → Orange</li>
+         *     <li>cancelled → Gray</li>
+         *     <li>enrolled → Blue</li>
+         *     <li>invited → Purple</li>
+         *     <li>default → Dark Gray</li>
+         * </ul>
+         *
+         * @param status The entrant's current status string.
+         */
         private void setStatusTextAndColor(String status) {
             statusText.setText(status.toUpperCase());
             int color;

@@ -14,6 +14,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * RecyclerView adapter responsible for displaying admin notification logs.
+ *
+ * <p>This adapter supports:</p>
+ * <ul>
+ *     <li>Displaying timestamp, audience, sender, event info, and message.</li>
+ *     <li>Dynamic filtering by search query and audience category
+ *         (waiting, selected, chosen, cancelled, all).</li>
+ *     <li>Efficient list updates using an internal full copy of logs.</li>
+ * </ul>
+ *
+ * <p>Used in: {@link com.example.ajilore.code.ui.admin.AdminNotificationLogsFragment}</p>
+ */
 public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogViewHolder> {
 
     private Context context;
@@ -26,6 +39,19 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
         this.logsFull = new ArrayList<>();
     }
 
+    /**
+     * RecyclerView adapter responsible for displaying admin notification logs.
+     *
+     * <p>This adapter supports:</p>
+     * <ul>
+     *     <li>Displaying timestamp, audience, sender, event info, and message.</li>
+     *     <li>Dynamic filtering by search query and audience category
+     *         (waiting, selected, chosen, cancelled, all).</li>
+     *     <li>Efficient list updates using an internal full copy of logs.</li>
+     * </ul>
+     *
+     * <p>Used in: {@link com.example.ajilore.code.ui.admin.AdminNotificationLogsFragment}</p>
+     */
     public void setLogs(List<NotificationLog> logs) {
         this.logs = new ArrayList<>(logs);
         this.logsFull = new ArrayList<>(logs);
@@ -34,10 +60,25 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
 
     // Filter by Event ID or Message content
     /**
-     * Filter logs by search text AND audience type.
+     * Filters logs by text query AND audience category.
      *
-     * @param text Search query (event ID or message)
-     * @param audienceFilter "all", "waiting", "selected", "chosen", or "cancelled"
+     * <p>Search is matched against:</p>
+     * <ul>
+     *     <li>Event ID</li>
+     *     <li>Notification message</li>
+     * </ul>
+     *
+     * <p>Audience filter can be one of:</p>
+     * <ul>
+     *     <li>"all"</li>
+     *     <li>"waiting"</li>
+     *     <li>"selected"</li>
+     *     <li>"chosen"</li>
+     *     <li>"cancelled"</li>
+     * </ul>
+     *
+     * @param text            Search text entered by the admin.
+     * @param audienceFilter  The selected audience category.
      */
     public void filter(String text, String audienceFilter) {
         logs.clear();
@@ -75,6 +116,13 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
         notifyDataSetChanged();
     }
 
+    /**
+     * Inflates the log row layout and creates the ViewHolder.
+     *
+     * @param parent  The parent view group.
+     * @param viewType Ignored (single view type).
+     * @return A new {@link LogViewHolder} instance.
+     */
     @NonNull
     @Override
     public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -82,11 +130,27 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
         return new LogViewHolder(view);
     }
 
+    /**
+     * Binds a single notification log item to the ViewHolder.
+     *
+     * <p>Handles:</p>
+     * <ul>
+     *     <li>Date formatting</li>
+     *     <li>Audience badge styling</li>
+     *     <li>Sender label</li>
+     *     <li>Event title / ID</li>
+     *     <li>Message visibility</li>
+     *     <li>Recipient count</li>
+     * </ul>
+     *
+     * @param holder   The ViewHolder with all UI references.
+     * @param position The index of the log in the display list.
+     */
     @Override
     public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
         NotificationLog log = logs.get(position);
 
-        // 1. Format and display timestamp
+        //Format and display timestamp
         if (log.getTimestamp() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault());
             holder.tvDate.setText(sdf.format(log.getTimestamp().toDate()));
@@ -94,7 +158,7 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvDate.setText("Date unknown");
         }
 
-        // 2. Display audience badge with recipient count
+        //Display audience badge with recipient count
         if (log.getAudience() != null) {
             String audienceText = log.getAudience().toUpperCase();
             holder.tvAudience.setText(audienceText);
@@ -106,7 +170,7 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvAudience.setBackgroundResource(R.drawable.bg_pill_grey);
         }
 
-        // 3. Display sender
+        //Display sender
         if (log.getSenderId() != null && !log.getSenderId().isEmpty()) {
             holder.tvSender.setText("Sent by: " + log.getSenderId());
             holder.tvSender.setVisibility(View.VISIBLE);
@@ -114,7 +178,7 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvSender.setVisibility(View.GONE);
         }
 
-        // 4. Display event TITLE (with ID as fallback)
+        //Display event TITLE (with ID as fallback)
         if (log.getEventTitle() != null && !log.getEventTitle().isEmpty()) {
             holder.tvEventInfo.setText(log.getEventTitle());
 
@@ -134,7 +198,7 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvEventId.setVisibility(View.GONE);
         }
 
-        // 5. Display message
+        //Display message
         if (log.getMessage() != null && !log.getMessage().isEmpty()) {
             holder.tvMessage.setText(log.getMessage());
             holder.tvMessage.setVisibility(View.VISIBLE);
@@ -142,7 +206,7 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
             holder.tvMessage.setVisibility(View.GONE);
         }
 
-        // 6. Display recipient count (if broadcast notification)
+        //Display recipient count (if broadcast notification)
         if (log.getRecipientCount() > 0) {
             String countText = "Sent to " + log.getRecipientCount() +
                     (log.getRecipientCount() == 1 ? " entrant" : " entrants");
@@ -154,7 +218,19 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
     }
 
     /**
-     * Sets the background style for audience badge based on type.
+     * Applies color styling to the audience pill badge based on audience type.
+     *
+     * <p>Mappings:</p>
+     * <ul>
+     *     <li>waiting → Grey/Blue badge</li>
+     *     <li>selected → Deep blue badge</li>
+     *     <li>chosen → Green badge</li>
+     *     <li>cancelled → Red badge</li>
+     *     <li>default → Grey badge</li>
+     * </ul>
+     *
+     * @param badge     TextView representing the audience pill.
+     * @param audience  Audience category string.
      */
     private void setAudienceBadgeStyle(TextView badge, String audience) {
         if (audience == null) {
@@ -180,9 +256,25 @@ public class AdminLogsAdapter extends RecyclerView.Adapter<AdminLogsAdapter.LogV
                 break;
         }
     }
+    /**
+     * @return Number of logs currently being displayed.
+     */
     @Override
     public int getItemCount() { return logs.size(); }
 
+    /**
+     * ViewHolder containing all UI references for a single log entry row.
+     *
+     * <p>Binds:</p>
+     * <ul>
+     *     <li>Date</li>
+     *     <li>Audience badge</li>
+     *     <li>Event title & ID</li>
+     *     <li>Message</li>
+     *     <li>Sender name</li>
+     *     <li>Recipient count</li>
+     * </ul>
+     */
     static class LogViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate, tvAudience, tvEventInfo, tvEventId, tvMessage, tvSender, tvRecipientCount;
 
