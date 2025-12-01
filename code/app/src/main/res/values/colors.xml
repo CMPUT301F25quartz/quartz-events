@@ -20,6 +20,9 @@
     <!-- App primary and secondary theme colors-->
     <color name="remove">#018786</color>
     <color name="removed">#03DAC5</color>
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
     <!-- Filter chip colors -->
     <color name="chip_selected">#5C6BC0</color>
     <color name="chip_unselected">#F5F5F5</color>
