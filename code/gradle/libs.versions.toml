@@ -14,6 +14,7 @@ firebaseStorage = "22.0.1"
 espressoIntents = "3.7.0"
 fragmentTesting = "1.8.9"
 espressoContrib = "3.7.0"
+firebaseFunctions = "22.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -30,6 +31,7 @@ firebase-storage = { group = "com.google.firebase", name = "firebase-storage", v
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+firebase-functions = { group = "com.google.firebase", name = "firebase-functions", version.ref = "firebaseFunctions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
