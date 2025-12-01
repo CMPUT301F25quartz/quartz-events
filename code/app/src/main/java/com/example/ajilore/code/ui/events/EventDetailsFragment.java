@@ -1,5 +1,7 @@
 package com.example.ajilore.code.ui.events;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.LayoutInflater;
@@ -15,12 +17,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -414,38 +420,62 @@ public class EventDetailsFragment extends Fragment {
      * Writes the current user to the event's waiting list in Firestore.
      */
     private void joinWaitingList() {
-        DocumentReference waitingListRef = db.collection("org_events")
-                .document(eventId)
-                .collection("waiting_list")
-                .document(userId);
 
-        Map<String, Object> entrant = new HashMap<>();
-        entrant.put("userId", userId);
-        entrant.put("joinedAt", FieldValue.serverTimestamp());
-        entrant.put("status", "waiting");
+        // Check user's location preference from Firestore
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(userDoc -> {
 
-        // Log the registration to the history collection
-        logRegistrationToHistory(userId, eventId, eventTitle);
-
-
-        waitingListRef.set(entrant)
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Successfully joined waiting list!",
-                                Toast.LENGTH_SHORT).show();
+                    boolean allowLocation = false;
+                    if (userDoc.exists()) {
+                        Boolean pref = userDoc.getBoolean("locationPreference");
+                        allowLocation = pref != null && pref;
                     }
-                    btnJoinLeave.setEnabled(true);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to join: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+
+                    if (!allowLocation) {
+                        saveWaitingListEntryWithoutLocation();
+                        return;
                     }
-                    btnJoinLeave.setEnabled(true);
+
+                    if (ActivityCompat.checkSelfPermission(requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+                        requestPermissions(
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                2010
+                        );
+                        return;
+                    }
+
+                    FusedLocationProviderClient fused =
+                            LocationServices.getFusedLocationProviderClient(requireContext());
+
+                    fused.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                            .addOnSuccessListener(location -> {
+
+                                double lat = 0.0;
+                                double lng = 0.0;
+
+                                if (location != null) {
+                                    lat = location.getLatitude();
+                                    lng = location.getLongitude();
+                                }
+
+                                saveWaitingListEntryWithLocation(lat, lng);
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(),
+                                        "Failed to get location. Joining without location.",
+                                        Toast.LENGTH_SHORT).show();
+
+                                saveWaitingListEntryWithoutLocation();
+                            });
                 });
     }
+
+
 
     /**
      * Removes the current user from the event's waiting list in Firestore.
@@ -742,5 +772,41 @@ public class EventDetailsFragment extends Fragment {
                                 "Failed to fetch event info: " + e.getMessage(),
                                 Toast.LENGTH_LONG).show());
     }
+
+    private void saveWaitingListEntryWithLocation(double lat, double lng) {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+        entrant.put("latitude", lat);
+        entrant.put("longitude", lng);
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+    private void saveWaitingListEntryWithoutLocation() {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+
 }
 

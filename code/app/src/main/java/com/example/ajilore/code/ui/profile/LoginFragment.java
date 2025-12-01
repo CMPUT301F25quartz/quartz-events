@@ -70,7 +70,6 @@ public class LoginFragment extends Fragment {
 
     private FirebaseFirestore db;
     // Location
-    private FusedLocationProviderClient fusedLocationClient;
     private String deviceId;
     private static final int LOCATION_REQUEST_CODE = 101;
     private MaterialSwitch switchLocation;
@@ -103,6 +102,17 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
+        //Firebase initialization
+        db = FirebaseFirestore.getInstance();
+
+
+        // Get stable device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
+
         // Bind views
         tilNameSignup   = v.findViewById(R.id.tilNameSignup);
         etNameSignup    = v.findViewById(R.id.etNameSignup);
@@ -117,23 +127,21 @@ public class LoginFragment extends Fragment {
         btnSignup      = v.findViewById(R.id.btnSignup);
 
         switchLocation = v.findViewById(R.id.switchLocation);
+        // Load saved preference so toggle shows correct state
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Boolean pref = doc.getBoolean("locationPreference");
+                        if (pref != null) switchLocation.setChecked(pref);
+                    }
+                });
+
 
 
         // Hide signup section initially
         groupSignup.setVisibility(View.GONE);
 
-        //Firebase initialization
-        db = FirebaseFirestore.getInstance();
 
-        // Location provider
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
-
-        // Get stable device ID
-        deviceId = Settings.Secure.getString(
-                requireContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID
-        );
-        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
 
         //Hide bottom nav during login
         ((MainActivity) requireActivity()).hideBottomNav();
@@ -160,6 +168,12 @@ public class LoginFragment extends Fragment {
                     //checking if the device id already exists in firestore
                     db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
                                 if (doc.exists()) {
+                                    boolean enabled = switchLocation.isChecked();
+
+                                    // update preference on every login
+                                    db.collection("users")
+                                            .document(deviceId)
+                                            .update("locationPreference", enabled);
                                     //device already exists
                                     groupSignup.setVisibility(View.GONE);
                                     Toast.makeText(getContext(), "Welcome back!", Toast.LENGTH_SHORT).show();
@@ -175,6 +189,25 @@ public class LoginFragment extends Fragment {
                                     Toast.makeText(getContext(), "Error" + err.getMessage(), Toast.LENGTH_LONG).show()
                             );
                 });
+
+        switchLocation.setOnCheckedChangeListener((button, checked) -> {
+            if (checked) {
+                if (ActivityCompat.checkSelfPermission(requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    requestPermissions(
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            LOCATION_REQUEST_CODE
+                    );
+                } else {
+                    saveLocationPreference(true);
+                }
+            } else {
+                saveLocationPreference(false);
+                Toast.makeText(getContext(), "Location disabled", Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
             // SIGNUP: create user doc then navigate
@@ -203,7 +236,7 @@ public class LoginFragment extends Fragment {
                             user.put("createdAt", FieldValue.serverTimestamp());
                             user.put("preferences", "yes");
                             user.put("profilepicture", null);
-                            user.put("locationEnabled", switchLocation.isChecked());
+                            user.put("locationPreference", switchLocation.isChecked());
 
                             // --- CRITICAL SECURITY CHECK ---
                             if (banDoc.exists()) {
@@ -222,41 +255,17 @@ public class LoginFragment extends Fragment {
                                 user.put("canCreateEvent", true); // Grant standard privileges
                             }
 
-
-                            if (!switchLocation.isChecked()) {
                                 saveUserToFirestore(user);
-                                return;
-                            }
-
-                            requestCurrentLocation(user);
                         });
             });
     }
 
-    private void requestCurrentLocation(Map<String, Object> user) {
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-
-            return;
-        }
-
-        fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                null
-        ).addOnSuccessListener(location -> {
-            if (location != null) {
-                user.put("latitude", location.getLatitude());
-                user.put("longitude", location.getLongitude());
-            }
-
-            saveUserToFirestore(user);
-
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Couldn't get location", Toast.LENGTH_SHORT).show();
-            saveUserToFirestore(user);
-        });
+    private void saveLocationPreference(boolean enabled) {
+        db.collection("users")
+                .document(deviceId)
+                .update("locationPreference", enabled)
+                .addOnSuccessListener(x -> Log.d("Login", "Location preference updated"))
+                .addOnFailureListener(e -> Log.e("Login", "Failed to update location preference", e));
     }
 
     private void saveUserToFirestore(Map<String, Object> user) {
@@ -308,6 +317,8 @@ public class LoginFragment extends Fragment {
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
             Toast.makeText(getContext(), "Location permission granted", Toast.LENGTH_SHORT).show();
+
+            saveLocationPreference(true);
         }
     }
 }

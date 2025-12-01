@@ -91,49 +91,37 @@ public class EntrantMapFragment extends Fragment implements OnMapReadyCallback {
                 .get()
                 .addOnSuccessListener(waitlistDocs -> {
 
-                    if (waitlistDocs.isEmpty()){
+                    if (waitlistDocs.isEmpty()) {
                         Log.d("MapDebug", "No entrants in waiting list.");
                         return;
                     }
-
-                    int total = waitlistDocs.size();
-                    final int[] loadedCount = {0};
-
                     for (var wlDoc : waitlistDocs) {
-                        String userId = wlDoc.getId();
 
-                        db.collection("users")
-                                .document(userId)
-                                .get()
-                                .addOnSuccessListener(userDoc -> {
+                        Double lat = wlDoc.getDouble("latitude");
+                        Double lng = wlDoc.getDouble("longitude");
 
-                                    loadedCount[0]++;
-                                    if (!userDoc.exists()) return;
+                        if (lat == null || lng == null) {
+                            Log.d("MapDebug", "User " + wlDoc.getId() + " has no location saved.");
+                            continue;
+                        }
 
-                                    Double lat = userDoc.getDouble("latitude");
-                                    Double lng = userDoc.getDouble("longitude");
-                                    String name = userDoc.getString("name");
+                        LatLng pos = new LatLng(lat, lng);
+                        entrantLocations.add(pos);
 
-                                    if (lat == null || lng == null) return;
-
-                                    LatLng pos = new LatLng(lat, lng);
-                                    entrantLocations.add(pos);
-
-
-                                    myMap.addMarker(new MarkerOptions()
-                                            .position(pos)
-                                            .title(name != null ? name : "User"));
-
-
-
-                                    if (loadedCount[0] == total) {
-                                        fitCameraToAllMarkers();
-                                    }
-                                });
+                        myMap.addMarker(new MarkerOptions()
+                                .position(pos)
+                                .title("Entrant"));
                     }
+
+                    fitCameraToAllMarkers();
                 })
-                .addOnFailureListener(e -> Log.e("MapError", e.getMessage()));
+                .addOnFailureListener(e ->
+                        Log.e("MapError", e.getMessage()));
     }
+
+
+
+
     private void fitCameraToAllMarkers() {
         if (entrantLocations.isEmpty()) return;
 
