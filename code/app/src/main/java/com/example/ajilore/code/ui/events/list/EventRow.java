@@ -1,7 +1,10 @@
 package com.example.ajilore.code.ui.events.list;
 
+import java.util.Date;
+
 /**
  * Model representing a single event row in the events feed, used by adapters for display.
+ * Includes additional fields needed for filtering functionality (US 01.01.04)
  */
 public class EventRow {
 
@@ -26,6 +29,20 @@ public class EventRow {
     /** Poster Cloudinary URL (if image is remote), or null. */
     public final String posterUrl; //Cloudinary url
 
+    // ========== Additional fields for filtering (US 01.01.04) ==========
+
+    /** Event category for category filtering (e.g., "Music & Concerts", "Sports") */
+    public String category;
+
+    /** Event start date/time for date range filtering */
+    public Date startsAt;
+
+    /** Registration open date for availability filtering */
+    public Date regOpens;
+
+    /** Registration close date for availability filtering */
+    public Date regCloses;
+
     /**
      * Constructs a new immutable event row for display in the feed.
      *
@@ -37,7 +54,8 @@ public class EventRow {
      * @param posterUrl  Remote URL to image (Cloudinary or similar); may be null.
      * @param status     String status to show in UI chips, e.g., "Open" or "Closed".
      */
-    public EventRow(String id, String title, String location, String dateText, int posterRes, String posterUrl, String status){
+    public EventRow(String id, String title, String location, String dateText,
+                    int posterRes, String posterUrl, String status) {
         this.id = id;
         this.title = title;
         this.location = location;
