@@ -102,6 +102,17 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
+        //Firebase initialization
+        db = FirebaseFirestore.getInstance();
+
+
+        // Get stable device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
+
         // Bind views
         tilNameSignup   = v.findViewById(R.id.tilNameSignup);
         etNameSignup    = v.findViewById(R.id.etNameSignup);
@@ -116,21 +127,21 @@ public class LoginFragment extends Fragment {
         btnSignup      = v.findViewById(R.id.btnSignup);
 
         switchLocation = v.findViewById(R.id.switchLocation);
+        // Load saved preference so toggle shows correct state
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Boolean pref = doc.getBoolean("locationPreference");
+                        if (pref != null) switchLocation.setChecked(pref);
+                    }
+                });
+
 
 
         // Hide signup section initially
         groupSignup.setVisibility(View.GONE);
 
-        //Firebase initialization
-        db = FirebaseFirestore.getInstance();
 
-
-        // Get stable device ID
-        deviceId = Settings.Secure.getString(
-                requireContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID
-        );
-        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
 
         //Hide bottom nav during login
         ((MainActivity) requireActivity()).hideBottomNav();
@@ -157,6 +168,12 @@ public class LoginFragment extends Fragment {
                     //checking if the device id already exists in firestore
                     db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
                                 if (doc.exists()) {
+                                    boolean enabled = switchLocation.isChecked();
+
+                                    // update preference on every login
+                                    db.collection("users")
+                                            .document(deviceId)
+                                            .update("locationPreference", enabled);
                                     //device already exists
                                     groupSignup.setVisibility(View.GONE);
                                     Toast.makeText(getContext(), "Welcome back!", Toast.LENGTH_SHORT).show();

@@ -420,144 +420,61 @@ public class EventDetailsFragment extends Fragment {
      * Writes the current user to the event's waiting list in Firestore.
      */
     private void joinWaitingList() {
+
+        // Check user's location preference from Firestore
         db.collection("users")
                 .document(userId)
                 .get()
                 .addOnSuccessListener(userDoc -> {
 
-                            boolean wantsLocation =
-                                    userDoc.getBoolean("locationPreference") != null &&
-                                            userDoc.getBoolean("locationPreference");
-
-                            if (!wantsLocation) {
-                                DocumentReference waitingListRef = db.collection("org_events")
-                                        .document(eventId)
-                                        .collection("waiting_list")
-                                        .document(userId);
-
-                                Map<String, Object> entrant = new HashMap<>();
-                                entrant.put("userId", userId);
-                                entrant.put("joinedAt", FieldValue.serverTimestamp());
-                                entrant.put("status", "waiting");
-
-                                // save history
-                                logRegistrationToHistory(userId, eventId, eventTitle);
-
-                                waitingListRef.set(entrant)
-                                        .addOnSuccessListener(aVoid -> {
-                                            if (isAdded()) {
-                                                Toast.makeText(requireContext(),
-                                                        "Successfully joined waiting list!",
-                                                        Toast.LENGTH_SHORT).show();
-                                            }
-                                            btnJoinLeave.setEnabled(true);
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            if (isAdded()) {
-                                                Toast.makeText(requireContext(),
-                                                        "Failed to join: " + e.getMessage(),
-                                                        Toast.LENGTH_LONG).show();
-                                            }
-                                            btnJoinLeave.setEnabled(true);
-                                        });
-                                return;
-                            }
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2010);
-            return;
-        }
-
-        FusedLocationProviderClient fused =
-                LocationServices.getFusedLocationProviderClient(requireContext());
-
-        fused.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                .addOnSuccessListener(location -> {
-
-                    double lat = 0.0;
-                    double lng = 0.0;
-
-                    if (location != null) {
-                        lat = location.getLatitude();
-                        lng = location.getLongitude();
+                    boolean allowLocation = false;
+                    if (userDoc.exists()) {
+                        Boolean pref = userDoc.getBoolean("locationPreference");
+                        allowLocation = pref != null && pref;
                     }
 
-                    DocumentReference waitingListRef = db.collection("org_events")
-                            .document(eventId)
-                            .collection("waiting_list")
-                            .document(userId);
+                    if (!allowLocation) {
+                        saveWaitingListEntryWithoutLocation();
+                        return;
+                    }
 
-                    Map<String, Object> entrant = new HashMap<>();
-                    entrant.put("userId", userId);
-                    entrant.put("joinedAt", FieldValue.serverTimestamp());
-                    entrant.put("status", "waiting");
-                    entrant.put("latitude", lat);
-                    entrant.put("longitude", lng);
+                    if (ActivityCompat.checkSelfPermission(requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
 
-                    // Log the registration to the history collection
-                    logRegistrationToHistory(userId, eventId, eventTitle);
+                        requestPermissions(
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                2010
+                        );
+                        return;
+                    }
 
+                    FusedLocationProviderClient fused =
+                            LocationServices.getFusedLocationProviderClient(requireContext());
 
-                    waitingListRef.set(entrant)
-                            .addOnSuccessListener(aVoid -> {
-                                if (isAdded()) {
-                                    Toast.makeText(requireContext(),
-                                            "Successfully joined waiting list!",
-                                            Toast.LENGTH_SHORT).show();
+                    fused.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                            .addOnSuccessListener(location -> {
+
+                                double lat = 0.0;
+                                double lng = 0.0;
+
+                                if (location != null) {
+                                    lat = location.getLatitude();
+                                    lng = location.getLongitude();
                                 }
-                                btnJoinLeave.setEnabled(true);
+
+                                saveWaitingListEntryWithLocation(lat, lng);
                             })
                             .addOnFailureListener(e -> {
-                                if (isAdded()) {
-                                    Toast.makeText(requireContext(),
-                                            "Failed to join: " + e.getMessage(),
-                                            Toast.LENGTH_LONG).show();
-                                }
-                                btnJoinLeave.setEnabled(true);
+                                Toast.makeText(requireContext(),
+                                        "Failed to get location. Joining without location.",
+                                        Toast.LENGTH_SHORT).show();
+
+                                saveWaitingListEntryWithoutLocation();
                             });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(),
-                            "Failed to get location.Joining without location.",
-                            Toast.LENGTH_SHORT).show();
-
-                    DocumentReference waitingListRef = db.collection("org_events")
-                            .document(eventId)
-                            .collection("waiting_list")
-                            .document(userId);
-
-                    Map<String, Object> entrant = new HashMap<>();
-                    entrant.put("userId", userId);
-                    entrant.put("joinedAt", FieldValue.serverTimestamp());
-                    entrant.put("status", "waiting");
-
-                    logRegistrationToHistory(userId, eventId, eventTitle);
-
-                    waitingListRef.set(entrant);
-                });
-    })
-                .addOnFailureListener(e -> {
-                    // Could not check user preference → default safe behaviour
-                    Toast.makeText(requireContext(),
-                            "Error checking preferences. Joining without location.",
-                            Toast.LENGTH_SHORT).show();
-
-                    DocumentReference waitingListRef = db.collection("org_events")
-                            .document(eventId)
-                            .collection("waiting_list")
-                            .document(userId);
-
-                    Map<String, Object> entrant = new HashMap<>();
-                    entrant.put("userId", userId);
-                    entrant.put("joinedAt", FieldValue.serverTimestamp());
-                    entrant.put("status", "waiting");
-
-                    logRegistrationToHistory(userId, eventId, eventTitle);
-
-                    waitingListRef.set(entrant);
                 });
     }
+
 
 
     /**
@@ -855,5 +772,41 @@ public class EventDetailsFragment extends Fragment {
                                 "Failed to fetch event info: " + e.getMessage(),
                                 Toast.LENGTH_LONG).show());
     }
+
+    private void saveWaitingListEntryWithLocation(double lat, double lng) {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+        entrant.put("latitude", lat);
+        entrant.put("longitude", lng);
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+    private void saveWaitingListEntryWithoutLocation() {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+
 }
 
