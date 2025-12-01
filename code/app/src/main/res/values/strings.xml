@@ -82,4 +82,11 @@
     <string name="dismiss">Dismiss</string>
     <string name="settings">Settings</string>
 
+    <string name="action_icon_description">Action Icon</string>
+    <string name="event_accepted_message">You have accepted to attend this event</string>
+    <string name="event_declined_message">You have declined this invite and will be removed from the waitlist</string>
+    <string name="event_just_now">Just now</string>
+    <string name="ok">OK</string>
+    <string name="see_events">See Events</string>
+
 </resources>

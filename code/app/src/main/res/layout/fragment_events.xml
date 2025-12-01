@@ -8,41 +8,49 @@
     tools:context=".ui.events.EventsFragment"
     android:background="#FBFBFB">
 
-
-
-    <!-- Optional header bar -->
-    <TextView
+    <!-- Header bar with title and QR scan button -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Events"
-        android:textStyle="bold"
-        android:textSize="22sp"
-        android:textColor="#121212"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Events Title -->
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Events"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            android:textColor="#121212"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnScanQR" />
+
+        <!-- QR Code Scan Button -->
+        <ImageButton
+            android:id="@+id/btnScanQR"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Scan QR"
+            android:padding="8dp"
+            android:src="@drawable/ic_qr_code"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- The feed -->
-
-    <ImageButton
-        android:id="@+id/btnScanQR"
-        android:layout_width="80dp"
-        android:layout_height="100dp"
-        android:layout_marginEnd="4dp"
-        android:background="@android:color/transparent"
-        android:contentDescription="Scan QR"
-        android:padding="8dp"
-        android:src="@drawable/ic_qr_code"
-        app:layout_constraintBottom_toBottomOf="@id/header"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/header"
-        app:layout_constraintVertical_bias="0.228" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvEvents"
         android:layout_width="0dp"
@@ -50,11 +58,11 @@
         android:clipToPadding="false"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
-        android:paddingBottom="12dp"
-        app:layout_constraintTop_toBottomOf="@id/header"
+        android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header"
         tools:listitem="@layout/item_event" />
 
     <!-- Loading spinner -->
@@ -80,5 +88,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Floating Action Button for Filter (bottom-right corner) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Filter events"
+        android:src="@drawable/ic_filter"
+        app:tint="@android:color/white"
+        app:backgroundTint="#1976D2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
