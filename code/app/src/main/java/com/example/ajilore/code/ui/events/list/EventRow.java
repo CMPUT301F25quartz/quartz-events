@@ -43,6 +43,12 @@ public class EventRow {
     /** Registration close date for availability filtering */
     public Date regCloses;
 
+    /** Event latitude coordinate for location/distance filtering */
+    public Double latitude;
+
+    /** Event longitude coordinate for location/distance filtering */
+    public Double longitude;
+
     /**
      * Constructs a new immutable event row for display in the feed.
      *

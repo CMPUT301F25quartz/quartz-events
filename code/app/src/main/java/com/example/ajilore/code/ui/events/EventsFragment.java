@@ -28,6 +28,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +39,8 @@ import java.util.List;
  * - Location
  * - Category
  * - Availability
+ *
+ * Also provides sorting by status (Open -> Published -> Closed)
  */
 public class EventsFragment extends Fragment implements FilterEventsDialogFragment.OnFiltersAppliedListener {
 
@@ -50,6 +53,12 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
     private List<EventRow> allEvents = new ArrayList<>();
     private FilterEventsDialogFragment.EventFilters currentFilters;
     private FloatingActionButton btnFilter;
+    private ImageButton btnScanQr;
+
+    // User location for distance filtering
+    private Double userLatitude;
+    private Double userLongitude;
+    private String deviceId;
 
     @Nullable
     @Override
@@ -67,16 +76,35 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
 
         db = FirebaseFirestore.getInstance();
 
+        // Get device ID for user location lookup
+        deviceId = android.provider.Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                android.provider.Settings.Secure.ANDROID_ID
+        );
+
         // Initialize views
         rvEvents = view.findViewById(R.id.rvEvents);
         progress = view.findViewById(R.id.progress);
         emptyView = view.findViewById(R.id.emptyView);
         btnFilter = view.findViewById(R.id.btnFilter);
+        btnScanQr = view.findViewById(R.id.btnScanQR);
 
         // Setup RecyclerView
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new UserEventsAdapter(R.layout.item_event, this::onEventClick);
         rvEvents.setAdapter(adapter);
+
+        // Setup QR scan button
+        if (btnScanQr != null) {
+            btnScanQr.setOnClickListener(v -> {
+                Fragment fragment = new ScanQrFragment();
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, fragment)
+                        .addToBackStack(null)
+                        .commit();
+            });
+        }
 
         // Setup filter button
         if (btnFilter != null) {
@@ -86,8 +114,37 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
             });
         }
 
-        // Load events
-        loadAvailableEvents();
+        // Load user location, then load events
+        loadUserLocation();
+    }
+
+    /**
+     * Loads the current user's location from Firestore
+     */
+    private void loadUserLocation() {
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        userLatitude = doc.getDouble("latitude");
+                        userLongitude = doc.getDouble("longitude");
+
+                        if (userLatitude != null && userLongitude != null) {
+                            android.util.Log.d("EventsFragment",
+                                    "User location loaded: " + userLatitude + ", " + userLongitude);
+                        } else {
+                            android.util.Log.d("EventsFragment",
+                                    "User location not available");
+                        }
+                    }
+                    // Load events regardless of whether location was found
+                    loadAvailableEvents();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("EventsFragment",
+                            "Failed to load user location: " + e.getMessage());
+                    // Load events anyway
+                    loadAvailableEvents();
+                });
     }
 
     /**
@@ -116,46 +173,70 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
                 android.util.Log.d("Firebase", "Found " + snapshot.size() + " events");
 
                 for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                    String eventId = doc.getId();
-                    String title = doc.getString("title");
-                    String location = doc.getString("location");
-                    String status = doc.getString("status");
-                    String category = doc.getString("category");
-                    Timestamp startsAt = doc.getTimestamp("startsAt");
-                    Timestamp regOpens = doc.getTimestamp("regOpens");
-                    Timestamp regCloses = doc.getTimestamp("regCloses");
-                    String posterUrl = doc.getString("posterUrl");
+                    // Skip flagged events
+                    String dbStatus = doc.getString("status");
+                    if ("flagged".equals(dbStatus)) {
+                        continue;
+                    }
 
-                    android.util.Log.d("Firebase", "Event: " + title);
-                    android.util.Log.d("EventsCheck", "Event ID: " + eventId);
-
-                    String dateText = (startsAt != null)
-                            ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(startsAt.toDate())
-                            : "Date TBA";
-
-                    EventRow eventRow = new EventRow(
-                            eventId,
-                            title != null ? title : "Untitled Event",
-                            location != null ? location : "TBA",
-                            dateText,
-                            mapPoster(posterUrl),
-                            posterUrl,
-                            status != null ? status : ""
-                    );
-
-                    // Store additional data for filtering
-                    eventRow.category = category;
-                    eventRow.startsAt = startsAt != null ? startsAt.toDate() : null;
-                    eventRow.regOpens = regOpens != null ? regOpens.toDate() : null;
-                    eventRow.regCloses = regCloses != null ? regCloses.toDate() : null;
-
+                    EventRow eventRow = toEventRow(doc);
                     allEvents.add(eventRow);
+
+                    android.util.Log.d("Firebase", "Event: " + eventRow.title);
+                    android.util.Log.d("EventsCheck", "Event ID: " + eventRow.id);
                 }
             }
 
             applyFilters();
         });
+    }
+
+    /**
+     * Converts a Firestore document to an EventRow object
+     */
+    private EventRow toEventRow(DocumentSnapshot doc) {
+        String id = doc.getId();
+        String title = safe(doc.getString("title"), "Untitled Event");
+        String location = safe(doc.getString("location"), "TBA");
+        String category = doc.getString("category");
+        String posterUrl = doc.getString("posterUrl");
+
+        Timestamp startsAt = doc.getTimestamp("startsAt");
+        Timestamp regOpens = doc.getTimestamp("regOpens");
+        Timestamp regCloses = doc.getTimestamp("regCloses");
+
+        String dateText;
+        if (startsAt != null) {
+            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+            dateText = df.format(startsAt.toDate());
+        } else {
+            dateText = "Date TBA";
+        }
+
+        Date now = new Date();
+        String status = computeStatus(regOpens, regCloses, now);
+
+        EventRow eventRow = new EventRow(
+                id,
+                title,
+                location,
+                dateText,
+                mapPoster(posterUrl),
+                posterUrl,
+                status
+        );
+
+        // Store additional data for filtering
+        eventRow.category = category;
+        eventRow.startsAt = startsAt != null ? startsAt.toDate() : null;
+        eventRow.regOpens = regOpens != null ? regOpens.toDate() : null;
+        eventRow.regCloses = regCloses != null ? regCloses.toDate() : null;
+
+        // Store event location coordinates if available
+        eventRow.latitude = doc.getDouble("latitude");
+        eventRow.longitude = doc.getDouble("longitude");
+
+        return eventRow;
     }
 
     /**
@@ -188,7 +269,7 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
     }
 
     /**
-     * Apply filters to the event list
+     * Apply filters to the event list and sort by status
      */
     private void applyFilters() {
         List<EventRow> filtered = new ArrayList<>();
@@ -202,6 +283,13 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
                 }
             }
         }
+
+        // Sort by status: Open -> Published -> Closed
+        Collections.sort(filtered, (a, b) -> {
+            int rankA = statusRank(a.status);
+            int rankB = statusRank(b.status);
+            return Integer.compare(rankA, rankB);
+        });
 
         adapter.replaceAll(filtered);
 
@@ -239,9 +327,41 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
             }
         }
 
-        // Location filter (placeholder)
+        // Location filter
         if (currentFilters.locationRange != null) {
-            // TODO: Implement distance calculation
+            if (userLatitude == null || userLongitude == null) {
+                // User location not available, skip this filter
+                android.util.Log.d("EventsFragment",
+                        "Location filter requested but user location unavailable");
+            } else if (event.latitude != null && event.longitude != null) {
+                try {
+                    // Parse the location range string (e.g., "10km" -> 10.0)
+                    String rangeStr = currentFilters.locationRange.toLowerCase().replace("km", "").trim();
+                    double rangeKm = Double.parseDouble(rangeStr);
+
+                    // Calculate distance between user and event
+                    double distance = calculateDistance(
+                            userLatitude, userLongitude,
+                            event.latitude, event.longitude
+                    );
+
+                    android.util.Log.d("EventsFragment",
+                            "Event: " + event.title + ", Distance: " + String.format("%.2f km", distance) +
+                                    ", Range: " + rangeKm + " km");
+
+                    // Filter out events beyond the specified range
+                    if (distance > rangeKm) {
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    android.util.Log.e("EventsFragment",
+                            "Invalid location range format: " + currentFilters.locationRange);
+                }
+            } else {
+                // Event doesn't have location data, include it by default
+                android.util.Log.d("EventsFragment",
+                        "Event " + event.title + " has no location data");
+            }
         }
 
         // Availability filter
@@ -268,17 +388,69 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
         return true;
     }
 
-    private int mapPoster(String key) {
-        if (key == null) return R.drawable.jazz;
-        switch (key) {
-            case "jazz": return R.drawable.jazz;
-            case "band": return R.drawable.jazz;
-            case "jimi": return R.drawable.jazz;
-            case "gala": return R.drawable.jazz;
-            default: return R.drawable.jazz;
+    /**
+     * Helper function to compute the status based on registration window
+     */
+    private String computeStatus(Timestamp regStartTime, Timestamp regEndTime, Date now) {
+        if (regStartTime == null || regEndTime == null) {
+            return "Open";
+        }
+        Date start = regStartTime.toDate();
+        Date end = regEndTime.toDate();
+        if (now.before(start)) {
+            return "Upcoming";
+        } else if (now.after(end)) {
+            return "Closed";
+        } else {
+            return "Open";
         }
     }
 
+    /**
+     * Helper function to sort the events based on their status
+     * @param status The status string
+     * @return The rank of the status (lower is higher priority)
+     */
+    private int statusRank(String status) {
+        if (status == null) return 3;
+        String s = status.trim().toLowerCase();
+        if ("open".equals(s)) return 1;
+        if ("published".equals(s)) return 2;
+        if ("closed".equals(s)) return 3;
+        return 4; // anything else
+    }
+
+    /**
+     * Returns a string or a default if the value is null or empty.
+     * @param s The string to check
+     * @param def The default value
+     * @return The original string or the default if blank.
+     */
+    private String safe(String s, String def) {
+        return (s == null || s.trim().isEmpty()) ? def : s;
+    }
+
+    /**
+     * Converts a Firestore poster key to a drawable resource.
+     * @param key Poster key.
+     * @return The drawable resource ID.
+     */
+    private int mapPoster(String key) {
+        if (key == null) return R.drawable.jazz;
+        switch (key) {
+            case "jazz":
+            case "band":
+            case "jimi":
+            case "gala":
+                return R.drawable.jazz;
+            default:
+                return R.drawable.jazz;
+        }
+    }
+
+    /**
+     * Handles event click to navigate to details
+     */
     private void onEventClick(EventRow item) {
         Fragment detailsFragment = EventDetailsFragment.newInstance(item.id, item.title);
         requireActivity().getSupportFragmentManager()
@@ -286,5 +458,28 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
                 .replace(R.id.nav_host_fragment, detailsFragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    /**
+     * Calculates the distance between two geographic coordinates using the Haversine formula
+     * @param lat1 Latitude of first point
+     * @param lon1 Longitude of first point
+     * @param lat2 Latitude of second point
+     * @param lon2 Longitude of second point
+     * @return Distance in kilometers
+     */
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS_KM = 6371;
+
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_KM * c;
     }
 }

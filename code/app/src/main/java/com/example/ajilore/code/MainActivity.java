@@ -99,9 +99,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
         bottomNavigationView.setVisibility(View.GONE);
 
-        //hide the nav bar
-        //findViewById(R.id.menu_bottom_nav).setVisibility(View.GONE);
-
         db = FirebaseFirestore.getInstance();
 
         userId = Settings.Secure.getString(
@@ -113,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
             startInboxBadgeListener();
         }
 
-
-        // Apply window insets (should be right after setContentView)
         // Apply window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -122,26 +117,24 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // NEW: Check if current device has admin privileges
+        // Check if current device has admin privileges
         checkAdminStatus();
 
-        // Setup bottom navigation (unchanged)
+        // Setup bottom navigation
         setupBottomNavigation();
 
         // Check if we should navigate to a specific fragment
         handleNavigationIntent();
 
-
         if (savedInstanceState == null) {
             // Intercept startup to check for bans first
             checkBanStatusAndLogin();
         }
-        // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
-        // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
-        // Test Firebase connection (unchanged)
+
+        // Test Firebase connection
         testFirebaseConnection();
 
-        // Kulnoor ADDED: Check and request notification permission
+        // Check and request notification permission
         checkNotificationPermission();
     }
 
