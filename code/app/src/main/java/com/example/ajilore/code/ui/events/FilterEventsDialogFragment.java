@@ -200,7 +200,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
         cbStatusClosed.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 cbStatusOpen.setChecked(false);
-                availabilityFilter = "waiting";
+                availabilityFilter = "closed";
             } else if (!cbStatusOpen.isChecked()) {
                 availabilityFilter = null;
             }
@@ -217,18 +217,14 @@ public class FilterEventsDialogFragment extends DialogFragment {
         SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         tvSelectedMonth.setText(monthFormat.format(currentMonth.getTime()));
 
-        // Clear existing chips
         chipGroupDates.removeAllViews();
 
-        // Get days in month
         Calendar cal = (Calendar) currentMonth.clone();
         cal.set(Calendar.DAY_OF_MONTH, 1);
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        // Create chips for each day
         for (int day = 1; day <= daysInMonth; day++) {
-            cal.set(Calendar.DAY_OF_MONTH, day);
-            Date date = cal.getTime();
+            final int currentDay = day;  // ✅ Make final for lambda
 
             Chip chip = new Chip(requireContext());
             chip.setText(String.valueOf(day));
@@ -236,22 +232,36 @@ public class FilterEventsDialogFragment extends DialogFragment {
             chip.setChipBackgroundColorResource(R.color.chip_background_selector);
             chip.setTextColor(getResources().getColorStateList(R.color.chip_text_selector, null));
 
-            // Handle chip selection for date range
             chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
+                    // ✅ Create date with time set to midnight
+                    Calendar selectedCal = (Calendar) currentMonth.clone();
+                    selectedCal.set(Calendar.DAY_OF_MONTH, currentDay);
+                    selectedCal.set(Calendar.HOUR_OF_DAY, 0);
+                    selectedCal.set(Calendar.MINUTE, 0);
+                    selectedCal.set(Calendar.SECOND, 0);
+                    selectedCal.set(Calendar.MILLISECOND, 0);
+                    Date selectedDate = selectedCal.getTime();
+
                     if (startDate == null) {
-                        startDate = date;
+                        startDate = selectedDate;
                     } else if (endDate == null) {
-                        if (date.after(startDate)) {
-                            endDate = date;
+                        if (selectedDate.after(startDate)) {
+                            // ✅ FIXED: Clone currentMonth to preserve month/year
+                            Calendar endCal = (Calendar) selectedCal.clone();  // Changed this line
+                            endCal.set(Calendar.HOUR_OF_DAY, 23);
+                            endCal.set(Calendar.MINUTE, 59);
+                            endCal.set(Calendar.SECOND, 59);
+                            endCal.set(Calendar.MILLISECOND, 999);
+                            endDate = endCal.getTime();
                             selectDateRange();
                         } else {
                             clearDateSelection();
-                            startDate = date;
+                            startDate = selectedDate;
                         }
                     } else {
                         clearDateSelection();
-                        startDate = date;
+                        startDate = selectedDate;
                     }
                 }
             });
@@ -263,22 +273,57 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private void selectDateRange() {
         if (startDate == null || endDate == null) return;
 
-        Calendar start = Calendar.getInstance();
-        start.setTime(startDate);
-
-        Calendar end = Calendar.getInstance();
-        end.setTime(endDate);
-
         for (int i = 0; i < chipGroupDates.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupDates.getChildAt(i);
             int day = Integer.parseInt(chip.getText().toString());
 
             Calendar current = (Calendar) currentMonth.clone();
             current.set(Calendar.DAY_OF_MONTH, day);
+            current.set(Calendar.HOUR_OF_DAY, 0);
+            current.set(Calendar.MINUTE, 0);
+            current.set(Calendar.SECOND, 0);
+            current.set(Calendar.MILLISECOND, 0);
 
-            if (!current.getTime().before(startDate) && !current.getTime().after(endDate)) {
-                chip.setChecked(true);
-            }
+            // Check if date is in range
+            boolean inRange = !current.getTime().before(startDate) && !current.getTime().after(endDate);
+
+            // Remove listener temporarily to avoid triggering it when we programmatically check
+            chip.setOnCheckedChangeListener(null);
+            chip.setChecked(inRange);
+
+            // Re-attach the listener
+            final int currentDay = day;
+            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    Calendar selectedCal = (Calendar) currentMonth.clone();
+                    selectedCal.set(Calendar.DAY_OF_MONTH, currentDay);
+                    selectedCal.set(Calendar.HOUR_OF_DAY, 0);
+                    selectedCal.set(Calendar.MINUTE, 0);
+                    selectedCal.set(Calendar.SECOND, 0);
+                    selectedCal.set(Calendar.MILLISECOND, 0);
+                    Date selectedDate = selectedCal.getTime();
+
+                    if (startDate == null) {
+                        startDate = selectedDate;
+                    } else if (endDate == null) {
+                        if (selectedDate.after(startDate)) {
+                            Calendar endCal = (Calendar) selectedCal.clone();
+                            endCal.set(Calendar.HOUR_OF_DAY, 23);
+                            endCal.set(Calendar.MINUTE, 59);
+                            endCal.set(Calendar.SECOND, 59);
+                            endCal.set(Calendar.MILLISECOND, 999);
+                            endDate = endCal.getTime();
+                            selectDateRange();
+                        } else {
+                            clearDateSelection();
+                            startDate = selectedDate;
+                        }
+                    } else {
+                        clearDateSelection();
+                        startDate = selectedDate;
+                    }
+                }
+            });
         }
     }
 
