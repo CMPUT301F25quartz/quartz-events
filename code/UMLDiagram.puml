@@ -6,9 +6,14 @@ class Entrant {
 + uid : String
 + nameOrUid : String
 + displayStatus : String
++ profilePictureUrl : String
 }
 class InboxFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class OrganizerEntrantsActivity {
+# onCreate(arg0 : Bundle) : void
++ onSupportNavigateUp() : boolean
 }
 class User {
 + getUserId() : String
@@ -34,6 +39,11 @@ class OrganizerEventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
 }
+class EnrolledEntrantsFragment {
++ {static} newInstance(arg0 : String) : EnrolledEntrantsFragment
++ onCreate(arg0 : Bundle) : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
 class Entrant {
 + getName() : String
 + getEmail() : String
@@ -52,6 +62,24 @@ class CreateEventFragment {
 }
 class EventsScreenFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class FilterEventsDialogFragment {
++ {static} newInstance() : FilterEventsDialogFragment
++ {static} getCurrentFilters() : EventFilters
++ onCreateDialog(arg0 : Bundle) : Dialog
++ onStart() : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
++ onViewCreated(arg0 : View, arg1 : Bundle) : void
++ setFiltersListener(arg0 : OnFiltersAppliedListener) : void
+}
+interface FilterEventsDialogFragment$OnFiltersAppliedListener {
+}
+class FilterEventsDialogFragment$EventFilters {
++ startDate : Date
++ endDate : Date
++ categories : Set<String>
++ availabilityFilter : String
++ hasFilters() : boolean
 }
 class ImageItem {
 + imageUrl : String
@@ -98,6 +126,22 @@ class AdminLogsAdapter {
 }
 class AdminLogsAdapter$LogViewHolder {
 }
+class InvitedEntrantsFragment {
++ onCreate(arg0 : Bundle) : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class EntrantAdapter {
++ setEntrants(arg0 : List<Entrant>) : void
++ setOnEntrantClickListener(arg0 : OnEntrantClickListener) : void
++ onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EntrantViewHolder
++ onBindViewHolder(arg0 : EntrantViewHolder, arg1 : int) : void
++ getItemCount() : int
+}
+interface EntrantAdapter$OnEntrantClickListener {
+}
+class EntrantAdapter$EntrantViewHolder {
++ bind(arg0 : Entrant, arg1 : String) : void
+}
 class HistoryAdapter {
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : ViewHolder
 + onBindViewHolder(arg0 : ViewHolder, arg1 : int) : void
@@ -136,6 +180,11 @@ class WaitingListFragment {
 + {static} newInstance(arg0 : String) : WaitingListFragment
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
+}
+class EventStatusUpdater {
++ updateAllEventStatuses(arg0 : OnUpdateCompleteListener) : void
+}
+interface EventStatusUpdater$OnUpdateCompleteListener {
 }
 class WaitingListAdapter {
 + updateList(arg0 : List<Entrant>) : void
@@ -222,9 +271,6 @@ class ProfileFragment {
 + onResume() : void
 }
 class GeneralEventsFragment {
-# getRowLayoutId() : int
-# getEventsQuery() : Query
-# onEventClick(arg0 : EventRow) : void
 }
 class ManageEventQRFragment {
 + {static} newInstance(arg0 : String, arg1 : String) : ManageEventQRFragment
@@ -253,12 +299,15 @@ class AdminProfilesFragment {
 + onUserClick(arg0 : User) : void
 + onDeleteClick(arg0 : User) : void
 }
-abstract class EventsFragment {
-# getRowLayoutId() : {abstract}int
-# getEventsQuery() : {abstract}Query
-# onEventClick(arg0 : EventRow) : {abstract}void
+class CancelledEntrantsFragment {
++ onCreate(arg0 : Bundle) : void
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
+}
+class EventsFragment {
 + onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 + onViewCreated(arg0 : View, arg1 : Bundle) : void
++ onFiltersApplied(arg0 : FilterEventsDialogFragment.EventFilters) : void
++ onFiltersCancelled() : void
 }
 class AdminAuthManager {
 + {static} getDeviceId(arg0 : Context) : String
@@ -298,6 +347,14 @@ class EventRow {
 + status : String
 + posterRes : int
 + posterUrl : String
++ category : String
++ startsAt : Date
++ regOpens : Date
++ regCloses : Date
++ getId() : String
+}
+class NotificationSettingsFragment {
++ onCreateView(arg0 : LayoutInflater, arg1 : ViewGroup, arg2 : Bundle) : View
 }
 class NotificationModel {
 + getEventId() : String
@@ -378,6 +435,7 @@ class EntrantMapFragment {
 + onMapReady(arg0 : GoogleMap) : void
 }
 class OrganizerEventsAdapter {
++ setIsOrganizer(arg0 : boolean) : void
 + onCreateViewHolder(arg0 : ViewGroup, arg1 : int) : EventVH
 + onBindViewHolder(arg0 : EventVH, arg1 : int) : void
 + getItemCount() : int
@@ -386,16 +444,48 @@ interface OrganizerEventsAdapter$OnEventClick {
 }
 class OrganizerEventsAdapter$EventVH {
 }
+class Entrant {
++ getId() : String
++ setId(arg0 : String) : void
++ getUserId() : String
++ setUserId(arg0 : String) : void
++ getEventId() : String
++ setEventId(arg0 : String) : void
++ getName() : String
++ setName(arg0 : String) : void
++ getEmail() : String
++ setEmail(arg0 : String) : void
++ getPhone() : String
++ setPhone(arg0 : String) : void
++ getStatus() : String
++ setStatus(arg0 : String) : void
++ getReason() : String
++ setReason(arg0 : String) : void
++ getInvitedDate() : Timestamp
++ setInvitedDate(arg0 : Timestamp) : void
++ getResponseDate() : Timestamp
++ setResponseDate(arg0 : Timestamp) : void
++ getCancelledDate() : Timestamp
++ setCancelledDate(arg0 : Timestamp) : void
++ getEnrolledDate() : Timestamp
++ setEnrolledDate(arg0 : Timestamp) : void
+}
 class DeleteDialogHelper {
 + {static} showDeleteDialog(arg0 : Context, arg1 : String, arg2 : String, arg3 : Runnable) : void
 }
 
 
 Fragment <|-- InboxFragment
+AppCompatActivity <|-- OrganizerEntrantsActivity
 Serializable <|.. User
 Fragment <|-- OrganizerEventsFragment
+Fragment <|-- EnrolledEntrantsFragment
 Fragment <|-- CreateEventFragment
 Fragment <|-- EventsScreenFragment
+DialogFragment <|-- FilterEventsDialogFragment
+FilterEventsDialogFragment +.. FilterEventsDialogFragment$OnFiltersAppliedListener
+FilterEventsDialogFragment +.. FilterEventsDialogFragment$EventFilters
+Serializable <|.. FilterEventsDialogFragment$EventFilters
 Fragment <|-- ScanQrFragment
 OnImageActionListener <|.. AdminImagesFragment
 Fragment <|-- AdminImagesFragment
@@ -403,6 +493,11 @@ AppCompatActivity <|-- MainActivity
 Adapter <|-- AdminLogsAdapter
 AdminLogsAdapter +.. AdminLogsAdapter$LogViewHolder
 ViewHolder <|-- AdminLogsAdapter$LogViewHolder
+Fragment <|-- InvitedEntrantsFragment
+Adapter <|-- EntrantAdapter
+EntrantAdapter +.. EntrantAdapter$OnEntrantClickListener
+EntrantAdapter +.. EntrantAdapter$EntrantViewHolder
+ViewHolder <|-- EntrantAdapter$EntrantViewHolder
 Adapter <|-- HistoryAdapter
 HistoryAdapter +.. HistoryAdapter$OnHistoryClickListener
 HistoryAdapter +.. HistoryAdapter$ViewHolder
@@ -416,6 +511,7 @@ Fragment <|-- AdminEventsFragment
 EventNotifier +.. EventNotifier$Callback
 Fragment <|-- AdminNotificationLogsFragment
 Fragment <|-- WaitingListFragment
+EventStatusUpdater +.. EventStatusUpdater$OnUpdateCompleteListener
 Adapter <|-- WaitingListAdapter
 WaitingListAdapter +.. WaitingListAdapter$VH
 ViewHolder <|-- WaitingListAdapter$VH
@@ -444,6 +540,8 @@ EditProfileFragment +.. EditProfileFragment$SimpleWatcher
 TextWatcher <|.. EditProfileFragment$SimpleWatcher
 OnUserActionListener <|.. AdminProfilesFragment
 Fragment <|-- AdminProfilesFragment
+Fragment <|-- CancelledEntrantsFragment
+OnFiltersAppliedListener <|.. EventsFragment
 Fragment <|-- EventsFragment
 Fragment <|-- SelectEntrantsFragment
 SelectEntrantsFragment +.. SelectEntrantsFragment$OnCancelClick
@@ -453,6 +551,7 @@ Adapter <|-- SelectEntrantsFragment$SelectedAdapter
 SelectEntrantsFragment +.. SelectEntrantsFragment$VH
 ViewHolder <|-- SelectEntrantsFragment$VH
 Fragment <|-- AdminAboutFragment
+Fragment <|-- NotificationSettingsFragment
 AdminController +.. AdminController$DataCallback
 AdminController +.. AdminController$OperationCallback
 Adapter <|-- NotificationAdapter
