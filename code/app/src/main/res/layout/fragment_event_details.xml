@@ -171,7 +171,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layoutWaitingListInfo"
-                tools:text="Lottery Selection Process:\n\n• After registration closes, participants will be randomly selected\n• Selected participants will receive a notification\n• You must accept the invitation within the given timeframe\n• If someone declines, another participant will be drawn\n• Everyone on the waiting list has an equal chance of being selected" />
+                tools:text="Lottery Selection Process:\n\n• participants will be randomly selected\n• Selected participants will receive a notification\n• You must accept the invitation within the given timeframe\n• If someone declines, another participant will be drawn\n• Everyone on the waiting list has an equal chance of being selected" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

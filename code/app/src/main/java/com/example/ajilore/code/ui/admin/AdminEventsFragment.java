@@ -43,13 +43,6 @@ import java.util.List;
  *   <li>US 03.01.01 - As an administrator, I want to be able to remove events</li>
  * </ul>
  *
- * <p>Outstanding Issues:</p>
- * <ul>
- *   <li>Add confirmation dialog with event details before deletion</li>
- *   <li>Implement event status filters (Active/Closed/Upcoming)</li>
- *   <li>Add export functionality for event reports</li>
- * </ul>
- *
  * @author Dinma (Team Quartz)
  * @version 1.0
  * @since 2025-11-01

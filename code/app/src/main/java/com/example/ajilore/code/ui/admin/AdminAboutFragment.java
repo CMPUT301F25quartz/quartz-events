@@ -26,15 +26,28 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
- * Fragment displaying the admin dashboard with navigation options.
+ * AdminAboutFragment
  *
- * <p>This fragment serves as the main landing page for administrators,
- * displaying admin profile information (name + profile picture) and providing
- * navigation buttons to access different administrative functions (Events, Profiles, Images).</p>
+ * <p>Displays the administrator dashboard landing page. This fragment shows the
+ * administrator’s profile information (name + profile image) and provides
+ * navigation entry points to all admin-controlled areas of the app such as:</p>
  *
- * <p>Design Pattern: Fragment pattern serving as a navigation hub.</p>
+ * <ul>
+ *     <li>Admin Events Management</li>
+ *     <li>Admin User Profiles</li>
+ *     <li>Admin Image Storage</li>
+ *     <li>Notification Logs (via options menu)</li>
+ * </ul>
  *
- * @author Dinma (Team Quartz)
+ * <p>The admin profile is loaded from Firestore using the device ID as the
+ * document identifier in the {@code users} collection. This fragment also
+ * supports Glide loading of profile images and provides fallback UI when no
+ * image is available.</p>
+ *
+ * <p><b>Design Pattern:</b> Navigation hub fragment for admin-privileged screens.</p>
+ *
+ * @author
+ *     Dinma (Team Quartz)
  * @version 1.1
  * @since 2025-11-25
  */
@@ -92,6 +105,15 @@ public class AdminAboutFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Shows the top-right popup menu containing admin utility actions.
+     * <p>Currently includes:</p>
+     * <ul>
+     *     <li><b>Notification Logs</b> → navigates to {@link AdminNotificationLogsFragment}</li>
+     * </ul>
+     *
+     * @param v The view that anchors the popup menu.
+     */
     private void showOptionsMenu(View v) {
         PopupMenu popup = new PopupMenu(requireContext(), v);
         popup.getMenu().add(0, 1, 0, "Notification Logs");

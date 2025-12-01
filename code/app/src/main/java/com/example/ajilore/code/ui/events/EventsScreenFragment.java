@@ -28,7 +28,6 @@ import com.example.ajilore.code.R;
  * without the underlying event-fetching behavior.</p>
  *
  */
-
 //for the fragment_events screen. because EventsFragment is abstract
 public class EventsScreenFragment extends Fragment {
     @Nullable

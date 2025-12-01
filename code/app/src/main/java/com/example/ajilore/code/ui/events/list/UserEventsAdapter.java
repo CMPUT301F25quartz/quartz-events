@@ -131,7 +131,7 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
          * @param onClick Callback for row or CTA button tap.
          */
         void bind(@NonNull EventRow row, @NonNull OnEventClick onClick) {
-            // 1) Poster image
+            //  Poster image
             //ivPoster.setImageResource(row.posterRes);
             if(row.posterUrl != null && row.posterUrl.startsWith("http")){
                 //This means that its a cloudinary image
@@ -144,24 +144,24 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
             }
                 //This means that its a cloudinary image
 
-            // 2) Title binding:
+            //  Title binding:
             //    - tvEventTitle = white ribbon on the banner (visual flare)
             //    - tvTitle      = main title text in content area
             tvEventTitle.setText(row.title);
             tvTitle.setText(row.title);
 
-            // 3) Date badge text (your EventsFragment already formats row.dateText)
+            // Date badge text (your EventsFragment already formats row.dateText)
             tvDate.setText(row.dateText);
 
-            // 4) Location line
+            // Location line
             tvLocation.setText(row.location);
 
-            // 5) Optional waitlist (we don’t have a count in EventRow yet -> hide)
+            // Optional waitlist (we don’t have a count in EventRow yet -> hide)
             if (tvWaitlist != null) {
                 tvWaitlist.setVisibility(View.GONE);
             }
 
-            // 6) Optional status chip (show if non-empty; color is basic)
+            // Optional status chip (show if non-empty; color is basic)
             if (chipStatus != null) {
                 if (row.status == null || row.status.trim().isEmpty()) {
                     chipStatus.setVisibility(View.GONE);
@@ -179,12 +179,12 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
                 }
             }
 
-            // 7) Optional red registration banner — hide for now unless you later pass text
+            // Optional red registration banner — hide for now unless you later pass text
             if (tvRegClosesBanner != null) {
                 tvRegClosesBanner.setVisibility(View.GONE);
             }
 
-            // 8) Clicks: both the whole card and the CTA button route to onClick(row)
+            // Clicks: both the whole card and the CTA button route to onClick(row)
             itemView.setOnClickListener(v -> onClick.onClick(row));
             if (btnViewDetails != null) {
                 btnViewDetails.setOnClickListener(v -> onClick.onClick(row));

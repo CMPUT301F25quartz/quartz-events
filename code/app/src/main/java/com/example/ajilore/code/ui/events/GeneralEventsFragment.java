@@ -8,10 +8,20 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 /**
- * Fragment for the main "Events" tab.
- * Displays a scrollable, general list of events visible to all users,
- * using 'item_event.xml' for each list row.
- * Inherits presentation, adapter, and click behavior from EventsFragment.
+ * {@code GeneralEventsFragment} displays the main list of events visible to all users.
+ * <p>
+ * This fragment extends the abstract {@link EventsFragment} and supplies:
+ * <ul>
+ *     <li>The layout resource used for each event row</li>
+ *     <li>The Firestore query that retrieves events</li>
+ *     <li>The navigation behavior when a user taps an event</li>
+ * </ul>
+ *
+ * <p>It serves as the default "Events" tab in the application and shows
+ * all non-flagged events sorted by their starting date in ascending order.
+ * Rendering, list management, and loading indicators are handled by the parent
+ * {@link EventsFragment} class.</p>
+ *
  */
 public class GeneralEventsFragment extends EventsFragment {
 

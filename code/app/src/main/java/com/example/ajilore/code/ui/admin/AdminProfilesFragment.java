@@ -31,19 +31,42 @@ import com.example.ajilore.code.utils.DeleteDialogHelper;
 import java.util.List;
 
 /**
- * Fragment responsible for browsing and managing user profiles in the Admin Dashboard.
+ * AdminProfilesFragment
  *
- * <p>This fragment serves as the central hub for User Management, implementing the
- * following project requirements:</p>
+ * <p>Fragment responsible for browsing, searching, filtering, and managing user
+ * profiles within the Admin Dashboard. This serves as the central hub for User
+ * Management, integrating multiple admin flows and enforcing role-based
+ * constraints.</p>
+ *
+ * <h3>Implements the following requirements:</h3>
  * <ul>
- * <li><b>US 03.05.01 (Browse Profiles):</b> Lists all users with search and role filtering.</li>
- * <li><b>US 03.02.01 (Remove Profiles):</b> Allows deletion of standard entrant profiles.</li>
- * <li><b>US 03.07.01 (Remove Organizers):</b> specialized flow to deactivate organizers and flag their events.</li>
+ *     <li><b>US 03.05.01 – Browse Profiles:</b> Displays all users with search and
+ *         filter controls.</li>
+ *     <li><b>US 03.02.01 – Remove Profiles:</b> Admin can delete entrant accounts.</li>
+ *     <li><b>US 03.07.01 – Remove Organizers:</b> Admin can deactivate organizer
+ *         accounts and automatically flag their events.</li>
  * </ul>
  *
- * @author Dinma (Team Quartz)
+ * <h3>Functions of this screen:</h3>
+ * <ul>
+ *     <li>View all users with real-time filtering</li>
+ *     <li>Search by name, email, or device ID</li>
+ *     <li>Filter by role (All / Entrants / Organizers)</li>
+ *     <li>Tap an organizer to view created event history</li>
+ *     <li>Delete entrant accounts</li>
+ *     <li>Deactivate organizer accounts (special dialog + event flagging)</li>
+ * </ul>
+ *
+ * <p><b>Design Pattern:</b> Fragment as a controller with a thin UI-only role.
+ * Business operations and Firestore interaction are delegated to
+ * {@link AdminController}, while {@link AdminUsersAdapter} handles display +
+ * filtering.</p>
+ *
+ * @author
+ *     Dinma (Team Quartz)
  * @version 2.0
  */
+
 public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter.OnUserActionListener {
 
     // UI Components
@@ -78,8 +101,13 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Initializes view references from the layout.
+     * Initializes all view references from the inflated layout, including the
+     * RecyclerView, search bar, empty-state layout, loading indicator, back button,
+     * and role filter group.
+     *
+     * @param view The root view returned by onCreateView().
      */
+
     private void initializeViews(View view) {
         rvUsers = view.findViewById(R.id.rv_users);
         etSearch = view.findViewById(R.id.et_search_users);
@@ -90,7 +118,11 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Configures the RecyclerView with the AdminUsersAdapter.
+     * Configures the RecyclerView used for displaying user profiles.
+     *
+     * <p>Initializes the {@link AdminUsersAdapter} with this fragment as its
+     * callback listener, applies a vertical layout manager, and attaches the
+     * adapter to the RecyclerView.</p>
      */
     private void setupRecyclerView() {
         adapter = new AdminUsersAdapter(requireContext(), this);
@@ -99,7 +131,10 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Sets up the Back Button to navigate up the stack (back to Admin Dashboard).
+     * Configures the top-back button to navigate out of the profile manager.
+     *
+     * <p>Uses the host activity's OnBackPressedDispatcher to ensure correct
+     * navigation behavior regardless of the fragment stack.</p>
      */
     private void setupBackButton() {
         if (btnBack != null) {
@@ -111,8 +146,15 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Configures listeners for the Search Bar (TextWatcher) and Filter Tabs (RadioGroup).
-     * Both listeners trigger the adapter's filter method to update the list live.
+     * Attaches listeners for search and role filtering:
+     *
+     * <ul>
+     *     <li><b>TextWatcher:</b> Filters the user list dynamically as the admin types.</li>
+     *     <li><b>RadioGroup listener:</b> Filters the list to show All, Entrants, or Organizers.</li>
+     * </ul>
+     *
+     * <p>Both values (text query + role filter) are combined and passed to the
+     * adapter’s filtering function.</p>
      */
     private void setupSearchListeners() {
         // 1. Text Search Listener
@@ -148,7 +190,16 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Fetches the complete list of users from Firestore.
+     * Loads the full list of users from Firestore using {@link AdminController}.
+     *
+     * <p>Once retrieved:</p>
+     * <ul>
+     *     <li>Populates the adapter</li>
+     *     <li>Immediately applies the current text + role filters</li>
+     *     <li>Shows or hides the empty-state view</li>
+     * </ul>
+     *
+     * <p>Displays a loading spinner while data is being fetched.</p>
      */
     private void loadUsers() {
         showLoading(true);
@@ -180,8 +231,16 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Handles clicks on user rows.
-     * If the user is an Organizer, we show their event activity (Requirement).
+     * Handles taps on individual user rows.
+     *
+     * <p>Behavior is role dependent:</p>
+     * <ul>
+     *     <li><b>Organizers:</b> Opens a dialog showing all events they created so the admin can
+     *     review their activity before deactivation.</li>
+     *     <li><b>Entrants:</b> Shows a small informational toast (view-only behavior).</li>
+     * </ul>
+     *
+     * @param user The user the admin tapped.
      */
     @Override
     public void onUserClick(User user) {
@@ -193,10 +252,17 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     }
 
     /**
-     * Handles delete button clicks.
-     * Routes to different logic based on role:
-     * - Organizers get the Deactivation flow (US 03.07.01)
-     * - Entrants get the standard Delete flow (US 03.02.01)
+     * Handles delete-button clicks on user rows.
+     *
+     * <p>Behavior is role dependent:</p>
+     * <ul>
+     *     <li><b>Entrants:</b> Shows a standard delete confirmation dialog using
+     *         {@link DeleteDialogHelper} and removes the account.</li>
+     *     <li><b>Organizers:</b> Opens the specialized organizer-warning dialog,
+     *         informing admin that events will also be flagged.</li>
+     * </ul>
+     *
+     * @param user The user the admin wants to delete.
      */
     @Override
     public void onDeleteClick(User user) {
@@ -215,8 +281,13 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
     // ================= Dialog Helpers =================
 
     /**
-     * Displays a dialog listing the events created by an organizer.
-     * Allows Admin to inspect activity before deciding to deactivate.
+     * Displays a dialog listing all events created by an organizer.
+     *
+     * <p>This screen helps admins understand the organizer's activity before
+     * deactivation. The dialog also includes a shortcut button for removing the
+     * organizer.</p>
+     *
+     * @param user The organizer whose events should be displayed.
      */
     private void showOrganizerDetailsDialog(User user) {
         Toast.makeText(requireContext(), "Fetching organizer activity...", Toast.LENGTH_SHORT).show();
@@ -331,6 +402,12 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
 
     // ================= UI Helpers =================
 
+    /**
+     * Toggles the progress bar and RecyclerView visibility to indicate whether
+     * data is currently being loaded.
+     *
+     * @param show If true, show the progress indicator; otherwise hide it.
+     */
     private void showLoading(boolean show) {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -338,6 +415,10 @@ public class AdminProfilesFragment extends Fragment implements AdminUsersAdapter
         rvUsers.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Updates the visibility of the empty-state layout depending on whether the
+     * adapter currently has items to display after filtering.
+     */
     private void updateEmptyState() {
         boolean isEmpty = adapter.getItemCount() == 0;
         layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
