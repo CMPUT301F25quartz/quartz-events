@@ -94,6 +94,7 @@ public class EventDetailsFragment extends Fragment {
     private boolean isSelectedForLottery = false;
     private int waitingListCount = 0;
     private int capacity = 0;
+    private boolean isCapacityFull = false;
 
     /**
      * Factory for creating a new instance of this fragment for a specific event and user.
@@ -374,7 +375,14 @@ public class EventDetailsFragment extends Fragment {
                         }
 
                         waitingListCount = count;
-                        tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
+
+                        isCapacityFull = (capacity > 0 && waitingListCount >= capacity);
+                        if(capacity > 0){
+                            tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
+                        }else{
+                            tvWaitingListCount.setText("Waiting List: " + waitingListCount);
+                        }
+                        //tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
 
@@ -566,6 +574,15 @@ public class EventDetailsFragment extends Fragment {
             return;
         }
 
+        //Capacity Full: user can leave but not join
+        if(isCapacityFull && !isOnWaitingList){
+            btnJoinLeave.setText("Event Full");
+            btnJoinLeave.setEnabled(false);
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
+            return;
+        }
+
+        //)
         if (isOnWaitingList) {
             btnJoinLeave.setText("Leave ->");
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
