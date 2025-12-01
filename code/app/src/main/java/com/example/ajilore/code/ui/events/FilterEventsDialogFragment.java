@@ -38,11 +38,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private ImageButton btnPrevMonth;
     private ImageButton btnNextMonth;
     private ChipGroup chipGroupDates;
-    private CheckBox cbWithin10km;
-    private CheckBox cbWithin25km;
-    private CheckBox cbWithin50km;
-    private CheckBox cbMusicConcerts;
-    private CheckBox cbSports;
+    private CheckBox cbParty;
+    private CheckBox cbWorkshop;
+    private CheckBox cbOther;
     private CheckBox cbOpenForRegistration;
     private CheckBox cbWaitingListAvailable;
     private Button btnApplyFilter;
@@ -56,7 +54,6 @@ public class FilterEventsDialogFragment extends DialogFragment {
 
     // Filter data
     private Set<String> selectedCategories;
-    private String selectedLocationRange;
     private String availabilityFilter;
 
     // Callback interface
@@ -131,14 +128,10 @@ public class FilterEventsDialogFragment extends DialogFragment {
         btnNextMonth = view.findViewById(R.id.btnNextMonth);
         chipGroupDates = view.findViewById(R.id.chipGroupDates);
 
-        // Location
-        cbWithin10km = view.findViewById(R.id.cbWithin10km);
-        cbWithin25km = view.findViewById(R.id.cbWithin25km);
-        cbWithin50km = view.findViewById(R.id.cbWithin50km);
-
-        // Category
-        cbMusicConcerts = view.findViewById(R.id.cbMusicConcerts);
-        cbSports = view.findViewById(R.id.cbSports);
+        // Category (Event Type)
+        cbParty = view.findViewById(R.id.cbParty);
+        cbWorkshop = view.findViewById(R.id.cbWorkshop);
+        cbOther = view.findViewById(R.id.cbOther);
 
         // Availability
         cbOpenForRegistration = view.findViewById(R.id.cbOpenForRegistration);
@@ -169,51 +162,28 @@ public class FilterEventsDialogFragment extends DialogFragment {
             updateMonthDisplay();
         });
 
-        // Location checkboxes (single selection)
-        cbWithin10km.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        // Category checkboxes (multiple selection allowed)
+        cbParty.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                cbWithin25km.setChecked(false);
-                cbWithin50km.setChecked(false);
-                selectedLocationRange = "10km";
+                selectedCategories.add("party");
             } else {
-                selectedLocationRange = null;
+                selectedCategories.remove("party");
             }
         });
 
-        cbWithin25km.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        cbWorkshop.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                cbWithin10km.setChecked(false);
-                cbWithin50km.setChecked(false);
-                selectedLocationRange = "25km";
+                selectedCategories.add("workshop");
             } else {
-                selectedLocationRange = null;
+                selectedCategories.remove("workshop");
             }
         });
 
-        cbWithin50km.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        cbOther.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                cbWithin10km.setChecked(false);
-                cbWithin25km.setChecked(false);
-                selectedLocationRange = "50km";
+                selectedCategories.add("other");
             } else {
-                selectedLocationRange = null;
-            }
-        });
-
-        // Category checkboxes
-        cbMusicConcerts.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                selectedCategories.add("Music & Concerts");
-            } else {
-                selectedCategories.remove("Music & Concerts");
-            }
-        });
-
-        cbSports.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                selectedCategories.add("Sports");
-            } else {
-                selectedCategories.remove("Sports");
+                selectedCategories.remove("other");
             }
         });
 
@@ -222,7 +192,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
             if (isChecked) {
                 cbWaitingListAvailable.setChecked(false);
                 availabilityFilter = "open";
-            } else {
+            } else if (!cbWaitingListAvailable.isChecked()) {
                 availabilityFilter = null;
             }
         });
@@ -231,7 +201,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
             if (isChecked) {
                 cbOpenForRegistration.setChecked(false);
                 availabilityFilter = "waiting";
-            } else {
+            } else if (!cbOpenForRegistration.isChecked()) {
                 availabilityFilter = null;
             }
         });
@@ -326,7 +296,6 @@ public class FilterEventsDialogFragment extends DialogFragment {
         EventFilters filters = new EventFilters();
         filters.startDate = startDate;
         filters.endDate = endDate;
-        filters.locationRange = selectedLocationRange;
         filters.categories = new HashSet<>(selectedCategories);
         filters.availabilityFilter = availabilityFilter;
 
@@ -340,13 +309,9 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private void clearAllFilters() {
         clearDateSelection();
 
-        cbWithin10km.setChecked(false);
-        cbWithin25km.setChecked(false);
-        cbWithin50km.setChecked(false);
-        selectedLocationRange = null;
-
-        cbMusicConcerts.setChecked(false);
-        cbSports.setChecked(false);
+        cbParty.setChecked(false);
+        cbWorkshop.setChecked(false);
+        cbOther.setChecked(false);
         selectedCategories.clear();
 
         cbOpenForRegistration.setChecked(false);
@@ -369,7 +334,6 @@ public class FilterEventsDialogFragment extends DialogFragment {
     public static class EventFilters implements Serializable {
         public Date startDate;
         public Date endDate;
-        public String locationRange;
         public Set<String> categories;
         public String availabilityFilter;
 
@@ -380,7 +344,6 @@ public class FilterEventsDialogFragment extends DialogFragment {
         public boolean hasFilters() {
             return startDate != null ||
                     endDate != null ||
-                    locationRange != null ||
                     !categories.isEmpty() ||
                     availabilityFilter != null;
         }

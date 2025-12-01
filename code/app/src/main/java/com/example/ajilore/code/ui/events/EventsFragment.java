@@ -28,6 +28,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -55,9 +56,6 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
     private FloatingActionButton btnFilter;
     private ImageButton btnScanQr;
 
-    // User location for distance filtering
-    private Double userLatitude;
-    private Double userLongitude;
     private String deviceId;
 
     @Nullable
@@ -76,7 +74,7 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
 
         db = FirebaseFirestore.getInstance();
 
-        // Get device ID for user location lookup
+        // Get device ID
         deviceId = android.provider.Settings.Secure.getString(
                 requireContext().getContentResolver(),
                 android.provider.Settings.Secure.ANDROID_ID
@@ -114,37 +112,8 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
             });
         }
 
-        // Load user location, then load events
-        loadUserLocation();
-    }
-
-    /**
-     * Loads the current user's location from Firestore
-     */
-    private void loadUserLocation() {
-        db.collection("users").document(deviceId).get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        userLatitude = doc.getDouble("latitude");
-                        userLongitude = doc.getDouble("longitude");
-
-                        if (userLatitude != null && userLongitude != null) {
-                            android.util.Log.d("EventsFragment",
-                                    "User location loaded: " + userLatitude + ", " + userLongitude);
-                        } else {
-                            android.util.Log.d("EventsFragment",
-                                    "User location not available");
-                        }
-                    }
-                    // Load events regardless of whether location was found
-                    loadAvailableEvents();
-                })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("EventsFragment",
-                            "Failed to load user location: " + e.getMessage());
-                    // Load events anyway
-                    loadAvailableEvents();
-                });
+        // Load events
+        loadAvailableEvents();
     }
 
     /**
@@ -198,7 +167,7 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
         String id = doc.getId();
         String title = safe(doc.getString("title"), "Untitled Event");
         String location = safe(doc.getString("location"), "TBA");
-        String category = doc.getString("category");
+        String type = doc.getString("type");  // Changed from "category" to "type"
         String posterUrl = doc.getString("posterUrl");
 
         Timestamp startsAt = doc.getTimestamp("startsAt");
@@ -227,14 +196,10 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
         );
 
         // Store additional data for filtering
-        eventRow.category = category;
+        eventRow.category = type;  // Store "type" in category field for filtering
         eventRow.startsAt = startsAt != null ? startsAt.toDate() : null;
         eventRow.regOpens = regOpens != null ? regOpens.toDate() : null;
         eventRow.regCloses = regCloses != null ? regCloses.toDate() : null;
-
-        // Store event location coordinates if available
-        eventRow.latitude = doc.getDouble("latitude");
-        eventRow.longitude = doc.getDouble("longitude");
 
         return eventRow;
     }
@@ -309,58 +274,75 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
     private boolean matchesFilters(EventRow event) {
         if (currentFilters == null) return true;
 
-        // Date range filter
+        // Date range filter - Fixed to properly compare dates
         if (currentFilters.startDate != null && currentFilters.endDate != null) {
             if (event.startsAt == null) {
+                android.util.Log.d("EventsFragment",
+                        "Event " + event.title + " has no startsAt date, excluding from filter");
                 return false;
             }
-            if (event.startsAt.before(currentFilters.startDate) ||
-                    event.startsAt.after(currentFilters.endDate)) {
+
+            // Set time to start of day for comparison
+            Calendar eventCal = Calendar.getInstance();
+            eventCal.setTime(event.startsAt);
+            eventCal.set(Calendar.HOUR_OF_DAY, 0);
+            eventCal.set(Calendar.MINUTE, 0);
+            eventCal.set(Calendar.SECOND, 0);
+            eventCal.set(Calendar.MILLISECOND, 0);
+
+            Calendar startCal = Calendar.getInstance();
+            startCal.setTime(currentFilters.startDate);
+            startCal.set(Calendar.HOUR_OF_DAY, 0);
+            startCal.set(Calendar.MINUTE, 0);
+            startCal.set(Calendar.SECOND, 0);
+            startCal.set(Calendar.MILLISECOND, 0);
+
+            Calendar endCal = Calendar.getInstance();
+            endCal.setTime(currentFilters.endDate);
+            endCal.set(Calendar.HOUR_OF_DAY, 23);
+            endCal.set(Calendar.MINUTE, 59);
+            endCal.set(Calendar.SECOND, 59);
+            endCal.set(Calendar.MILLISECOND, 999);
+
+            Date eventDate = eventCal.getTime();
+            Date startDate = startCal.getTime();
+            Date endDate = endCal.getTime();
+
+            android.util.Log.d("EventsFragment",
+                    "Checking date for " + event.title +
+                            " - Event: " + eventDate +
+                            ", Range: " + startDate + " to " + endDate);
+
+            if (eventDate.before(startDate) || eventDate.after(endDate)) {
+                android.util.Log.d("EventsFragment",
+                        "Event " + event.title + " outside date range");
                 return false;
             }
         }
 
-        // Category filter
+        // Category filter - Fixed to use "type" field
         if (currentFilters.categories != null && !currentFilters.categories.isEmpty()) {
-            if (event.category == null || !currentFilters.categories.contains(event.category)) {
+            if (event.category == null) {
+                android.util.Log.d("EventsFragment",
+                        "Event " + event.title + " has no type/category");
                 return false;
             }
-        }
 
-        // Location filter
-        if (currentFilters.locationRange != null) {
-            if (userLatitude == null || userLongitude == null) {
-                // User location not available, skip this filter
-                android.util.Log.d("EventsFragment",
-                        "Location filter requested but user location unavailable");
-            } else if (event.latitude != null && event.longitude != null) {
-                try {
-                    // Parse the location range string (e.g., "10km" -> 10.0)
-                    String rangeStr = currentFilters.locationRange.toLowerCase().replace("km", "").trim();
-                    double rangeKm = Double.parseDouble(rangeStr);
-
-                    // Calculate distance between user and event
-                    double distance = calculateDistance(
-                            userLatitude, userLongitude,
-                            event.latitude, event.longitude
-                    );
-
-                    android.util.Log.d("EventsFragment",
-                            "Event: " + event.title + ", Distance: " + String.format("%.2f km", distance) +
-                                    ", Range: " + rangeKm + " km");
-
-                    // Filter out events beyond the specified range
-                    if (distance > rangeKm) {
-                        return false;
-                    }
-                } catch (NumberFormatException e) {
-                    android.util.Log.e("EventsFragment",
-                            "Invalid location range format: " + currentFilters.locationRange);
+            String eventType = event.category.toLowerCase().trim();
+            boolean matches = false;
+            for (String filterCategory : currentFilters.categories) {
+                if (eventType.equals(filterCategory.toLowerCase().trim())) {
+                    matches = true;
+                    break;
                 }
-            } else {
-                // Event doesn't have location data, include it by default
-                android.util.Log.d("EventsFragment",
-                        "Event " + event.title + " has no location data");
+            }
+
+            android.util.Log.d("EventsFragment",
+                    "Event " + event.title + " type: " + eventType +
+                            ", matches filter: " + matches);
+
+            if (!matches) {
+                return false;
             }
         }
 
@@ -458,28 +440,5 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
                 .replace(R.id.nav_host_fragment, detailsFragment)
                 .addToBackStack(null)
                 .commit();
-    }
-
-    /**
-     * Calculates the distance between two geographic coordinates using the Haversine formula
-     * @param lat1 Latitude of first point
-     * @param lon1 Longitude of first point
-     * @param lat2 Latitude of second point
-     * @param lon2 Longitude of second point
-     * @return Distance in kilometers
-     */
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS_KM = 6371;
-
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return EARTH_RADIUS_KM * c;
     }
 }

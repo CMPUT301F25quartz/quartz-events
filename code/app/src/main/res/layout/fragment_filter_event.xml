@@ -170,61 +170,6 @@
                 android:layout_marginTop="24dp"
                 android:background="#E0E0E0" />
 
-            <!-- LOCATION SECTION -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_location"
-                    app:tint="#FF6B6B" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Location"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <CheckBox
-                android:id="@+id/cbWithin10km"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="12dp"
-                android:text="Within 10km"
-                android:textColor="#333333" />
-
-            <CheckBox
-                android:id="@+id/cbWithin25km"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:text="Within 25km"
-                android:textColor="#333333" />
-
-            <CheckBox
-                android:id="@+id/cbWithin50km"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:text="Within 50km"
-                android:textColor="#333333" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp"
-                android:background="#E0E0E0" />
 
             <!-- CATEGORY SECTION -->
             <LinearLayout
@@ -250,22 +195,29 @@
                     android:textStyle="bold" />
 
             </LinearLayout>
-
             <CheckBox
-                android:id="@+id/cbMusicConcerts"
+                android:id="@+id/cbParty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="12dp"
-                android:text="Music &amp; Concerts"
+                android:text="Party"
                 android:textColor="#333333" />
 
             <CheckBox
-                android:id="@+id/cbSports"
+                android:id="@+id/cbWorkshop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:text="Sports"
+                android:text="Workshop"
+                android:textColor="#333333" />
+
+            <CheckBox
+                android:id="@+id/cbOther"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:text="Other"
                 android:textColor="#333333" />
 
             <View
