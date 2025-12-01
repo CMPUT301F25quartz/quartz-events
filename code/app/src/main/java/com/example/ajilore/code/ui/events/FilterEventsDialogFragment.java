@@ -56,7 +56,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private Set<String> selectedCategories;
     private String availabilityFilter;
 
-    // ✅ NEW: Store current filters to persist across dialog opens
+    // Store current filters to persist across dialog opens
     private static EventFilters currentFilters = new EventFilters();
 
     // Callback interface
@@ -71,7 +71,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
         return new FilterEventsDialogFragment();
     }
 
-    // ✅ NEW: Method to get current filters from outside
+    // Method to get current filters from outside
     public static EventFilters getCurrentFilters() {
         return currentFilters;
     }
@@ -116,7 +116,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
         currentMonth = Calendar.getInstance();
         selectedCategories = new HashSet<>();
 
-        // ✅ NEW: Restore previous filters
+        // Restore previous filters
         restorePreviousFilters();
 
         // Initialize views
@@ -128,11 +128,11 @@ public class FilterEventsDialogFragment extends DialogFragment {
         // Display current month
         updateMonthDisplay();
 
-        // ✅ NEW: Restore UI state after views are initialized
+        // Restore UI state after views are initialized
         restoreUIState();
     }
 
-    // ✅ NEW: Restore filters from static storage
+    // Restore filters from static storage
     private void restorePreviousFilters() {
         if (currentFilters != null) {
             startDate = currentFilters.startDate;

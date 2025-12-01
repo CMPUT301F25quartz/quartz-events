@@ -1,8 +1,8 @@
 package com.example.ajilore.code;
 
-import android.Manifest; // Kulnoor ADDED: Import for notification permission
+import android.Manifest; //  ADDED: Import for notification permission
 import android.content.Intent;
-import android.content.pm.PackageManager; // Kulnoor ADDED: Import for permission handling
+import android.content.pm.PackageManager; //  ADDED: Import for permission handling
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -14,8 +14,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat; // Kulnoor ADDED: Import for requesting permissions
-import androidx.core.content.ContextCompat; // Kulnoor ADDED: Import for checking permissions
+import androidx.core.app.ActivityCompat; // ADDED: Import for requesting permissions
+import androidx.core.content.ContextCompat; //  ADDED: Import for checking permissions
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -72,6 +72,14 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
     private boolean isAdmin = false;  // NEW: Track if current user is admin
+
+    /**
+     * Called when the activity is first created.
+     * Initializes Cloudinary, Firestore, navigation, ban checks, and inbox listeners.
+     *
+     * @param savedInstanceState previously saved instance state, or {@code null}
+     *                           if this is a fresh launch
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,15 +138,20 @@ public class MainActivity extends AppCompatActivity {
             // Intercept startup to check for bans first
             checkBanStatusAndLogin();
         }
-
-        // Test Firebase connection
+        // Load default fragment on startup if (savedInstanceState == null) { getSupportFragmentManager().beginTransaction() .replace(R.id.nav_host_fragment, new OrganizerEventsFragment()) .commit(); //highlight the correct tab in the bottom nav
+        // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);  // Test Firebase connection testFirebaseConnection();
+        // Test Firebase connection (unchanged)
         testFirebaseConnection();
 
-        // Check and request notification permission
+        // Kulnoor ADDED: Check and request notification permission
         checkNotificationPermission();
     }
 
-    // Kulnoor ADDED: Method to check and request notification permission for Android 13+
+    //  ADDED: Method to check and request notification permission for Android 13+
+    /**
+     * Checks and requests the POST_NOTIFICATIONS permission on Android 13+.
+     * If the permission is not granted, a runtime permission request is issued.
+     */
     private void checkNotificationPermission() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -209,12 +222,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Hides the bottom navigation bar.
+     * Used in cases where navigation should be disabled, such as when a user is banned.
+     */
     public void hideBottomNav() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setVisibility(View.GONE);
         }
     }
 
+
+    /**
+     * Opens the event details screen when a notification in the inbox is tapped.
+     * Fetches the event document to retrieve the title and passes it to {@link EventDetailsFragment}.
+     *
+     * @param eventId the Firestore document ID of the event in the {@code org_events} collection
+     */
 
     public void openEventDetailsFromInbox(@NonNull String eventId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -245,6 +269,13 @@ public class MainActivity extends AppCompatActivity {
                 ).show());
     }
 
+
+    /**
+     * Updates the inbox badge on the bottom navigation bar with the total number of unread messages.
+     * If the count is zero or negative, the badge is hidden.
+     *
+     * @param unreadCount total number of unread, non-archived inbox messages across all events
+     */
 
     public void updateInboxBadge(int unreadCount) {
         BottomNavigationView nav = findViewById(R.id.menu_bottom_nav); // View id
@@ -356,7 +387,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d("NAVIGATION", "Navigated to: " + tag);
     }
 
-
+    /**
+     * Initializes and wires up the bottom navigation bar.
+     * Sets the fragment that should be displayed for each bottom nav item.
+     */
 
     private void setupBottomNavigation() {
         bottomNavigationView = findViewById(R.id.menu_bottom_nav);
@@ -419,6 +453,11 @@ public class MainActivity extends AppCompatActivity {
 //        });
 //    }
 
+    /**
+     * Simple Firestore smoke test to confirm connectivity and that
+     * the {@code org_events} collection is reachable.
+     * Logs and toasts the number of events found.
+     */
     private void testFirebaseConnection() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -452,6 +491,11 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Starts and maintains snapshot listeners used to update the inbox badge.
+     * Listens to the current user's registrations and, for each event, listens
+     * to unread, non-archived inbox messages to compute the total unread count.
+     */
     private void startInboxBadgeListener() {
         // Clean up previous if any
         if (registrationsListener != null) {

@@ -85,6 +85,7 @@ public class EventDetailsFragment extends Fragment {
     private ListenerRegistration eventListener;
     private ListenerRegistration waitingListStatusListener;
     private ListenerRegistration waitingListCountListener;
+    private static final String ARG_FILTERS = "filters";
 
 
     // US 01.01.01 & 01.01.02: Track waiting list status
@@ -106,7 +107,6 @@ public class EventDetailsFragment extends Fragment {
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
         args.putString(ARG_EVENT_TITLE, title);
-//        args.putString(ARG_USER_ID, userId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -685,6 +685,15 @@ public class EventDetailsFragment extends Fragment {
     */
 
     // response to invite
+    /**
+     * Handles the user's response to a waiting list invite.
+     * <p>
+     * Updates the waiting_list document for this user with their response
+     * (accepted or declined), sets a server timestamp, and updates the status.
+     * If the user declines, a replacement entrant is drawn from the waiting list.
+     *
+     * @param accepted {@code true} if the user accepts the spot, {@code false} if they decline
+     */
     private void handleRespondToInvite(boolean accepted) {
         if (eventId == null || userId == null) return;
 
@@ -739,6 +748,18 @@ public class EventDetailsFragment extends Fragment {
 
 
     //method to log the history of the events that the user has registered for in registrations collection
+
+    /**
+     * Logs a user's registration for an event into their registration history.
+     * <p>
+     * Fetches event details from the {@code org_events} collection, builds a history
+     * record, and stores it under {@code users/{userId}/registrations/{eventId}}.
+     *
+     * @param userId     the ID of the user whose history is being updated
+     * @param eventId    the ID of the event the user registered for
+     * @param eventTitle the title of the event (fallback if needed)
+     */
+
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,
                                           @NonNull String eventTitle) {
@@ -773,6 +794,16 @@ public class EventDetailsFragment extends Fragment {
                                 Toast.LENGTH_LONG).show());
     }
 
+    /**
+     * Saves a waiting list entry for the current user including their location.
+     * <p>
+     * Creates or updates the document under
+     * {@code org_events/{eventId}/waiting_list/{userId}} with join time,
+     * waiting status, and latitude/longitude, and logs the registration to history.
+     *
+     * @param lat latitude of the user's location at join time
+     * @param lng longitude of the user's location at join time
+     */
     private void saveWaitingListEntryWithLocation(double lat, double lng) {
         DocumentReference ref = db.collection("org_events")
                 .document(eventId)
@@ -791,6 +822,14 @@ public class EventDetailsFragment extends Fragment {
         ref.set(entrant);
     }
 
+
+    /**
+     * Saves a waiting list entry for the current user without any location data.
+     * <p>
+     * Creates or updates the document under
+     * {@code org_events/{eventId}/waiting_list/{userId}} with join time
+     * and waiting status only, and logs the registration to history.
+     */
     private void saveWaitingListEntryWithoutLocation() {
         DocumentReference ref = db.collection("org_events")
                 .document(eventId)
