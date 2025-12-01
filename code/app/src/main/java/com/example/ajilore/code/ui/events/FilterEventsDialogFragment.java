@@ -307,6 +307,7 @@ public class FilterEventsDialogFragment extends DialogFragment {
     }
 
     private void clearAllFilters() {
+        // Clear all selections in the UI
         clearDateSelection();
 
         cbParty.setChecked(false);
@@ -318,10 +319,13 @@ public class FilterEventsDialogFragment extends DialogFragment {
         cbStatusOpen.setChecked(false);
         availabilityFilter = null;
 
+        // Apply empty filters and dismiss
         EventFilters emptyFilters = new EventFilters();
         if (filtersListener != null) {
             filtersListener.onFiltersApplied(emptyFilters);
         }
+
+        dismiss();
     }
 
     public void setFiltersListener(OnFiltersAppliedListener listener) {
