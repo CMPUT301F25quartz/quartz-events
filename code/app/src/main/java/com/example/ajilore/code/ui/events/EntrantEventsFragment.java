@@ -42,7 +42,7 @@ public class EntrantEventsFragment extends Fragment {
     private final List<EventRow> eventsList = new ArrayList<>();
     private FirebaseFirestore db;
 
-    private String currentUserId = "user_temp_id"; // TODO: Replace with actual user ID from auth
+    private String currentUserId = "user_temp_id"; // TODO: Replace with actual user ID
 
     /**
      * Inflate the events list layout for entrants.

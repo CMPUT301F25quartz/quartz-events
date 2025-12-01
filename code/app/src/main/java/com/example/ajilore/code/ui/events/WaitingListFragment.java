@@ -137,7 +137,8 @@ public class WaitingListFragment extends Fragment {
         adapter = new WaitingListAdapter(requireContext(), entrantList);
         rvEntrants.setAdapter(adapter);
 
-        // NEW: Load and listen for real-time updates (added by Kulnoor)
+        // NEW: Load and listen for real-time updates
+
         loadAndListenForUpdates();
 
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -158,7 +159,16 @@ public class WaitingListFragment extends Fragment {
         });
     }
 
-    // NEW: Method to load data and set up real-time listener (added by Kulnoor)
+    // NEW: Method to load data and set up real-time listener
+    /**
+     * Subscribes to real-time updates on the waiting list for this event and
+     * rebuilds the entrant list whenever changes occur.
+     * <p>
+     * For each document in the {@code waiting_list} subcollection, this method
+     * derives a display status, fetches the corresponding user document to get
+     * their name and profile picture, updates the entrant list, and refreshes
+     * the summary statistics.
+     */
     private void loadAndListenForUpdates() {
         db.collection("org_events").document(eventId)
                 .collection("waiting_list")
@@ -210,13 +220,23 @@ public class WaitingListFragment extends Fragment {
                                     });
                         }
 
-                        // NEW: Update statistics in real-time (added by Kulnoor)
+                        // Update statistics in real-time
                         updateStatsFromFirestore(snap);
                     }
                 });
     }
 
-    // NEW: Method to update the entrant lists in real-time (added by Kulnoor)
+    // Method to update the entrant lists in real-time
+
+    /**
+     * Updates the in-memory entrant lists with a new or modified entrant and reapplies filters.
+     * <p>
+     * Any existing entries with the same UID are removed from both the visible and
+     * original lists, then the new entrant is added to the original list before
+     * calling {@link #applyFilters()}.
+     *
+     * @param newEntrant the entrant to insert or update
+     */
     private void updateEntrantList(Entrant newEntrant) {
         // NEW: Remove existing entrant with same UID if it exists (added by Kulnoor)
         entrantList.removeIf(entrant -> entrant.uid.equals(newEntrant.uid));
@@ -225,11 +245,22 @@ public class WaitingListFragment extends Fragment {
         // NEW: Add the updated entrant (added by Kulnoor)
         originalEntrantList.add(newEntrant);
 
-        // NEW: Apply current filter to update visible list (added by Kulnoor)
+        //  Apply current filter to update visible list
         applyFilters();
     }
 
-    // NEW: Method to update statistics from Firestore snapshot (added by Kulnoor)
+    //  Method to update statistics from Firestore snapshot
+
+    /**
+     * Recomputes and displays aggregate statistics for the waiting list.
+     * <p>
+     * Iterates over the snapshot of {@code waiting_list} documents, interprets
+     * the logical status (accepted, declined, pending, etc.), counts each category,
+     * and updates the summary TextViews and CSV export button visibility.
+     *
+     * @param snap the Firestore snapshot of the event's waiting list
+     */
+
     private void updateStatsFromFirestore(com.google.firebase.firestore.QuerySnapshot snap) {
         int total = 0, accepted = 0, declined = 0, pending = 0;
 
@@ -263,7 +294,7 @@ public class WaitingListFragment extends Fragment {
 
         total = snap.size();
 
-        // NEW: Update UI with new statistics (added by Kulnoor)
+        // Update UI with new statistics
         tvTotal.setText(total + " Total");
         tvAccepted.setText(accepted + " Accepted");
         tvDeclined.setText(declined + " Declined");
@@ -274,12 +305,24 @@ public class WaitingListFragment extends Fragment {
         }
     }
 
-    // NEW: Separate method to update adapter (added by Kulnoor)
+    //  Separate method to update adapter
+    /**
+     * Refreshes the adapter using the current search and filter settings.
+     * <p>
+     * This is a thin wrapper that simply delegates to {@link #applyFilters()}.
+     */
     private void updateAdapter() {
         applyFilters();
     }
 
-    // NEW: Method to show filter options dialog (added by Kulnoor)
+    // Method to show filter options dialog
+
+    /**
+     * Displays a dialog allowing the user to filter entrants by status.
+     * <p>
+     * Updates the {@code currentFilter} based on the selected option
+     * (All, Accepted, Declined, Pending) and reapplies filters to the list.
+     */
     private void showFilterOptions() {
         String[] filters = {"All", "Accepted/Enrolled", "Declined/Cancelled", "Pending/Invited"};
 
@@ -310,7 +353,14 @@ public class WaitingListFragment extends Fragment {
                 .show();
     }
 
-    // NEW: Method to apply both search and filter (added by Kulnoor)
+    //  Method to apply both search and filter
+    /**
+     * Applies the current text search and status filter to the entrant list,
+     * then updates the adapter and empty-state UI.
+     * <p>
+     * This method uses {@link #originalEntrantList} as the source of truth,
+     * and filters by name/UID and by logical status (accepted, declined, pending, etc.).
+     */
     private void applyFilters() {
         List<Entrant> filtered = new ArrayList<>();
         String searchTerm = etSearch.getText().toString().toLowerCase();
@@ -340,7 +390,7 @@ public class WaitingListFragment extends Fragment {
                     break;
             }
 
-            // NEW: Only add if both search and filter match (added by Kulnoor)
+            //  Only add if both search and filter match
             if (matchesSearch && matchesFilter) {
                 filtered.add(entrant);
             }
@@ -360,6 +410,15 @@ public class WaitingListFragment extends Fragment {
         applyFilters();
     }
 
+
+    /**
+     * Exports the list of accepted entrants for this event as a CSV file.
+     * <p>
+     * On Android Q and above, the file is written directly to the public
+     * Downloads directory via {@link android.provider.MediaStore}. On earlier
+     * versions, the CSV is written to the app cache and shared via an
+     * {@link android.content.Intent#ACTION_SEND} intent.
+     */
     private void exportAcceptedToCsv() {
         // 1) collect all accepted entrants for this event from the source list
         List<Entrant> accepted = new ArrayList<>();
@@ -456,6 +515,15 @@ public class WaitingListFragment extends Fragment {
     }
 
 
+    /**
+     * Escapes a string so it can be safely embedded in a CSV field.
+     * <p>
+     * Currently this replaces double quotes with doubled double quotes,
+     * which is the standard CSV escaping rule.
+     *
+     * @param value the raw string value to escape; may be {@code null}
+     * @return a non-null, escaped string safe for CSV output
+     */
     private String safeCsv(String value) {
         if(value == null) return "";
         return value.replace("\"", "\"\"");
