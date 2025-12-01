@@ -25,6 +25,7 @@ import com.example.ajilore.code.ui.events.list.WaitingListAdapter;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +53,14 @@ public class WaitingListFragment extends Fragment {
     private ImageButton btnFilter;
     private String currentFilter = "ALL"; // NEW: Current filter state: "ALL", "ACCEPTED", "DECLINED", "PENDING"
 
+    private ImageButton btnExportCsv;
+
     /**
      * Default public constructor for {@link WaitingListFragment}.
      * Required by the system for fragment instantiation.
      */
     public WaitingListFragment() {}
+
 
     /**
      * Factory method to create a new instance of {@link WaitingListFragment}
@@ -114,6 +118,11 @@ public class WaitingListFragment extends Fragment {
         tvPending = view.findViewById(R.id.tvPending);
         tvEmpty = view.findViewById(R.id.tvEmpty);
         etSearch = view.findViewById(R.id.etSearch);
+        btnExportCsv = view.findViewById(R.id.btn_export_csv);
+        if (btnExportCsv != null) {
+            btnExportCsv.setOnClickListener(v -> exportAcceptedToCsv());
+        }
+
 
         btnBack = view.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(x -> requireActivity().onBackPressed());
@@ -154,15 +163,13 @@ public class WaitingListFragment extends Fragment {
         db.collection("org_events").document(eventId)
                 .collection("waiting_list")
                 .addSnapshotListener((snap, err) -> {
-                    if (err != null) {
-                        Toast.makeText(requireContext(), "Error: " + err.getMessage(), Toast.LENGTH_LONG).show();
-                        return;
-                    }
+                    entrantList.clear();
+                    int total = 0, accepted = 0, declined = 0, pending = 0;
 
                     if (snap != null) {
-                        // NEW: Process each document and update lists in real-time (added by Kulnoor)
                         for (DocumentSnapshot d : snap.getDocuments()) {
                             String uid = d.getId();
+                            //String name = d.getString("name");
                             String status = d.getString("status");
                             String responded = d.getString("responded");
 
@@ -190,14 +197,15 @@ public class WaitingListFragment extends Fragment {
                                         if (userName == null || userName.isEmpty()) {
                                             userName = uid; // just use the device id
                                         }
-                                        Entrant newEntrant = new Entrant(uid, userName, finalDisplayStatus);
+                                        String photoUrl = userDoc.getString("profilepicture");
+                                        Entrant newEntrant = new Entrant(uid, userName, finalDisplayStatus, photoUrl);
 
                                         // NEW: Update existing entrant or add new one (added by Kulnoor)
                                         updateEntrantList(newEntrant);
                                     })
                                     .addOnFailureListener(e -> {
                                         // Handle case where user doc doesn't exist
-                                        Entrant newEntrant = new Entrant(uid, uid, finalDisplayStatus);
+                                        Entrant newEntrant = new Entrant(uid, uid, finalDisplayStatus,null);
                                         updateEntrantList(newEntrant);
                                     });
                         }
@@ -260,6 +268,10 @@ public class WaitingListFragment extends Fragment {
         tvAccepted.setText(accepted + " Accepted");
         tvDeclined.setText(declined + " Declined");
         tvPending.setText(pending + " Pending");
+
+        if (btnExportCsv != null) {
+            btnExportCsv.setVisibility(accepted > 0 ? View.VISIBLE : View.GONE);
+        }
     }
 
     // NEW: Separate method to update adapter (added by Kulnoor)
@@ -282,6 +294,7 @@ public class WaitingListFragment extends Fragment {
                         case 1:
                             // CHANGED: Set current filter to ACCEPTED (added by Kulnoor)
                             currentFilter = "ACCEPTED";
+
                             break;
                         case 2:
                             // CHANGED: Set current filter to DECLINED (added by Kulnoor)
@@ -346,4 +359,106 @@ public class WaitingListFragment extends Fragment {
         // CHANGED: Now calls applyFilters instead of direct filter (added by Kulnoor)
         applyFilters();
     }
+
+    private void exportAcceptedToCsv() {
+        // 1) collect all accepted entrants for this event from the source list
+        List<Entrant> accepted = new ArrayList<>();
+        for (Entrant e : originalEntrantList) {
+            if ("Accepted".equalsIgnoreCase(e.displayStatus)) {
+                accepted.add(e);
+            }
+        }
+
+        if (accepted.isEmpty()) {
+            Toast.makeText(requireContext(),
+                    "No accepted entrants to export.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 2) build CSV content
+        StringBuilder csv = new StringBuilder();
+        csv.append("Name,UID\n");
+        for (Entrant entrant : accepted) {
+            String name = safeCsv(entrant.nameOrUid);
+            String uid  = safeCsv(entrant.uid);
+            csv.append("\"").append(name).append("\",")
+                    .append("\"").append(uid).append("\"\n");
+        }
+        String csvContent = csv.toString();
+
+        String fileName = "final_list_" + (eventId != null ? eventId : "entrants") + ".csv";
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // 3a) API 29+ : save into public Downloads via MediaStore
+            try {
+                android.content.ContentResolver resolver = requireContext().getContentResolver();
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+                values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH,
+                        android.os.Environment.DIRECTORY_DOWNLOADS);
+
+                android.net.Uri collection =
+                        android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+
+                android.net.Uri item = resolver.insert(collection, values);
+                if (item == null) {
+                    Toast.makeText(requireContext(),
+                            "Failed to create download file.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                try (java.io.OutputStream os = resolver.openOutputStream(item)) {
+                    os.write(csvContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+
+                Toast.makeText(requireContext(),
+                        "Saved to Downloads as " + fileName,
+                        Toast.LENGTH_LONG).show();
+
+            } catch (Exception e) {
+                Toast.makeText(getContext(),
+                        "Error saving CSV: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            // 3b) API 24–28 : fall back to cache + share
+            try {
+                java.io.File dir = new java.io.File(requireContext().getCacheDir(), "qr");
+                if (!dir.exists()) dir.mkdirs();
+
+                java.io.File file = new java.io.File(dir, fileName);
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                    fos.write(csvContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+
+                android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                        requireContext(),
+                        requireContext().getPackageName() + ".fileprovider",
+                        file
+                );
+
+                android.content.Intent share = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                share.setType("text/csv");
+                share.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+                share.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                startActivity(android.content.Intent.createChooser(
+                        share, "Export final list of entrants CSV"));
+
+            } catch (Exception e) {
+                Toast.makeText(getContext(),
+                        "Error exporting CSV: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private String safeCsv(String value) {
+        if(value == null) return "";
+        return value.replace("\"", "\"\"");
+    }
+
 }

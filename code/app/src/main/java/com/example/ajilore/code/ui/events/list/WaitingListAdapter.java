@@ -16,6 +16,8 @@ import com.example.ajilore.code.ui.events.data.Entrant;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 /**
  * RecyclerView.Adapter for displaying a waiting list of Entrants in a RecyclerView.
@@ -136,8 +138,22 @@ public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.
                     break;
             }
 
+            if(e.profilePictureUrl != null && !e.profilePictureUrl.isEmpty()){
+                Glide.with(context)
+                        .load(e.profilePictureUrl)
+                        .placeholder(R.drawable.ic_avatar_placeholder)
+                        .error(R.drawable.ic_avatar_placeholder)
+                        .circleCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivAvatar);
 
-            ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+            }else{
+                ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+            }
+
+
+
+
         }
     }
 }
