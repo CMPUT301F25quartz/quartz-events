@@ -41,8 +41,8 @@ public class FilterEventsDialogFragment extends DialogFragment {
     private CheckBox cbParty;
     private CheckBox cbWorkshop;
     private CheckBox cbOther;
-    private CheckBox cbOpenForRegistration;
-    private CheckBox cbWaitingListAvailable;
+    private CheckBox cbStatusClosed;
+    private CheckBox cbStatusOpen;
     private Button btnApplyFilter;
     private Button btnClearFilter;
     private ImageButton btnBack;
@@ -134,8 +134,8 @@ public class FilterEventsDialogFragment extends DialogFragment {
         cbOther = view.findViewById(R.id.cbOther);
 
         // Availability
-        cbOpenForRegistration = view.findViewById(R.id.cbOpenForRegistration);
-        cbWaitingListAvailable = view.findViewById(R.id.cbWaitingListAvailable);
+        cbStatusClosed = view.findViewById(R.id.cbStatusClosed);
+        cbStatusOpen = view.findViewById(R.id.cbStatusOpen);
 
         // Action buttons
         btnApplyFilter = view.findViewById(R.id.btnApplyFilter);
@@ -188,20 +188,20 @@ public class FilterEventsDialogFragment extends DialogFragment {
         });
 
         // Availability checkboxes (single selection)
-        cbOpenForRegistration.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        cbStatusOpen.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                cbWaitingListAvailable.setChecked(false);
+                cbStatusClosed.setChecked(false);
                 availabilityFilter = "open";
-            } else if (!cbWaitingListAvailable.isChecked()) {
+            } else if (!cbStatusClosed.isChecked()) {
                 availabilityFilter = null;
             }
         });
 
-        cbWaitingListAvailable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        cbStatusClosed.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                cbOpenForRegistration.setChecked(false);
+                cbStatusOpen.setChecked(false);
                 availabilityFilter = "waiting";
-            } else if (!cbOpenForRegistration.isChecked()) {
+            } else if (!cbStatusOpen.isChecked()) {
                 availabilityFilter = null;
             }
         });
@@ -314,8 +314,8 @@ public class FilterEventsDialogFragment extends DialogFragment {
         cbOther.setChecked(false);
         selectedCategories.clear();
 
-        cbOpenForRegistration.setChecked(false);
-        cbWaitingListAvailable.setChecked(false);
+        cbStatusClosed.setChecked(false);
+        cbStatusOpen.setChecked(false);
         availabilityFilter = null;
 
         EventFilters emptyFilters = new EventFilters();

@@ -275,48 +275,34 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
         if (currentFilters == null) return true;
 
         // Date range filter - Fixed to properly compare dates
-        if (currentFilters.startDate != null && currentFilters.endDate != null) {
-            if (event.startsAt == null) {
-                android.util.Log.d("EventsFragment",
-                        "Event " + event.title + " has no startsAt date, excluding from filter");
-                return false;
+        if (event.startsAt != null) {
+
+            // Start date only
+            if (currentFilters.startDate != null) {
+                Calendar startCal = Calendar.getInstance();
+                startCal.setTime(currentFilters.startDate);
+                startCal.set(Calendar.HOUR_OF_DAY, 0);
+                startCal.set(Calendar.MINUTE, 0);
+                startCal.set(Calendar.SECOND, 0);
+                startCal.set(Calendar.MILLISECOND, 0);
+
+                if (event.startsAt.before(startCal.getTime())) {
+                    return false;
+                }
             }
 
-            // Set time to start of day for comparison
-            Calendar eventCal = Calendar.getInstance();
-            eventCal.setTime(event.startsAt);
-            eventCal.set(Calendar.HOUR_OF_DAY, 0);
-            eventCal.set(Calendar.MINUTE, 0);
-            eventCal.set(Calendar.SECOND, 0);
-            eventCal.set(Calendar.MILLISECOND, 0);
+            // End date only
+            if (currentFilters.endDate != null) {
+                Calendar endCal = Calendar.getInstance();
+                endCal.setTime(currentFilters.endDate);
+                endCal.set(Calendar.HOUR_OF_DAY, 23);
+                endCal.set(Calendar.MINUTE, 59);
+                endCal.set(Calendar.SECOND, 59);
+                endCal.set(Calendar.MILLISECOND, 999);
 
-            Calendar startCal = Calendar.getInstance();
-            startCal.setTime(currentFilters.startDate);
-            startCal.set(Calendar.HOUR_OF_DAY, 0);
-            startCal.set(Calendar.MINUTE, 0);
-            startCal.set(Calendar.SECOND, 0);
-            startCal.set(Calendar.MILLISECOND, 0);
-
-            Calendar endCal = Calendar.getInstance();
-            endCal.setTime(currentFilters.endDate);
-            endCal.set(Calendar.HOUR_OF_DAY, 23);
-            endCal.set(Calendar.MINUTE, 59);
-            endCal.set(Calendar.SECOND, 59);
-            endCal.set(Calendar.MILLISECOND, 999);
-
-            Date eventDate = eventCal.getTime();
-            Date startDate = startCal.getTime();
-            Date endDate = endCal.getTime();
-
-            android.util.Log.d("EventsFragment",
-                    "Checking date for " + event.title +
-                            " - Event: " + eventDate +
-                            ", Range: " + startDate + " to " + endDate);
-
-            if (eventDate.before(startDate) || eventDate.after(endDate)) {
-                android.util.Log.d("EventsFragment",
-                        "Event " + event.title + " outside date range");
-                return false;
+                if (event.startsAt.after(endCal.getTime())) {
+                    return false;
+                }
             }
         }
 
@@ -348,24 +334,23 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
 
         // Availability filter
         if (currentFilters.availabilityFilter != null) {
-            Date now = new Date();
 
-            if ("open".equals(currentFilters.availabilityFilter)) {
-                if (event.regOpens == null || event.regCloses == null) {
-                    return true;
-                }
-                if (now.before(event.regOpens) || now.after(event.regCloses)) {
-                    return false;
-                }
-            } else if ("waiting".equals(currentFilters.availabilityFilter)) {
-                if (event.regOpens == null || event.regCloses == null) {
-                    return true;
-                }
-                if (event.startsAt != null && now.after(event.startsAt)) {
-                    return false;
-                }
+            switch (currentFilters.availabilityFilter) {
+
+                case "open":
+                    if (!"open".equalsIgnoreCase(event.status)) {
+                        return false;
+                    }
+                    break;
+
+                case "closed":
+                    if (!"closed".equalsIgnoreCase(event.status)) {
+                        return false;
+                    }
+                    break;
             }
         }
+
 
         return true;
     }

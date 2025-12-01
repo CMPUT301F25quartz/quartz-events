@@ -252,21 +252,20 @@
             </LinearLayout>
 
             <CheckBox
-                android:id="@+id/cbOpenForRegistration"
+                android:id="@+id/cbStatusOpen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginTop="12dp"
-                android:text="Open for registration"
-                android:textColor="#333333" />
+                android:text="Open"
+                android:textColor="#333333"/>
 
             <CheckBox
-                android:id="@+id/cbWaitingListAvailable"
+                android:id="@+id/cbStatusClosed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:text="Waiting list available"
-                android:textColor="#333333" />
+                android:text="Closed"
+                android:textColor="#333333"/>
 
         </LinearLayout>
 
