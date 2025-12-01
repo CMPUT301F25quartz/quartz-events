@@ -8,7 +8,7 @@
     tools:context=".ui.events.EventsFragment"
     android:background="#FBFBFB">
 
-    <!-- Header bar with title and filter button -->
+    <!-- Header bar with title -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="0dp"
@@ -33,20 +33,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnFilter" />
-
-        <!-- Filter Button -->
-        <ImageButton
-            android:id="@+id/btnFilter"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Filter events"
-            android:src="@drawable/ic_filter"
-            app:tint="#1976D2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -58,13 +45,11 @@
         android:clipToPadding="false"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
-        android:paddingBottom="12dp"
+        android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintVertical_bias="1.0"
         tools:listitem="@layout/item_event" />
 
     <!-- Loading spinner -->
@@ -90,5 +75,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Floating Action Button for Filter (bottom-right corner) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Filter events"
+        android:src="@drawable/ic_filter"
+        app:tint="@android:color/white"
+        app:backgroundTint="#1976D2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

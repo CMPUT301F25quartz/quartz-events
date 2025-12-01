@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.list.EventRow;
 import com.example.ajilore.code.ui.events.list.UserEventsAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -48,7 +49,7 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
 
     private List<EventRow> allEvents = new ArrayList<>();
     private FilterEventsDialogFragment.EventFilters currentFilters;
-    private ImageButton btnFilter;
+    private FloatingActionButton btnFilter;
 
     @Nullable
     @Override
