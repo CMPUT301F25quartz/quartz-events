@@ -18,6 +18,8 @@ import com.google.firebase.firestore.*;
 
 import java.util.*;
 import com.example.ajilore.code.ui.events.EventNotifier;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 /**
  * SelectEntrantsFragment
@@ -243,12 +245,13 @@ public class SelectEntrantsFragment extends Fragment {
                                         if(userName == null || userName.isEmpty()){
                                             userName = uid; // use the device id
                                             }
-                                        selectedList.add(new Entrant(uid, userName, responded));
+                                        String photoUrl = userDoc.getString("profilepicture");
+                                        selectedList.add(new Entrant(uid, userName, responded, photoUrl));
                                         adapter.notifyDataSetChanged();
                                         tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
 
                                     }).addOnFailureListener(e1 -> {
-                                        selectedList.add(new Entrant(uid, uid, responded));
+                                        selectedList.add(new Entrant(uid, uid, responded, null));
                                         adapter.notifyDataSetChanged();
                                         tvEmpty.setVisibility(selectedList.isEmpty() ? View.VISIBLE : View.GONE);
                                     });
@@ -540,6 +543,9 @@ public class SelectEntrantsFragment extends Fragment {
         final String nameOrUid;
         final String responded; // pending/accepted/declined/null
 
+        final String profilePictureUrl;
+
+
 
         /**
          * Builds an entrant view-model for the list.
@@ -549,10 +555,11 @@ public class SelectEntrantsFragment extends Fragment {
          * @param responded  pending/accepted/declined
          */
 
-        Entrant(String uid, @Nullable String name, @Nullable String responded) {
+        Entrant(String uid, @Nullable String name, @Nullable String responded, @Nullable String profilePictureUrl) {
             this.uid = uid;
             this.nameOrUid = TextUtils.isEmpty(name) ? uid : name;
             this.responded = TextUtils.isEmpty(responded) ? "pending" : responded;
+            this.profilePictureUrl = profilePictureUrl;
         }
     }
 
@@ -611,8 +618,20 @@ public class SelectEntrantsFragment extends Fragment {
             tvName.setText(e.nameOrUid);
             // Pending/Accepted/Declined
             tvBadge.setText(cap(e.responded));
-            // simple placeholder avatar
-            ivAvatar.setImageResource(R.drawable.jazz);
+            // simple placeholder avatar - not using this for now:) - by Precious
+            //ivAvatar.setImageResource(R.drawable.jazz);
+
+            if(e.profilePictureUrl != null && !e.profilePictureUrl.isEmpty()){
+                Glide.with(itemView.getContext())
+                        .load(e.profilePictureUrl)
+                        .placeholder(R.drawable.ic_avatar_placeholder)
+                        .error(R.drawable.ic_avatar_placeholder)
+                        .circleCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivAvatar);
+            } else{
+                ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+            }
 
             if ("accepted".equalsIgnoreCase(e.responded)) {
                 ivCancel.setVisibility(View.GONE);

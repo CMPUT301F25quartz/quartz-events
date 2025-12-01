@@ -112,6 +112,14 @@ public class OrganizerEventsFragment extends Fragment {
     }
 
 
+    /**
+     * Loads the organizer's header info (name and avatar) for the current device.
+     * <p>
+     * Uses the Android device ID to look up the organizer document in the
+     * {@code users} collection, then updates the header TextView and ImageView
+     * with the stored name and profile picture URL if available.
+     */
+
     private void loadOrganizerHeader() {
         // same device ID scheme you use everywhere else
         String deviceId = Settings.Secure.getString(
