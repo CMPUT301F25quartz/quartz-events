@@ -5,6 +5,7 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.EventDetailsFragment;
+import com.example.ajilore.code.ui.events.EventsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -54,6 +56,7 @@ public class HistoryFragment extends Fragment {
     //firebase
     private FirebaseFirestore db;
     private String deviceId;
+
     /**
      * Inflates the layout for the History screen.
      *
@@ -85,6 +88,18 @@ public class HistoryFragment extends Fragment {
 
         recyclerView = v.findViewById(R.id.recyclerHistory);
         progressBar = v.findViewById(R.id.progressHistory);
+        ImageButton btnBack = v.findViewById(R.id.btnBack);
+
+        //Added in a back button
+        if (btnBack != null){
+            btnBack.setOnClickListener(view -> {
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, new EventsFragment())
+                        .commit();
+            });
+        }
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 

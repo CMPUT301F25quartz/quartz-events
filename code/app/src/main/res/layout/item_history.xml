@@ -7,11 +7,13 @@
     card_view:cardCornerRadius="12dp"
     card_view:cardElevation="2dp">
 
+
     <LinearLayout
         android:orientation="horizontal"
         android:padding="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
 
         <!-- Event Poster -->
         <ImageView
@@ -19,7 +21,7 @@
             android:layout_width="70dp"
             android:layout_height="70dp"
             android:scaleType="centerCrop"
-            android:background="@drawable/image_placeholder_background"
+            android:background="@drawable/bg_poster_rounded"
             android:src="@drawable/image_placeholder" />
 
         <LinearLayout
@@ -34,7 +36,7 @@
                 android:id="@+id/tvEventDate"
                 android:text="Tue, Dec 14 • 4:00 PM"
                 android:textSize="12sp"
-                android:textColor="#777777"
+                android:textColor="#5669FF"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 

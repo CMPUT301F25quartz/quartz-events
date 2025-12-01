@@ -119,7 +119,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         if (posterUrl != null && !posterUrl.isEmpty()) {
             Glide.with(holder.itemView.getContext())
                     .load(posterUrl)
-                    .centerCrop()
                     .placeholder(R.drawable.image_placeholder)
                     .into(holder.imgPoster);
         } else {

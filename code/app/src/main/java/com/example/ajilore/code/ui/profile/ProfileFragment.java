@@ -260,7 +260,7 @@ public class ProfileFragment extends Fragment {
     private void confirmDelete() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Profile")
-                .setMessage("This will remove your account data. Are you sure?")
+                .setMessage("By clicking delete, you confirm that you wish to delete your profile and all information associated with your profile. ")
                 .setNegativeButton("Cancel", (d, w) -> d.dismiss())
                 .setPositiveButton("Delete", (d, w) -> performDelete())
                 .show();

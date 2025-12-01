@@ -366,24 +366,35 @@ public class CreateEventFragment extends Fragment {
      * @param cal The Calendar instance to update with the selected date.
      */
     private void showDateThenTime(TextInputEditText et, Calendar cal) {
-        // This constructor ensures the dialog uses your app's Material theme
         DatePickerDialog dialog = new DatePickerDialog(
                 requireContext(),
-                R.style.ThemeOverlay_App_DatePicker, // <-- ADD THIS THEME
+                R.style.ThemeOverlay_App_DatePicker,
                 (view, year, month, day) -> {
+                    // Set the date part
                     cal.set(Calendar.YEAR, year);
                     cal.set(Calendar.MONTH, month);
                     cal.set(Calendar.DAY_OF_MONTH, day);
 
-                    // Clear time part to avoid timezone issues
-                    cal.set(Calendar.HOUR_OF_DAY, 0);
-                    cal.set(Calendar.MINUTE, 0);
-                    cal.set(Calendar.SECOND, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
+                    // show a time picker
+                    new android.app.TimePickerDialog(
+                            requireContext(),
+                            (timePicker, hour, minute) -> {
+                                cal.set(Calendar.HOUR_OF_DAY, hour);
+                                cal.set(Calendar.MINUTE, minute);
+                                cal.set(Calendar.SECOND, 0);
+                                cal.set(Calendar.MILLISECOND, 0);
 
-                    // Use a consistent format
-                    String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(cal.getTime());
-                    et.setText(format);
+                                //Format full date+time into the field
+                                String formatted = DateFormat.getDateTimeInstance(
+                                        DateFormat.MEDIUM,
+                                        DateFormat.SHORT
+                                ).format(cal.getTime());
+                                et.setText(formatted);
+                            },
+                            cal.get(Calendar.HOUR_OF_DAY),
+                            cal.get(Calendar.MINUTE),
+                            true  // 24‑hour; use false for 12‑hour
+                    ).show();
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),

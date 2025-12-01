@@ -46,7 +46,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
-            android:text="Scan to view event · opens in app or web"
+            android:text="Scan to view event"
             android:textColor="#666666"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="@id/tvEventTitle"

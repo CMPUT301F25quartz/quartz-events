@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:background="@color/backgroundColor">
 
         <!-- Poster -->
         <com.google.android.material.imageview.ShapeableImageView
@@ -111,7 +112,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:background="@android:color/transparent"
-            android:src="@android:drawable/ic_menu_edit"
+            android:src="@drawable/edit_pencil"
             android:contentDescription="Edit" />
 
         <!-- NEW: Manage Entrants button -->

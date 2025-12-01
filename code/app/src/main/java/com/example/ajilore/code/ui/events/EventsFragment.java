@@ -27,11 +27,13 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * US 01.01.04: Fragment for displaying and filtering events
@@ -173,11 +175,19 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
         Timestamp startsAt = doc.getTimestamp("startsAt");
         Timestamp regOpens = doc.getTimestamp("regOpens");
         Timestamp regCloses = doc.getTimestamp("regCloses");
+        String dayLabel = "";
+        String monthLabel = "";
+
 
         String dateText;
         if (startsAt != null) {
             DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
             dateText = df.format(startsAt.toDate());
+            SimpleDateFormat dayFmt = new SimpleDateFormat("d", Locale.getDefault());
+            SimpleDateFormat monthFmt = new SimpleDateFormat("MMMM", Locale.getDefault());
+            dayLabel = dayFmt.format(startsAt.toDate());
+            monthLabel = monthFmt.format(startsAt.toDate());
+
         } else {
             dateText = "Date TBA";
         }
@@ -194,6 +204,8 @@ public class EventsFragment extends Fragment implements FilterEventsDialogFragme
                 posterUrl,
                 status
         );
+        eventRow.dayLabel = dayLabel;
+        eventRow.monthLabel = monthLabel;
 
         // Store additional data for filtering
         eventRow.category = type;  // Store "type" in category field for filtering

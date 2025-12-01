@@ -43,6 +43,10 @@ public class EventRow {
     /** Registration close date for availability filtering */
     public Date regCloses;
 
+    public String dayLabel;
+    public String monthLabel;
+
+
     /**
      * Constructs a new immutable event row for display in the feed.
      *

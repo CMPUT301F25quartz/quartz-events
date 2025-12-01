@@ -34,7 +34,7 @@
             android:layout_centerVertical="true"
 
             android:background="@drawable/bg_circle_light_red"
-            android:src="@drawable/ic_delete_standard"
+            android:src="@drawable/new_delete"
             app:tint="#D32F2F"
             android:padding="12dp"
             android:scaleType="fitCenter"
