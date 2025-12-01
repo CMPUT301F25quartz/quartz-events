@@ -98,38 +98,10 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <FrameLayout
-                android:id="@+id/posterSmall1"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/bg_dropzone_dashed">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="@string/add"
-                    android:textSize="28sp"
-                    android:textColor="#16BFA6"/>
-            </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/posterSmall2"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_dropzone_dashed">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="@string/add"
-                    android:textSize="28sp"
-                    android:textColor="#16BFA6"/>
-            </FrameLayout>
+
         </LinearLayout>
 
         <!-- Section title -->
@@ -159,7 +131,8 @@
             style="@style/OutlinedBox"
             app:layout_constraintTop_toBottomOf="@id/lblEventName"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            >
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTitle"
@@ -214,7 +187,7 @@
             android:id="@+id/tilDate"
             style="@style/OutlinedBox"
             app:endIconMode="custom"
-            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:endIconDrawable="@drawable/calendar"
             app:layout_constraintTop_toBottomOf="@id/lblDate"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -294,7 +267,7 @@
             android:id="@+id/tilRegOpen"
             style="@style/OutlinedBox"
             app:endIconMode="custom"
-            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:endIconDrawable="@drawable/calendar"
             app:layout_constraintTop_toBottomOf="@id/lblRegOpen"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -321,7 +294,7 @@
             android:id="@+id/tilRegClose"
             style="@style/OutlinedBox"
             app:endIconMode="custom"
-            app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+            app:endIconDrawable="@drawable/calendar"
             app:layout_constraintTop_toBottomOf="@id/lblRegClose"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">

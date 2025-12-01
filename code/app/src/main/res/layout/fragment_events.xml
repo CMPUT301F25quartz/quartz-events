@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.events.EventsFragment"
-    android:background="#FBFBFB">
+    android:background="@color/backgroundColor">
 
     <!-- Header bar with title and QR scan button -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,8 +28,8 @@
             android:layout_height="wrap_content"
             android:text="Events"
             android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="#121212"
+            android:textSize="24sp"
+            android:textColor="@color/text_primary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -43,7 +43,7 @@
             android:background="@android:color/transparent"
             android:contentDescription="Scan QR"
             android:padding="8dp"
-            android:src="@drawable/ic_qr_code"
+            android:src="@drawable/new_qr"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
@@ -98,7 +98,7 @@
         android:contentDescription="Filter events"
         android:src="@drawable/ic_filter"
         app:tint="@android:color/white"
-        app:backgroundTint="#1976D2"
+        app:backgroundTint="#00B6AA"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:elevation="6dp"
