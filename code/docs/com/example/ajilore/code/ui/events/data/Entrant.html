@@ -68,11 +68,12 @@ loadScripts(document, 'script');</script>
 <li><a href="#uid" tabindex="0">uid</a></li>
 <li><a href="#nameOrUid" tabindex="0">nameOrUid</a></li>
 <li><a href="#displayStatus" tabindex="0">displayStatus</a></li>
+<li><a href="#profilePictureUrl" tabindex="0">profilePictureUrl</a></li>
 </ol>
 </li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String)" tabindex="0">Entrant(String, String, String)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">Entrant(String, String, String, String)</a></li>
 </ol>
 </li>
 </ol>
@@ -116,8 +117,13 @@ loadScripts(document, 'script');</script>
 <div class="block">Display name or UID used for showing in the UI.</div>
 </div>
 <div class="col-first even-row-color"><code>final <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#uid" class="member-name-link">uid</a></code></div>
+<div class="col-second even-row-color"><code><a href="#profilePictureUrl" class="member-name-link">profilePictureUrl</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">The profile picture url</div>
+</div>
+<div class="col-first odd-row-color"><code>final <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#uid" class="member-name-link">uid</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Unique user ID for this entrant (Firestore doc id).</div>
 </div>
 </div>
@@ -131,9 +137,10 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">Entrant</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;uid,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">Entrant</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;uid,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
- <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;displayStatus)</code></div>
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;displayStatus,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;profilePictureUrl)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Constructs a new Entrant for use in lists and adapters.</div>
 </div>
@@ -185,6 +192,15 @@ loadScripts(document, 'script');</script>
 </div>
 </section>
 </li>
+<li>
+<section class="detail" id="profilePictureUrl">
+<h3>profilePictureUrl</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">profilePictureUrl</span></div>
+<div class="block">The profile picture url</div>
+</div>
+</section>
+</li>
 </ul>
 </section>
 </li>
@@ -194,18 +210,20 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.lang.String,java.lang.String,java.lang.String)">
+<section class="detail" id="&lt;init&gt;(java.lang.String,java.lang.String,java.lang.String,java.lang.String)">
 <h3>Entrant</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">Entrant</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;uid,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
- <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;displayStatus)</span></div>
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;displayStatus,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;profilePictureUrl)</span></div>
 <div class="block">Constructs a new Entrant for use in lists and adapters.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>uid</code> - Unique user/document ID (never null).</dd>
 <dd><code>name</code> - Display name; will fall back to UID if empty or null.</dd>
 <dd><code>displayStatus</code> - Display status label; defaults to "Pending" if empty or null.</dd>
+<dd><code>profilePictureUrl</code> - The profile picture</dd>
 </dl>
 </div>
 </section>

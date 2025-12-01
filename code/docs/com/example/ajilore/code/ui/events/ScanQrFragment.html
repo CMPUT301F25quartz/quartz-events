@@ -97,8 +97,21 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">ScanQrFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">A simple <code>Fragment</code> subclass.
- create an instance of this fragment.</div>
+<div class="block"><code>ScanQrFragment</code> launches the ZXing QR scanner and handles QR-based
+ navigation inside the Quartz Events app.
+
+ <p>The fragment performs the following:</p>
+ <ul>
+     <li>Registers a ZXing <code>ScanContract</code> using the Activity Result API</li>
+     <li>Launches a QR code scanning UI as soon as the fragment appears</li>
+     <li>Parses scanned text to extract a Quartz deep link:
+         <code>https://quartz-events.page.link/event/{eventId}</code></li>
+     <li>Navigates to <a href="EventDetailsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>EventDetailsFragment</code></a> when a valid event QR is scanned</li>
+     <li>Handles cancellation and invalid QR codes gracefully with Toast feedback</li>
+ </ul>
+
+ <p>This fragment is opened from the Events list using the “Scan QR” button.
+ It occupies a blank screen with only a Back button, as the scanner UI is full-screen.</p></div>
 </div>
 </section>
 <section class="summary">
@@ -147,16 +160,22 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreate(android.os.Bundle)" class="member-name-link">onCreate</a><wbr>(android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Registers a QR scanner launcher using ZXing's <code>ScanContract</code>.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>android.view.View</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Inflates the layout for the Scan QR screen.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;view,
  android.os.Bundle&nbsp;s)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Sets up the Back button and immediately launches the ZXing QR scanner.</div>
+</div>
 </div>
 </div>
 </div>
@@ -199,9 +218,18 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onCreate</span><wbr><span class="parameters">(@Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
+<div class="block">Registers a QR scanner launcher using ZXing's <code>ScanContract</code>.
+
+ <p>Behavior:</p>
+ <ul>
+     <li>If the user cancels the scan → a Toast is shown and the fragment closes</li>
+     <li>If content is scanned → the text is passed to <code>handleScannedText(String)</code></li>
+ </ul></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreate</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>savedInstanceState</code> - Previously saved state (unused)</dd>
 </dl>
 </div>
 </section>
@@ -213,9 +241,17 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">android.view.View</span>&nbsp;<span class="element-name">onCreateView</span><wbr><span class="parameters">(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
+<div class="block">Inflates the layout for the Scan QR screen.
+ Note: The visible UI is minimal because the ZXing scanner overlays the screen.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>inflater</code> - LayoutInflater used to inflate the XML</dd>
+<dd><code>container</code> - Optional parent container</dd>
+<dd><code>savedInstanceState</code> - Previously saved instance state, if any</dd>
+<dt>Returns:</dt>
+<dd>The root view for the fragment</dd>
 </dl>
 </div>
 </section>
@@ -228,9 +264,21 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;view,
  @Nullable
  android.os.Bundle&nbsp;s)</span></div>
+<div class="block">Sets up the Back button and immediately launches the ZXing QR scanner.
+
+ <p>The scanner is configured with:</p>
+ <ul>
+     <li>QR-only format</li>
+     <li>Prompt text</li>
+     <li>Beep enabled</li>
+     <li>Orientation locked</li>
+ </ul></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>view</code> - Root view of the fragment</dd>
+<dd><code>s</code> - Saved instance state bundle, if any</dd>
 </dl>
 </div>
 </section>

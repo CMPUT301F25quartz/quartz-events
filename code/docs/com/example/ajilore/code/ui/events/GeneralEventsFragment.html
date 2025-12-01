@@ -69,13 +69,6 @@ loadScripts(document, 'script');</script>
 <li><a href="#%3Cinit%3E()" tabindex="0">GeneralEventsFragment()</a></li>
 </ol>
 </li>
-<li><a href="#method-detail" tabindex="0">Method Details</a>
-<ol class="toc-list">
-<li><a href="#getRowLayoutId()" tabindex="0">getRowLayoutId()</a></li>
-<li><a href="#getEventsQuery()" tabindex="0">getEventsQuery()</a></li>
-<li><a href="#onEventClick(com.example.ajilore.code.ui.events.list.EventRow)" tabindex="0">onEventClick(EventRow)</a></li>
-</ol>
-</li>
 </ol>
 </nav>
 <main role="main">
@@ -93,16 +86,15 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code>android.content.ComponentCallbacks</code>, <code>android.view.View.OnCreateContextMenuListener</code>, <code>androidx.activity.result.ActivityResultCaller</code>, <code>androidx.lifecycle.HasDefaultViewModelProviderFactory</code>, <code>androidx.lifecycle.LifecycleOwner</code>, <code>androidx.lifecycle.ViewModelStoreOwner</code>, <code>androidx.savedstate.SavedStateRegistryOwner</code></dd>
+<dd><code>android.content.ComponentCallbacks</code>, <code>android.view.View.OnCreateContextMenuListener</code>, <code>androidx.activity.result.ActivityResultCaller</code>, <code>androidx.lifecycle.HasDefaultViewModelProviderFactory</code>, <code>androidx.lifecycle.LifecycleOwner</code>, <code>androidx.lifecycle.ViewModelStoreOwner</code>, <code>androidx.savedstate.SavedStateRegistryOwner</code>, <code><a href="FilterEventsDialogFragment.OnFiltersAppliedListener.html" title="interface in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.OnFiltersAppliedListener</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">GeneralEventsFragment</span>
 <span class="extends-implements">extends <a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></span></div>
 <div class="block">Fragment for the main "Events" tab.
- Displays a scrollable, general list of events visible to all users,
- using 'item_event.xml' for each list row.
- Inherits presentation, adapter, and click behavior from EventsFragment.</div>
+ Displays a scrollable, general list of events visible to all users.
+ Uses the filtering functionality from the parent EventsFragment.</div>
 </div>
 </section>
 <section class="summary">
@@ -142,35 +134,9 @@ loadScripts(document, 'script');</script>
 <li>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
-<div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
-<div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
-<div class="summary-table three-column-summary">
-<div class="table-header col-first">Modifier and Type</div>
-<div class="table-header col-second">Method</div>
-<div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected com.google.firebase.firestore.Query</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getEventsQuery()" class="member-name-link">getEventsQuery</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Builds and returns the Firestore query for general events.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRowLayoutId()" class="member-name-link">getRowLayoutId</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Returns the layout resource ID for each event row.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onEventClick(com.example.ajilore.code.ui.events.list.EventRow)" class="member-name-link">onEventClick</a><wbr>(<a href="list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a>&nbsp;row)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Handles event row clicks by opening the EventDetailsFragment
- for the selected event.</div>
-</div>
-</div>
-</div>
-</div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.example.ajilore.code.ui.events.EventsFragment">Methods inherited from class&nbsp;com.example.ajilore.code.ui.events.<a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></h3>
-<code><a href="EventsFragment.html#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)">onCreateView</a>, <a href="EventsFragment.html#onViewCreated(android.view.View,android.os.Bundle)">onViewCreated</a></code></div>
+<code><a href="EventsFragment.html#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)">onCreateView</a>, <a href="EventsFragment.html#onFiltersApplied(com.example.ajilore.code.ui.events.FilterEventsDialogFragment.EventFilters)">onFiltersApplied</a>, <a href="EventsFragment.html#onFiltersCancelled()">onFiltersCancelled</a>, <a href="EventsFragment.html#onViewCreated(android.view.View,android.os.Bundle)">onViewCreated</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-androidx.fragment.app.Fragment">Methods inherited from class&nbsp;androidx.fragment.app.Fragment</h3>
 <code>dump, equals, getActivity, getAllowEnterTransitionOverlap, getAllowReturnTransitionOverlap, getArguments, getChildFragmentManager, getContext, getDefaultViewModelCreationExtras, getDefaultViewModelProviderFactory, getEnterTransition, getExitTransition, getFragmentManager, getHost, getId, getLayoutInflater, getLayoutInflater, getLifecycle, getLoaderManager, getParentFragment, getParentFragmentManager, getReenterTransition, getResources, getRetainInstance, getReturnTransition, getSavedStateRegistry, getSharedElementEnterTransition, getSharedElementReturnTransition, getString, getString, getTag, getTargetFragment, getTargetRequestCode, getText, getUserVisibleHint, getView, getViewLifecycleOwner, getViewLifecycleOwnerLiveData, getViewModelStore, hashCode, hasOptionsMenu, instantiate, instantiate, isAdded, isDetached, isHidden, isInLayout, isMenuVisible, isRemoving, isResumed, isStateSaved, isVisible, onActivityCreated, onActivityResult, onAttach, onAttach, onAttachFragment, onConfigurationChanged, onContextItemSelected, onCreate, onCreateAnimation, onCreateAnimator, onCreateContextMenu, onCreateOptionsMenu, onDestroy, onDestroyOptionsMenu, onDestroyView, onDetach, onGetLayoutInflater, onHiddenChanged, onInflate, onInflate, onLowMemory, onMultiWindowModeChanged, onOptionsItemSelected, onOptionsMenuClosed, onPause, onPictureInPictureModeChanged, onPrepareOptionsMenu, onPrimaryNavigationFragmentChanged, onRequestPermissionsResult, onResume, onSaveInstanceState, onStart, onStop, onViewStateRestored, postponeEnterTransition, postponeEnterTransition, registerForActivityResult, registerForActivityResult, registerForContextMenu, requestPermissions, requireActivity, requireArguments, requireContext, requireFragmentManager, requireHost, requireParentFragment, requireView, setAllowEnterTransitionOverlap, setAllowReturnTransitionOverlap, setArguments, setEnterSharedElementCallback, setEnterTransition, setExitSharedElementCallback, setExitTransition, setHasOptionsMenu, setInitialSavedState, setMenuVisibility, setReenterTransition, setRetainInstance, setReturnTransition, setSharedElementEnterTransition, setSharedElementReturnTransition, setTargetFragment, setUserVisibleHint, shouldShowRequestPermissionRationale, startActivity, startActivity, startActivityForResult, startActivityForResult, startIntentSenderForResult, startPostponedEnterTransition, toString, unregisterForContextMenu</code></div>
@@ -193,63 +159,6 @@ loadScripts(document, 'script');</script>
 <h3>GeneralEventsFragment</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">GeneralEventsFragment</span>()</div>
-</div>
-</section>
-</li>
-</ul>
-</section>
-</li>
-<!-- ============ METHOD DETAIL ========== -->
-<li>
-<section class="method-details" id="method-detail">
-<h2>Method Details</h2>
-<ul class="member-list">
-<li>
-<section class="detail" id="getRowLayoutId()">
-<h3>getRowLayoutId</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getRowLayoutId</span>()</div>
-<div class="block">Returns the layout resource ID for each event row.
- Must match the view IDs expected by the list adapter.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="EventsFragment.html#getRowLayoutId()">getRowLayoutId</a></code>&nbsp;in class&nbsp;<code><a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></code></dd>
-<dt>Returns:</dt>
-<dd>The layout resource for event rows (item_event).</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="getEventsQuery()">
-<h3>getEventsQuery</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">com.google.firebase.firestore.Query</span>&nbsp;<span class="element-name">getEventsQuery</span>()</div>
-<div class="block">Builds and returns the Firestore query for general events.
- This fetches all events ordered by start date (ascending).</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="EventsFragment.html#getEventsQuery()">getEventsQuery</a></code>&nbsp;in class&nbsp;<code><a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></code></dd>
-<dt>Returns:</dt>
-<dd>Firestore query for the events collection.</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="onEventClick(com.example.ajilore.code.ui.events.list.EventRow)">
-<h3>onEventClick</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onEventClick</span><wbr><span class="parameters">(@NonNull
- <a href="list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a>&nbsp;row)</span></div>
-<div class="block">Handles event row clicks by opening the EventDetailsFragment
- for the selected event.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="EventsFragment.html#onEventClick(com.example.ajilore.code.ui.events.list.EventRow)">onEventClick</a></code>&nbsp;in class&nbsp;<code><a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></code></dd>
-<dt>Parameters:</dt>
-<dd><code>row</code> - The row that was clicked.</dd>
-</dl>
 </div>
 </section>
 </li>

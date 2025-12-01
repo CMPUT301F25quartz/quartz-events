@@ -74,6 +74,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#newInstance(java.lang.String,java.lang.String)" tabindex="0">newInstance(String, String)</a></li>
 <li><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" tabindex="0">onCreateView(LayoutInflater, ViewGroup, Bundle)</a></li>
 <li><a href="#onViewCreated(android.view.View,android.os.Bundle)" tabindex="0">onViewCreated(View, Bundle)</a></li>
+<li><a href="#drawReplacementsFromWaitingList(com.google.firebase.firestore.FirebaseFirestore,android.content.Context,java.lang.String,java.lang.String,int)" tabindex="0">drawReplacementsFromWaitingList(FirebaseFirestore, Context, String, String, int)</a></li>
 </ol>
 </li>
 </ol>
@@ -170,23 +171,32 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="SelectEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events">SelectEntrantsFragment</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#newInstance(java.lang.String,java.lang.String)" class="member-name-link">newInstance</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
- <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventTitle)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#drawReplacementsFromWaitingList(com.google.firebase.firestore.FirebaseFirestore,android.content.Context,java.lang.String,java.lang.String,int)" class="member-name-link">drawReplacementsFromWaitingList</a><wbr>(com.google.firebase.firestore.FirebaseFirestore&nbsp;db,
+ android.content.Context&nbsp;context,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventTitle,
+ int&nbsp;numSlots)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Draws replacement entrants from the waiting pool.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="SelectEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events">SelectEntrantsFragment</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#newInstance(java.lang.String,java.lang.String)" class="member-name-link">newInstance</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventTitle)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Creates a new fragment instance scoped to a single event.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>android.view.View</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>android.view.View</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Inflates the Select Entrants layout.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;s)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Wires UI, restores args, attaches a snapshot listener to CHOSEN entrants,
  and hooks up the "Run Draw" button.</div>
 </div>
@@ -278,6 +288,26 @@ loadScripts(document, 'script');</script>
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="drawReplacementsFromWaitingList(com.google.firebase.firestore.FirebaseFirestore,android.content.Context,java.lang.String,java.lang.String,int)">
+<h3>drawReplacementsFromWaitingList</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">drawReplacementsFromWaitingList</span><wbr><span class="parameters">(@NonNull
+ com.google.firebase.firestore.FirebaseFirestore&nbsp;db,
+ @NonNull
+ android.content.Context&nbsp;context,
+ @NonNull
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
+ @Nullable
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventTitle,
+ int&nbsp;numSlots)</span></div>
+<div class="block">Draws replacement entrants from the waiting pool.
+ - Looks for entrants with status == "waiting"
+ - Promotes up to numSlots of them to CHOSEN (responded = pending)
+ - Sends each a notification.</div>
 </div>
 </section>
 </li>

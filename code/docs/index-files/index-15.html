@@ -52,12 +52,13 @@ loadScripts(document, 'script');</script>
 <div class="header">
 <h1>Index</h1>
 </div>
-<a href="index-1.html">A</a>&nbsp;<a href="index-2.html">C</a>&nbsp;<a href="index-3.html">D</a>&nbsp;<a href="index-4.html">E</a>&nbsp;<a href="index-5.html">F</a>&nbsp;<a href="index-6.html">G</a>&nbsp;<a href="index-7.html">H</a>&nbsp;<a href="index-8.html">I</a>&nbsp;<a href="index-9.html">L</a>&nbsp;<a href="index-10.html">M</a>&nbsp;<a href="index-11.html">N</a>&nbsp;<a href="index-12.html">O</a>&nbsp;<a href="index-13.html">P</a>&nbsp;<a href="index-14.html">R</a>&nbsp;<a href="index-15.html">S</a>&nbsp;<a href="index-16.html">T</a>&nbsp;<a href="index-17.html">U</a>&nbsp;<a href="index-18.html">W</a>&nbsp;<br><a href="../allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="../allpackages-index.html">All&nbsp;Packages</a>
+<a href="index-1.html">A</a>&nbsp;<a href="index-2.html">C</a>&nbsp;<a href="index-3.html">D</a>&nbsp;<a href="index-4.html">E</a>&nbsp;<a href="index-5.html">F</a>&nbsp;<a href="index-6.html">G</a>&nbsp;<a href="index-7.html">H</a>&nbsp;<a href="index-8.html">I</a>&nbsp;<a href="index-9.html">L</a>&nbsp;<a href="index-10.html">M</a>&nbsp;<a href="index-11.html">N</a>&nbsp;<a href="index-12.html">O</a>&nbsp;<a href="index-13.html">P</a>&nbsp;<a href="index-14.html">R</a>&nbsp;<a href="index-15.html">S</a>&nbsp;<a href="index-16.html">T</a>&nbsp;<a href="index-17.html">U</a>&nbsp;<a href="index-18.html">W</a>&nbsp;<br><a href="../allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="../allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="../serialized-form.html">Serialized&nbsp;Form</a>
 <h2 class="title" id="I:S">S</h2>
 <dl class="index">
 <dt><a href="../com/example/ajilore/code/ui/events/ScanQrFragment.html" class="type-name-link" title="class in com.example.ajilore.code.ui.events">ScanQrFragment</a> - Class in <a href="../com/example/ajilore/code/ui/events/package-summary.html">com.example.ajilore.code.ui.events</a></dt>
 <dd>
-<div class="block">A simple <code>Fragment</code> subclass.</div>
+<div class="block"><code>ScanQrFragment</code> launches the ZXing QR scanner and handles QR-based
+ navigation inside the Quartz Events app.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/events/ScanQrFragment.html#%3Cinit%3E()" class="member-name-link">ScanQrFragment()</a> - Constructor for class com.example.ajilore.code.ui.events.<a href="../com/example/ajilore/code/ui/events/ScanQrFragment.html" title="class in com.example.ajilore.code.ui.events">ScanQrFragment</a></dt>
 <dd>&nbsp;</dd>
@@ -73,45 +74,63 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/events/SelectEntrantsFragment.OnCancelClick.html" class="type-name-link" title="interface in com.example.ajilore.code.ui.events">SelectEntrantsFragment.OnCancelClick</a> - Interface in <a href="../com/example/ajilore/code/ui/events/package-summary.html">com.example.ajilore.code.ui.events</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/utils/SendNotificationHelper.html#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">sendNotification(Context, String, String, String, String)</a> - Static method in class com.example.ajilore.code.utils.<a href="../com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></dt>
+<dt><a href="../com/example/ajilore/code/utils/SendNotificationHelper.html#sendBroadcastNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,int)" class="member-name-link">sendBroadcastNotification(Context, String, String, String, String, boolean, String, int)</a> - Static method in class com.example.ajilore.code.utils.<a href="../com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></dt>
 <dd>
-<div class="block">Sends a notification to a chosen entrant.</div>
+<div class="block">Sends a broadcast notification to a group (waiting, selected, chosen, cancelled)
+ AND logs it to admin_notification_logs collection.</div>
+</dd>
+<dt><a href="../com/example/ajilore/code/utils/SendNotificationHelper.html#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">sendNotification(Context, String, String, String, String, String)</a> - Static method in class com.example.ajilore.code.utils.<a href="../com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></dt>
+<dd>
+<div class="block">Sends a notification to a chosen entrant AND logs it for the admin.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/utils/SendNotificationHelper.html" class="type-name-link" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a> - Class in <a href="../com/example/ajilore/code/utils/package-summary.html">com.example.ajilore.code.utils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/utils/SendNotificationHelper.html#%3Cinit%3E()" class="member-name-link">SendNotificationHelper()</a> - Constructor for class com.example.ajilore.code.utils.<a href="../com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/User.html#setAccountStatus(java.lang.String)" class="member-name-link">setAccountStatus(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setActionText(java.lang.String)" class="member-name-link">setActionText(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setCapacity(int)" class="member-name-link">setCapacity(int)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets event capacity.</div>
-</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setDate(java.lang.String)" class="member-name-link">setDate(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets the event date.</div>
-</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setDescription(java.lang.String)" class="member-name-link">setDescription(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets the event description.</div>
-</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setAudience(java.lang.String)" class="member-name-link">setAudience(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setCancelledDate(com.google.firebase.Timestamp)" class="member-name-link">setCancelledDate(Timestamp)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/User.html#setCanCreateEvents(boolean)" class="member-name-link">setCanCreateEvents(boolean)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setEmail(java.lang.String)" class="member-name-link">setEmail(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setEmail(java.lang.String)" class="member-name-link">setEmail(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
 <div class="block">Set the user's email.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/profile/Entrant.html#setEmail(java.lang.String)" class="member-name-link">setEmail(String)</a> - Method in class com.example.ajilore.code.ui.profile.<a href="../com/example/ajilore/code/ui/profile/Entrant.html" title="class in com.example.ajilore.code.ui.profile">Entrant</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setEventId(java.lang.String)" class="member-name-link">setEventId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setEnrolledDate(com.google.firebase.Timestamp)" class="member-name-link">setEnrolledDate(Timestamp)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/adapters/EntrantAdapter.html#setEntrants(java.util.List)" class="member-name-link">setEntrants(List&lt;Entrant&gt;)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/EntrantAdapter.html" title="class in com.example.ajilore.code.adapters">EntrantAdapter</a></dt>
 <dd>
-<div class="block">Sets the Firestore document ID.</div>
+<div class="block">Updates the adapter with a new list of entrants.</div>
 </dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setEventId(java.lang.String)" class="member-name-link">setEventId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setEventId(java.lang.String)" class="member-name-link">setEventId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setEventId(java.lang.String)" class="member-name-link">setEventId(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/adapters/AdminEventsAdapter.html#setEvents(java.util.List)" class="member-name-link">setEvents(List&lt;Event&gt;)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/AdminEventsAdapter.html" title="class in com.example.ajilore.code.adapters">AdminEventsAdapter</a></dt>
 <dd>
 <div class="block">Replaces the adapter's event list with new events and refreshes UI.</div>
 </dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setEventTitle(java.lang.String)" class="member-name-link">setEventTitle(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/ui/events/FilterEventsDialogFragment.html#setFiltersListener(com.example.ajilore.code.ui.events.FilterEventsDialogFragment.OnFiltersAppliedListener)" class="member-name-link">setFiltersListener(FilterEventsDialogFragment.OnFiltersAppliedListener)</a> - Method in class com.example.ajilore.code.ui.events.<a href="../com/example/ajilore/code/ui/events/FilterEventsDialogFragment.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment</a></dt>
+<dd>
+<div class="block">Registers a listener to receive callbacks when the user applies
+ or cancels filtering.</div>
+</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setFirestoreDocId(java.lang.String)" class="member-name-link">setFirestoreDocId(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setId(java.lang.String)" class="member-name-link">setId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/adapters/AdminImagesAdapter.html#setImages(java.util.List)" class="member-name-link">setImages(List&lt;ImageItem&gt;)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/AdminImagesAdapter.html" title="class in com.example.ajilore.code.adapters">AdminImagesAdapter</a></dt>
 <dd>
@@ -119,15 +138,21 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setImageUrl(java.lang.String)" class="member-name-link">setImageUrl(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setImageURL(java.lang.String)" class="member-name-link">setImageURL(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setInvitedDate(com.google.firebase.Timestamp)" class="member-name-link">setInvitedDate(Timestamp)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.html#setIsOrganizer(boolean)" class="member-name-link">setIsOrganizer(boolean)</a> - Method in class com.example.ajilore.code.ui.events.list.<a href="../com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.html" title="class in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setLogId(java.lang.String)" class="member-name-link">setLogId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/adapters/AdminLogsAdapter.html#setLogs(java.util.List)" class="member-name-link">setLogs(List&lt;NotificationLog&gt;)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/AdminLogsAdapter.html" title="class in com.example.ajilore.code.adapters">AdminLogsAdapter</a></dt>
 <dd>
-<div class="block">Sets the event's promotional image URL.</div>
+<div class="block">RecyclerView adapter responsible for displaying admin notification logs.</div>
 </dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setLocation(java.lang.String)" class="member-name-link">setLocation(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets event location.</div>
-</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setMessage(java.lang.String)" class="member-name-link">setMessage(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setMessage(java.lang.String)" class="member-name-link">setMessage(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
@@ -139,25 +164,29 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Enable or disable user notifications.</div>
 </dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setOrganiserDeviceId(java.lang.String)" class="member-name-link">setOrganiserDeviceId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
+<dt><a href="../com/example/ajilore/code/adapters/EntrantAdapter.html#setOnEntrantClickListener(com.example.ajilore.code.adapters.EntrantAdapter.OnEntrantClickListener)" class="member-name-link">setOnEntrantClickListener(EntrantAdapter.OnEntrantClickListener)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/EntrantAdapter.html" title="class in com.example.ajilore.code.adapters">EntrantAdapter</a></dt>
 <dd>
-<div class="block">Sets the organiser's device ID for this event.</div>
+<div class="block">Registers a listener that triggers whenever an entrant row is clicked.</div>
 </dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setPhone(java.lang.String)" class="member-name-link">setPhone(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setPhone(java.lang.String)" class="member-name-link">setPhone(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
 <div class="block">Set the user's phone number.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/profile/Entrant.html#setPhone(java.lang.String)" class="member-name-link">setPhone(String)</a> - Method in class com.example.ajilore.code.ui.profile.<a href="../com/example/ajilore/code/ui/profile/Entrant.html" title="class in com.example.ajilore.code.ui.profile">Entrant</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setPrice(int)" class="member-name-link">setPrice(int)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets the event price.</div>
-</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setProfileImageUrl(java.lang.String)" class="member-name-link">setProfileImageUrl(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
 <div class="block">Set the user's profile image URL.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setRead(boolean)" class="member-name-link">setRead(boolean)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setReason(java.lang.String)" class="member-name-link">setReason(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setRecipientCount(int)" class="member-name-link">setRecipientCount(int)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setResponseDate(com.google.firebase.Timestamp)" class="member-name-link">setResponseDate(Timestamp)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setRole(java.lang.String)" class="member-name-link">setRole(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
@@ -165,17 +194,17 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/profile/Entrant.html#setRole(java.lang.String)" class="member-name-link">setRole(String)</a> - Method in class com.example.ajilore.code.ui.profile.<a href="../com/example/ajilore/code/ui/profile/Entrant.html" title="class in com.example.ajilore.code.ui.profile">Entrant</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setTime(java.lang.String)" class="member-name-link">setTime(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets the event time.</div>
-</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setSenderId(java.lang.String)" class="member-name-link">setSenderId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setStatus(java.lang.String)" class="member-name-link">setStatus(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setTime(java.lang.String)" class="member-name-link">setTime(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="../com/example/ajilore/code/models/Event.html#setTitle(java.lang.String)" class="member-name-link">setTitle(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></dt>
-<dd>
-<div class="block">Sets the event's title.</div>
-</dd>
+<dt><a href="../com/example/ajilore/code/models/NotificationLog.html#setTimestamp(com.google.firebase.Timestamp)" class="member-name-link">setTimestamp(Timestamp)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html#setType(java.lang.String)" class="member-name-link">setType(String)</a> - Method in class com.example.ajilore.code.ui.inbox.<a href="../com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/models/Entrant.html#setUserId(java.lang.String)" class="member-name-link">setUserId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="../com/example/ajilore/code/models/User.html#setUserId(java.lang.String)" class="member-name-link">setUserId(String)</a> - Method in class com.example.ajilore.code.models.<a href="../com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></dt>
 <dd>
@@ -183,7 +212,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="../com/example/ajilore/code/adapters/AdminUsersAdapter.html#setUsers(java.util.List)" class="member-name-link">setUsers(List&lt;User&gt;)</a> - Method in class com.example.ajilore.code.adapters.<a href="../com/example/ajilore/code/adapters/AdminUsersAdapter.html" title="class in com.example.ajilore.code.adapters">AdminUsersAdapter</a></dt>
 <dd>
-<div class="block">Updates/sets the user list for the adapter.</div>
+<div class="block">Updates the underlying data set and refreshes the view.</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/MainActivity.html#showBottomNav()" class="member-name-link">showBottomNav()</a> - Method in class com.example.ajilore.code.<a href="../com/example/ajilore/code/MainActivity.html" title="class in com.example.ajilore.code">MainActivity</a></dt>
 <dd>
@@ -193,9 +222,19 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Shows a generic delete confirmation dialog.</div>
 </dd>
+<dt><a href="../com/example/ajilore/code/ui/events/FilterEventsDialogFragment.EventFilters.html#startDate" class="member-name-link">startDate</a> - Variable in class com.example.ajilore.code.ui.events.<a href="../com/example/ajilore/code/ui/events/FilterEventsDialogFragment.EventFilters.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.EventFilters</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="../com/example/ajilore/code/ui/events/list/EventRow.html#startsAt" class="member-name-link">startsAt</a> - Variable in class com.example.ajilore.code.ui.events.list.<a href="../com/example/ajilore/code/ui/events/list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a></dt>
+<dd>
+<div class="block">Event start date/time for date range filtering</div>
+</dd>
 <dt><a href="../com/example/ajilore/code/ui/events/model/Event.html#startsAt" class="member-name-link">startsAt</a> - Variable in class com.example.ajilore.code.ui.events.model.<a href="../com/example/ajilore/code/ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a></dt>
 <dd>
 <div class="block">When the event starts (date &amp; time).</div>
+</dd>
+<dt><a href="../com/example/ajilore/code/ui/events/list/EventItem.html#status" class="member-name-link">status</a> - Variable in class com.example.ajilore.code.ui.events.list.<a href="../com/example/ajilore/code/ui/events/list/EventItem.html" title="class in com.example.ajilore.code.ui.events.list">EventItem</a></dt>
+<dd>
+<div class="block">Status of the event (e.g., "flagged").</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/events/list/EventRow.html#status" class="member-name-link">status</a> - Variable in class com.example.ajilore.code.ui.events.list.<a href="../com/example/ajilore/code/ui/events/list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a></dt>
 <dd>
@@ -203,12 +242,16 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/events/model/Event.html#status" class="member-name-link">status</a> - Variable in class com.example.ajilore.code.ui.events.model.<a href="../com/example/ajilore/code/ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a></dt>
 <dd>
-<div class="block">Publication state; commonly "draft" or "published".</div>
+<div class="block">Publication state; commonly "draft" or "published" or "flagged (hidden by admin)".</div>
 </dd>
 <dt><a href="../com/example/ajilore/code/ui/events/list/EventItem.html#subtitle" class="member-name-link">subtitle</a> - Variable in class com.example.ajilore.code.ui.events.list.<a href="../com/example/ajilore/code/ui/events/list/EventItem.html" title="class in com.example.ajilore.code.ui.events.list">EventItem</a></dt>
 <dd>
 <div class="block">Optional subtitle (e.g., type, location, or capacity string).</div>
 </dd>
+<dt><a href="../com/example/ajilore/code/ui/events/FilterEventsDialogFragment.html#supported-filter-types-heading" class="search-tag-link">Supported Filter Types</a> - Search tag in class com.example.ajilore.code.ui.events.FilterEventsDialogFragment</dt>
+<dd>Section</dd>
+<dt><a href="../com/example/ajilore/code/controllers/AdminController.html#supported-user-stories--heading" class="search-tag-link">Supported User Stories:</a> - Search tag in class com.example.ajilore.code.controllers.AdminController</dt>
+<dd>Section</dd>
 <dt><a href="../com/example/ajilore/code/AdminActivity.html#switchToAboutPage()" class="member-name-link">switchToAboutPage()</a> - Method in class com.example.ajilore.code.<a href="../com/example/ajilore/code/AdminActivity.html" title="class in com.example.ajilore.code">AdminActivity</a></dt>
 <dd>
 <div class="block">Navigates back to the admin dashboard.</div>
@@ -226,7 +269,7 @@ loadScripts(document, 'script');</script>
 <div class="block">Navigates to the Profiles/Users browsing page.</div>
 </dd>
 </dl>
-<a href="index-1.html">A</a>&nbsp;<a href="index-2.html">C</a>&nbsp;<a href="index-3.html">D</a>&nbsp;<a href="index-4.html">E</a>&nbsp;<a href="index-5.html">F</a>&nbsp;<a href="index-6.html">G</a>&nbsp;<a href="index-7.html">H</a>&nbsp;<a href="index-8.html">I</a>&nbsp;<a href="index-9.html">L</a>&nbsp;<a href="index-10.html">M</a>&nbsp;<a href="index-11.html">N</a>&nbsp;<a href="index-12.html">O</a>&nbsp;<a href="index-13.html">P</a>&nbsp;<a href="index-14.html">R</a>&nbsp;<a href="index-15.html">S</a>&nbsp;<a href="index-16.html">T</a>&nbsp;<a href="index-17.html">U</a>&nbsp;<a href="index-18.html">W</a>&nbsp;<br><a href="../allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="../allpackages-index.html">All&nbsp;Packages</a></main>
+<a href="index-1.html">A</a>&nbsp;<a href="index-2.html">C</a>&nbsp;<a href="index-3.html">D</a>&nbsp;<a href="index-4.html">E</a>&nbsp;<a href="index-5.html">F</a>&nbsp;<a href="index-6.html">G</a>&nbsp;<a href="index-7.html">H</a>&nbsp;<a href="index-8.html">I</a>&nbsp;<a href="index-9.html">L</a>&nbsp;<a href="index-10.html">M</a>&nbsp;<a href="index-11.html">N</a>&nbsp;<a href="index-12.html">O</a>&nbsp;<a href="index-13.html">P</a>&nbsp;<a href="index-14.html">R</a>&nbsp;<a href="index-15.html">S</a>&nbsp;<a href="index-16.html">T</a>&nbsp;<a href="index-17.html">U</a>&nbsp;<a href="index-18.html">W</a>&nbsp;<br><a href="../allclasses-index.html">All&nbsp;Classes&nbsp;and&nbsp;Interfaces</a><span class="vertical-separator">|</span><a href="../allpackages-index.html">All&nbsp;Packages</a><span class="vertical-separator">|</span><a href="../serialized-form.html">Serialized&nbsp;Form</a></main>
 </div>
 </body>
 </html>

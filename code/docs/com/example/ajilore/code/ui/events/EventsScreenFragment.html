@@ -95,6 +95,21 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">EventsScreenFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
+<div class="block"><code>EventsScreenFragment</code> is a minimal concrete fragment that simply inflates
+ the <code>fragment_events</code> layout.
+
+ <p>This class exists because <a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>EventsFragment</code></a> is an abstract class and
+ cannot be instantiated directly. Some parts of the application (e.g., XML
+ navigation graphs or placeholder screens) may require a non-abstract fragment
+ that renders the base event list layout without providing custom logic.</p>
+
+ <p><b>Important:</b> This fragment does not load or display any events by itself.
+ It simply inflates the layout file. Fragments such as
+ <a href="GeneralEventsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>GeneralEventsFragment</code></a>, <a href="OrganizerEventsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>OrganizerEventsFragment</code></a>, or other subclasses
+ of <a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>EventsFragment</code></a> handle data loading and interactive functionality.</p>
+
+ <p>Use this fragment only when you need the static UI of the event list screen
+ without the underlying event-fetching behavior.</p></div>
 </div>
 </section>
 <section class="summary">
