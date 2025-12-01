@@ -47,4 +47,6 @@
         android:background="@drawable/bg_status_badge"
         android:paddingLeft="16dp"
         android:paddingRight="16dp" />
+
+
 </LinearLayout>
