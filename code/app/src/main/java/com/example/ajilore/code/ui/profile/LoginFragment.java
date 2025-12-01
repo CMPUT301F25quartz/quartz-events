@@ -70,7 +70,6 @@ public class LoginFragment extends Fragment {
 
     private FirebaseFirestore db;
     // Location
-    private FusedLocationProviderClient fusedLocationClient;
     private String deviceId;
     private static final int LOCATION_REQUEST_CODE = 101;
     private MaterialSwitch switchLocation;
@@ -125,8 +124,6 @@ public class LoginFragment extends Fragment {
         //Firebase initialization
         db = FirebaseFirestore.getInstance();
 
-        // Location provider
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
         // Get stable device ID
         deviceId = Settings.Secure.getString(
@@ -176,6 +173,25 @@ public class LoginFragment extends Fragment {
                             );
                 });
 
+        switchLocation.setOnCheckedChangeListener((button, checked) -> {
+            if (checked) {
+                if (ActivityCompat.checkSelfPermission(requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    requestPermissions(
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            LOCATION_REQUEST_CODE
+                    );
+                } else {
+                    saveLocationPreference(true);
+                }
+            } else {
+                saveLocationPreference(false);
+                Toast.makeText(getContext(), "Location disabled", Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
             // SIGNUP: create user doc then navigate
             btnSignup.setOnClickListener(view -> {
@@ -203,7 +219,7 @@ public class LoginFragment extends Fragment {
                             user.put("createdAt", FieldValue.serverTimestamp());
                             user.put("preferences", "yes");
                             user.put("profilepicture", null);
-                            user.put("locationEnabled", switchLocation.isChecked());
+                            user.put("locationPreference", switchLocation.isChecked());
 
                             // --- CRITICAL SECURITY CHECK ---
                             if (banDoc.exists()) {
@@ -222,41 +238,17 @@ public class LoginFragment extends Fragment {
                                 user.put("canCreateEvent", true); // Grant standard privileges
                             }
 
-
-                            if (!switchLocation.isChecked()) {
                                 saveUserToFirestore(user);
-                                return;
-                            }
-
-                            requestCurrentLocation(user);
                         });
             });
     }
 
-    private void requestCurrentLocation(Map<String, Object> user) {
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-
-            return;
-        }
-
-        fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                null
-        ).addOnSuccessListener(location -> {
-            if (location != null) {
-                user.put("latitude", location.getLatitude());
-                user.put("longitude", location.getLongitude());
-            }
-
-            saveUserToFirestore(user);
-
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Couldn't get location", Toast.LENGTH_SHORT).show();
-            saveUserToFirestore(user);
-        });
+    private void saveLocationPreference(boolean enabled) {
+        db.collection("users")
+                .document(deviceId)
+                .update("locationPreference", enabled)
+                .addOnSuccessListener(x -> Log.d("Login", "Location preference updated"))
+                .addOnFailureListener(e -> Log.e("Login", "Failed to update location preference", e));
     }
 
     private void saveUserToFirestore(Map<String, Object> user) {
@@ -308,6 +300,8 @@ public class LoginFragment extends Fragment {
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
             Toast.makeText(getContext(), "Location permission granted", Toast.LENGTH_SHORT).show();
+
+            saveLocationPreference(true);
         }
     }
 }
