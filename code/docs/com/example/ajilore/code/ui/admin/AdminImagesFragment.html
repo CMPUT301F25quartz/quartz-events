@@ -72,6 +72,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" tabindex="0">onCreateView(LayoutInflater, ViewGroup, Bundle)</a></li>
+<li><a href="#onImageClick(com.example.ajilore.code.models.ImageItem)" tabindex="0">onImageClick(ImageItem)</a></li>
+<li><a href="#onDeleteClick(com.example.ajilore.code.models.ImageItem)" tabindex="0">onDeleteClick(ImageItem)</a></li>
 </ol>
 </li>
 </ol>
@@ -89,17 +91,18 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code>android.content.ComponentCallbacks</code>, <code>android.view.View.OnCreateContextMenuListener</code>, <code>androidx.activity.result.ActivityResultCaller</code>, <code>androidx.lifecycle.HasDefaultViewModelProviderFactory</code>, <code>androidx.lifecycle.LifecycleOwner</code>, <code>androidx.lifecycle.ViewModelStoreOwner</code>, <code>androidx.savedstate.SavedStateRegistryOwner</code></dd>
+<dd><code>android.content.ComponentCallbacks</code>, <code>android.view.View.OnCreateContextMenuListener</code>, <code>androidx.activity.result.ActivityResultCaller</code>, <code>androidx.lifecycle.HasDefaultViewModelProviderFactory</code>, <code>androidx.lifecycle.LifecycleOwner</code>, <code>androidx.lifecycle.ViewModelStoreOwner</code>, <code>androidx.savedstate.SavedStateRegistryOwner</code>, <code><a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminImagesAdapter.OnImageActionListener</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">AdminImagesFragment</span>
-<span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
+<span class="extends-implements">extends androidx.fragment.app.Fragment
+implements <a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminImagesAdapter.OnImageActionListener</a></span></div>
 <div class="block">Fragment for browsing and managing images in the administrative interface.
 
  <p>This fragment provides administrators with the ability to view all uploaded images
- in the system, including event posters and profile pictures. Administrators can
- moderate content by removing inappropriate images that violate application policies.</p>
+ in the system, specifically event posters. Administrators can moderate content by
+ removing inappropriate images that violate application policies.</p>
 
  <p>Design Pattern: Fragment pattern from Android framework. Part of the overall
  admin navigation structure implementing the Model-View-Controller pattern.</p>
@@ -113,26 +116,17 @@ loadScripts(document, 'script');</script>
 
  <p>Features:</p>
  <ul>
-   <li>Display all uploaded images in a grid layout</li>
-   <li>Filter images by type (event posters, profile pictures)</li>
+   <li>Display all uploaded event poster images in a grid layout</li>
+   <li>Search images by event name</li>
    <li>Remove inappropriate or policy-violating images</li>
-   <li>View image metadata (uploader, date, associated event/user)</li>
- </ul>
-
- <p>Outstanding Issues:</p>
- <ul>
-   <li>Implement image grid layout with RecyclerView</li>
-   <li>Add Firebase Storage integration for image loading</li>
-   <li>Implement image deletion with confirmation dialog</li>
-   <li>Add image preview/fullscreen view functionality</li>
-   <li>Implement filtering by image type (event/profile)</li>
-   <li>Add search functionality for images by associated user/event</li>
+   <li>View image with associated event name</li>
+   <li>Clean, non-cluttered UI with only actual images (no defaults/nulls)</li>
  </ul></div>
 <dl class="notes">
 <dt>Since:</dt>
 <dd>2025-11-01</dd>
 <dt>Version:</dt>
-<dd>1.0</dd>
+<dd>1.2</dd>
 <dt>Author:</dt>
 <dd>Dinma (Team Quartz)</dd>
 </dl>
@@ -189,6 +183,16 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates and returns the view hierarchy for the images browsing interface.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onDeleteClick(com.example.ajilore.code.models.ImageItem)" class="member-name-link">onDeleteClick</a><wbr>(<a href="../../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Called when delete button is clicked for an image.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onImageClick(com.example.ajilore.code.models.ImageItem)" class="member-name-link">onImageClick</a><wbr>(<a href="../../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Called when an image is clicked to view full details.</div>
+</div>
 </div>
 </div>
 </div>
@@ -236,12 +240,7 @@ loadScripts(document, 'script');</script>
  android.view.ViewGroup&nbsp;container,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Creates and returns the view hierarchy for the images browsing interface.
-
- <p>This method inflates the fragment layout, initializes UI components,
- sets up the back button navigation, and loads images from Firebase Storage.
- Currently uses mock data for testing purposes until backend integration
- is complete.</p></div>
+<div class="block">Creates and returns the view hierarchy for the images browsing interface.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
@@ -251,6 +250,37 @@ loadScripts(document, 'script');</script>
 <dd><code>savedInstanceState</code> - Previous saved state of the fragment, or null</dd>
 <dt>Returns:</dt>
 <dd>The root View of the fragment's layout</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="onImageClick(com.example.ajilore.code.models.ImageItem)">
+<h3>onImageClick</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onImageClick</span><wbr><span class="parameters">(<a href="../../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem)</span></div>
+<div class="block">Called when an image is clicked to view full details.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html#onImageClick(com.example.ajilore.code.models.ImageItem)">onImageClick</a></code>&nbsp;in interface&nbsp;<code><a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminImagesAdapter.OnImageActionListener</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>imageItem</code> - The clicked image item</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="onDeleteClick(com.example.ajilore.code.models.ImageItem)">
+<h3>onDeleteClick</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onDeleteClick</span><wbr><span class="parameters">(<a href="../../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem)</span></div>
+<div class="block">Called when delete button is clicked for an image.
+ Shows confirmation dialog before deletion.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html#onDeleteClick(com.example.ajilore.code.models.ImageItem)">onDeleteClick</a></code>&nbsp;in interface&nbsp;<code><a href="../../adapters/AdminImagesAdapter.OnImageActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminImagesAdapter.OnImageActionListener</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>imageItem</code> - The image item to delete</dd>
 </dl>
 </div>
 </section>

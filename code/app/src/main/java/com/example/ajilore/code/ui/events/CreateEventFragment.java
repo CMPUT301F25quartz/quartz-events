@@ -414,10 +414,11 @@ public class CreateEventFragment extends Fragment {
             etLocation.setError("Location is required");
             valid = false;
         }
+        /**
         if (capacityStr.isEmpty()) {
             actCapacity.setError("Capacity is required");
             valid = false;
-        }
+        }**/
         if (dateStr.isEmpty()) {
             etDate.setError("Event date is required");
             valid = false;
@@ -436,14 +437,16 @@ public class CreateEventFragment extends Fragment {
         }
 
         // Parse capacity to number
-        long capacityVal;
-        try {
-            capacityVal = Long.parseLong(capacityStr);
-        } catch (NumberFormatException e) {
-            actCapacity.setError("Invalid capacity format");
-            Log.e("CreateEventFragment", "Failed to parse capacity: " + capacityStr, e);
-            btnSave.setEnabled(true);
-            return;
+        Long capacityVal = null;
+        if(!capacityStr.isEmpty()) {
+            try {
+                capacityVal = Long.parseLong(capacityStr);
+            } catch (NumberFormatException e) {
+                actCapacity.setError("Invalid capacity format");
+                Log.e("CreateEventFragment", "Failed to parse capacity: " + capacityStr, e);
+                btnSave.setEnabled(true);
+                return;
+            }
         }
 
         // Prepare database event creation logic
@@ -451,6 +454,7 @@ public class CreateEventFragment extends Fragment {
 
         String deviceId = AdminAuthManager.getDeviceId(requireContext());
         // Check Permissions in Firestore before proceeding
+        Long finalCapacityVal = capacityVal;
         db.collection("users").document(deviceId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                             // 1. Check Policy Violations
@@ -474,7 +478,9 @@ public class CreateEventFragment extends Fragment {
             event.put("title", title);
             event.put("type", eventType);
             event.put("location", location);
-            event.put("capacity", capacityVal);
+            if (finalCapacityVal != null){
+            event.put("capacity", finalCapacityVal);
+            }
             event.put("startsAt", new Timestamp(eventWhen.getTime()));
             event.put("regOpens", new Timestamp(regOpenCal.getTime()));
             event.put("regCloses", new Timestamp(regCloseCal.getTime()));
