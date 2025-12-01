@@ -120,7 +120,7 @@ public abstract class EventsFragment extends Fragment {
         showLoading(true);
         FirebaseFirestore.getInstance()
                 .collection("org_events")
-                .orderBy("startsAt", Query.Direction.ASCENDING) // or by createdAt if you prefer
+                .orderBy("startsAt", Query.Direction.ASCENDING)
                 .addSnapshotListener((snap, e) -> {
                     showLoading(false);
                     if (e != null) {
@@ -135,22 +135,10 @@ public abstract class EventsFragment extends Fragment {
                             if ("flagged".equals(dbStatus)) {
                                 continue;
                             }
-                            /*
-                            String id        = d.getId();
-                            String title     = safe(d.getString("title"), "(Untitled)");
-                            String location  = safe(d.getString("location"), "TBA");
-                            String status    = safe(d.getString("status"), "Open");
-                            String posterKey = d.getString("posterUrl");
-                            Timestamp ts     = d.getTimestamp("startsAt");
-                            String dateText  = (ts != null)
-                                    ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(ts.toDate())
-                                    : "";
-                              */
                             rows.add(toEventRow(doc)
                             );
                         }
                     }
-                    //I'm trying to sort then to show the events in order (Open -> Published -> Closed)
                     Collections.sort(rows, (a,b) ->{
                         int rankA = statusRank(a.status);
                         int rankB = statusRank(b.status);
@@ -235,7 +223,22 @@ public abstract class EventsFragment extends Fragment {
         }
 
     }
-
+    /**
+     * Converts a Firestore event document into a strongly typed {@link EventRow}
+     * for display in the RecyclerView.
+     *
+     * <p>This extracts:</p>
+     * <ul>
+     *     <li>Event title</li>
+     *     <li>Location</li>
+     *     <li>Poster URL</li>
+     *     <li>Formatted event date</li>
+     *     <li>Registration-based status</li>
+     * </ul>
+     *
+     * @param doc A Firestore {@link DocumentSnapshot} representing an event.
+     * @return A populated {@link EventRow} object.
+     */
     private EventRow toEventRow(DocumentSnapshot doc) {
         String id = doc.getId();
         String title = doc.getString("title");

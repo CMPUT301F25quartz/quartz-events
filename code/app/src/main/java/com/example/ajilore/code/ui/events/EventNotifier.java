@@ -84,7 +84,6 @@ public final class EventNotifier {
                                       @NonNull String targetStatus,   // "chosen" | "selected" | "waiting" | "cancelled"
                                       @NonNull Callback cb) {
 
-        // 0) Write a broadcast audit record
         Map<String, Object> payload = new HashMap<>();
         payload.put("audience", targetStatus);
         payload.put("message", message);
@@ -99,7 +98,6 @@ public final class EventNotifier {
                 .addOnSuccessListener(bRef -> {
                     final String broadcastId = bRef.getId();
 
-                    // 1) Load all entrants for this event (small demo scale → simple)
                     db.collection("org_events").document(eventId)
                             .collection("waiting_list")
                             .get()
@@ -150,13 +148,13 @@ public final class EventNotifier {
                                     return;
                                 }
 
-                                // 2) Fan out to each recipient’s inbox (under org_events/{eventId}/entrants/{uid}/inbox) WITH admin logging
+                                //Fan out to each recipient’s inbox (under org_events/{eventId}/entrants/{uid}/inbox) WITH admin logging
                                 writeInboxInChunks(db, uids, eventId, eventTitle, message,
                                         includePoster, linkUrl, targetStatus, broadcastId,
                                         new Callback() {
                                             @Override
                                             public void onSuccess(int deliveredCount, @NonNull String broadcastIdOrEmpty) {
-                                                // NEW: Log to admin_notification_logs
+                                                // Log to admin_notification_logs
                                                 db.collection("org_events").document(eventId).get()
                                                         .addOnSuccessListener(eventDoc -> {
                                                             String senderId = eventDoc.getString("createdByUid");
@@ -211,7 +209,7 @@ public final class EventNotifier {
                                     @Nullable String linkUrl,
                                     @NonNull Callback cb) {
 
-        // 1) write a broadcast audit record
+        // write a broadcast audit record
         Map<String, Object> payload = new HashMap<>();
         payload.put("audience", targetStatus);
         payload.put("message", message);
@@ -226,7 +224,7 @@ public final class EventNotifier {
                 .addOnSuccessListener(bRef -> {
                     String broadcastId = bRef.getId();
 
-                    // 2) create inbox doc refs in both locations
+                    //create inbox doc refs in both locations
                     DocumentReference inboxRef = db.collection("org_events").document(eventId)
                             .collection("waiting_list").document(uid)
                             .collection("inbox").document();
@@ -257,7 +255,7 @@ public final class EventNotifier {
                     inbox.put("broadcastId", broadcastId);
                     inbox.put("createdAt", FieldValue.serverTimestamp());
 
-                    // 3) batch both writes
+                    //batch both writes
                     WriteBatch batch = db.batch();
                     batch.set(inboxRef, inbox);
                     batch.set(userInboxRef, inbox);
@@ -328,7 +326,7 @@ public final class EventNotifier {
 
                 String inboxId = inboxRef.getId();
 
-                // NEW: mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
+                // mirror under users/{uid}/registrations/{eventId}/inbox/{inboxId}
                 DocumentReference userInboxRef = db.collection("users")
                         .document(uid)
                         .collection("registrations")
@@ -353,7 +351,7 @@ public final class EventNotifier {
 
                 batch.set(inboxRef, inbox);
                 batch.set(userInboxRef, inbox);
-                batch.set(userInboxRef, inbox);   // NEW
+                batch.set(userInboxRef, inbox);
                 thisBatchCount++;
             }
 
