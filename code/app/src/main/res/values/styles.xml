@@ -32,6 +32,13 @@
         <item name="cornerSize">16dp</item>
     </style>
 
+    <!-- Dialog Theme for Rounded Corners -->
+    <style name="RoundedDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
     <style name="PrimaryBtn" parent="Widget.Material3.Button">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">48dp</item>
@@ -74,6 +81,17 @@
     <style name="ShapeAppearance.App.Button.Rounded" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">6dp</item>
+    </style>
+
+    <!-- Week Day Label Style -->
+    <style name="WeekDayLabel">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#999999</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="FilterChipStyle" parent="Widget.AppCompat.Button.Borderless">

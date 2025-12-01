@@ -85,6 +85,7 @@ public class EventDetailsFragment extends Fragment {
     private ListenerRegistration eventListener;
     private ListenerRegistration waitingListStatusListener;
     private ListenerRegistration waitingListCountListener;
+    private static final String ARG_FILTERS = "filters";
 
 
     // US 01.01.01 & 01.01.02: Track waiting list status
@@ -106,7 +107,6 @@ public class EventDetailsFragment extends Fragment {
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
         args.putString(ARG_EVENT_TITLE, title);
-//        args.putString(ARG_USER_ID, userId);
         fragment.setArguments(args);
         return fragment;
     }

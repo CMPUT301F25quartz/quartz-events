@@ -5,7 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    tools:context=".ui.events.EntrantEventsFragment">
+    tools:context=".ui.events.EventsFragment">
+
+    <!-- Filter Button -->
+    <ImageButton
+        android:id="@+id/btnFilter"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Filter events"
+        android:src="@drawable/ic_filter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#1976D2" />
 
     <!-- Progress Bar (centered while loading) -->
     <ProgressBar
@@ -38,8 +50,8 @@
     <!-- RecyclerView for Events List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvEntrantEvents"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="353dp"
+        android:layout_height="548dp"
         android:layout_margin="16dp"
         android:clipToPadding="false"
         android:paddingBottom="16dp"
