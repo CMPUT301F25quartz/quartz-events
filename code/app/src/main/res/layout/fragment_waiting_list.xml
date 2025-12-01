@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/backgroundColor">
 
     <!-- Top bar with back button and title -->
     <LinearLayout
@@ -99,7 +100,7 @@
             android:layout_weight="1"
             android:hint="Search entrants..."
             android:inputType="text"
-            android:drawableStart="@android:drawable/ic_menu_search"
+            android:drawableStart="@drawable/search"
             android:padding="10dp"
             android:background="@drawable/bg_card_round" />
 

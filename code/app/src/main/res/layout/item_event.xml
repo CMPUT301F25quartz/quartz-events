@@ -8,7 +8,8 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="20dp"
     app:cardUseCompatPadding="true"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    android:background="@color/backgroundColor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,16 +19,17 @@
         <!-- Banner with date badge -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="160dp">
+            android:layout_height="160dp"
+            android:background="@color/backgroundColor">
 
+            <!-- Date badge -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivPoster"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent"/>
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent" />
 
-            <!-- Date badge -->
             <LinearLayout
                 android:id="@+id/badgeDate"
                 android:layout_width="56dp"
@@ -39,42 +41,28 @@
                 android:elevation="3dp">
 
                 <TextView
-                    android:id="@+id/tvDate"
+                    android:id="@+id/tvDay"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#2D5BFF"
-                    android:maxLines="1" />
+                    android:text="10"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/red" />
+
+                <TextView
+                    android:id="@+id/tvMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="JUNE"
+                    android:textSize="10sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/red" />
             </LinearLayout>
 
             <!-- Red ribbon text -->
 
-            <TextView
-                android:id="@+id/tvEventTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:text="International Band Music Conference"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvRegClosesBanner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_banner_red"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:text="REGISTRATION CLOSES IN 10 DAYS"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:textSize="12sp"/>
         </FrameLayout>
 
         <!-- Content -->
@@ -82,7 +70,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:background="@color/backgroundColor">
 
             <TextView
                 android:id="@+id/tvTitle"
@@ -151,6 +140,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginTop="12dp"
+                app:backgroundTint="@color/my_purple"
                 android:text="VIEW DETAILS"/>
         </LinearLayout>
     </LinearLayout>

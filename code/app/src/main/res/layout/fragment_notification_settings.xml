@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="top">
+    android:gravity="top"
+    android:background="@color/backgroundColor">
 
     <!-- Back Button -->
     <ImageButton
