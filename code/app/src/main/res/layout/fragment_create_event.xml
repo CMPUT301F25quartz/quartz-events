@@ -274,10 +274,11 @@
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/actCapacity"
                 android:hint=""
-                android:inputType="none"
+                android:inputType="number"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:focusableInTouchMode="false" />
+                android:focusableInTouchMode="true"
+                android:cursorVisible="true"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Label + Field: Registration Opens -->
