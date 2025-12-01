@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
      *                           if this is a fresh launch
      */
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +109,20 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setVisibility(View.GONE);
 
         db = FirebaseFirestore.getInstance();
+        boolean skipLoginForTests = getIntent().getBooleanExtra("skipLoginForTests", false);
+
+        if (!skipLoginForTests) {
+            // normal behaviour
+            checkBanStatusAndLogin();
+        } else {
+            // TEST MODE: pretend user is already clean + logged in
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_fragment,
+                            new com.example.ajilore.code.ui.events.EventsScreenFragment())
+                    .commit();
+        }
+
 
         userId = Settings.Secure.getString(
                 getContentResolver(),
@@ -143,9 +158,10 @@ public class MainActivity extends AppCompatActivity {
         // Test Firebase connection (unchanged)
         testFirebaseConnection();
 
-        // Kulnoor ADDED: Check and request notification permission
+        //ADDED: Check and request notification permission
         checkNotificationPermission();
     }
+
 
     //  ADDED: Method to check and request notification permission for Android 13+
     /**
