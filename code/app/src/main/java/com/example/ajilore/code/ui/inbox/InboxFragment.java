@@ -5,13 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
@@ -23,7 +21,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
-
 import java.util.ArrayList;
 import java.util.List;
 import android.provider.Settings;
@@ -31,8 +28,6 @@ import com.google.firebase.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
-
 
 /**
  * InboxFragment
@@ -59,28 +54,24 @@ import java.util.Locale;
  * listeners. UI state is delegated to {@link NotificationAdapter}, while data
  * persistence is handled via Firestore batch updates.</p>
  */
-
-
 public class InboxFragment extends Fragment {
-
     private String userProfileUrl;
-
     private RecyclerView recyclerNotifications;
     private NotificationAdapter adapter;
     private List<NotificationModel> notificationList;
     private List<NotificationModel> archivedList;
-
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-
     private MaterialButton btnMarkAllRead;
     private MaterialButton btnFilterUnread;
-    private MaterialButton btnViewArchived;
-    private boolean showOnlyUnread = false;
-    private boolean showingArchived = false;
+    private MaterialButton btnInboxView; // NEW: Inbox button (in filter bar)
+    private MaterialButton btnArchiveView; // NEW: Archive button (next to title)
+    private boolean showOnlyUnread = false; // For filtering within the current view
+    private boolean showingArchived = false; // Determines which list (notificationList or archivedList) to show
     private String userId;
-
     private NotificationAdapter.OnNotificationActionListener listener;
+    // NEW: Add a flag to track user's notification preference (as per easiest approach)
+    private boolean userNotificationsEnabled = true;
 
     /**
      * Default public constructor for {@link InboxFragment}.
@@ -89,7 +80,6 @@ public class InboxFragment extends Fragment {
     public InboxFragment() {
         // Required empty public constructor
     }
-
 
     /**
      * Factory method to create a new instance of {@link InboxFragment}
@@ -103,17 +93,15 @@ public class InboxFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_inbox, container, false);
-
         recyclerNotifications = view.findViewById(R.id.recyclerNotifications);
         recyclerNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
-
         btnMarkAllRead = view.findViewById(R.id.btnMarkAllRead);
         btnFilterUnread = view.findViewById(R.id.btnFilterUnread);
-        btnViewArchived = view.findViewById(R.id.btnViewArchived);
+        btnInboxView = view.findViewById(R.id.btnInboxView); // NEW: Inbox button (in filter bar)
+        btnArchiveView = view.findViewById(R.id.btnArchiveView); // NEW: Archive button (next to title)
 
-        // NEW: Settings button to open NotificationSettingsFragment (added by Kulnoor)
+        // NEW: Settings button (in top right corner) - find and set click listener
         View settingsBtn = view.findViewById(R.id.btnInboxSettings);
         settingsBtn.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
@@ -125,7 +113,6 @@ public class InboxFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-
         // Use same ID as EventDetailsFragment
         userId = Settings.Secure.getString(
                 requireContext().getContentResolver(),
@@ -139,15 +126,12 @@ public class InboxFragment extends Fragment {
         notificationList = new ArrayList<>();
         archivedList = new ArrayList<>();
 
-
         listener = new NotificationAdapter.OnNotificationActionListener() {
             @Override
             public void onDismiss(NotificationModel notification) {
                 if (userId == null || userId.isEmpty()) return;
-
                 String eventId = notification.getEventId();
                 String docId   = notification.getFirestoreDocId();
-
                 // Per-user path
                 DocumentReference userInboxRef = db.collection("users")
                         .document(userId)
@@ -155,7 +139,6 @@ public class InboxFragment extends Fragment {
                         .document(eventId)
                         .collection("inbox")
                         .document(docId);
-
                 // Old org_events path
                 DocumentReference orgInboxRef = db.collection("org_events")
                         .document(eventId)
@@ -167,7 +150,6 @@ public class InboxFragment extends Fragment {
                 WriteBatch batch = db.batch();
                 batch.update(userInboxRef, "archived", true);
                 batch.update(orgInboxRef,  "archived", true);
-
                 batch.commit()
                         .addOnSuccessListener(aVoid -> {
                             // Just remove from current inbox list.
@@ -177,15 +159,12 @@ public class InboxFragment extends Fragment {
                             updateInboxBadgeFromLists();
                             Toast.makeText(getContext(), "Notification archived", Toast.LENGTH_SHORT).show();
                         })
-
                         .addOnFailureListener(e ->
                                 Toast.makeText(getContext(),
                                         "Failed to archive: " + e.getMessage(),
                                         Toast.LENGTH_SHORT).show()
                         );
             }
-
-
 
             @Override
             public void onAction(NotificationModel notification) {
@@ -198,12 +177,10 @@ public class InboxFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (getActivity() instanceof MainActivity) {
                     ((MainActivity) getActivity()).openEventDetailsFromInbox(eventId);
                 }
             }
-
         };
 
         adapter = new NotificationAdapter(getContext(), getCurrentList(), listener, showingArchived);
@@ -211,11 +188,11 @@ public class InboxFragment extends Fragment {
 
         btnMarkAllRead.setOnClickListener(v -> markAllRead());
         btnFilterUnread.setOnClickListener(v -> toggleUnreadFilter());
-        btnViewArchived.setOnClickListener(v -> toggleArchiveView());
+        btnInboxView.setOnClickListener(v -> switchToInboxView()); // NEW: Switch to Inbox view
+        btnArchiveView.setOnClickListener(v -> switchToArchiveView()); // NEW: Switch to Archive view
 
         //signInAnonymouslyIfNeeded();
         loadUserProfileThenNotifications();
-
         return view;
     }
 
@@ -234,19 +211,52 @@ public class InboxFragment extends Fragment {
             return;
         }
 
+        // NEW: Load user's notification preference FIRST (as per easiest approach)
+        loadNotificationPreference(() -> {
+            // AFTER preference is loaded, proceed with loading profile and notifications
+            db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc != null && doc.exists()) {
+                            userProfileUrl = doc.getString("profilepicture");
+                        }
+                        // avatar is loaded, start FirebaseAuth + notifications
+                        signInAnonymouslyIfNeeded();
+                    })
+                    .addOnFailureListener(e -> {
+                        // Even if profile fetch fails, we still want notifications
+                        signInAnonymouslyIfNeeded();
+                    });
+        });
+    }
+
+    // NEW: Method to load the user's notification preference (as per easiest approach)
+    private void loadNotificationPreference(Runnable onSuccess) {
         db.collection("users")
                 .document(userId)
+                .collection("preferences")
+                .document("notifications")
                 .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc != null && doc.exists()) {
-                        userProfileUrl = doc.getString("profilepicture");
+                .addOnSuccessListener(prefDoc -> {
+                    if (prefDoc.exists()) {
+                        Boolean flag = prefDoc.getBoolean("enabled");
+                        userNotificationsEnabled = flag != null && flag;
+                    } else {
+                        // If preference document doesn't exist, default to true (enabled)
+                        userNotificationsEnabled = true;
                     }
-                    // avatar is loaded, start FirebaseAuth + notifications
-                    signInAnonymouslyIfNeeded();
+                    if (onSuccess != null) {
+                        onSuccess.run();
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    // Even if profile fetch fails, we still want notifications
-                    signInAnonymouslyIfNeeded();
+                    // If fetching preference fails, default to true (enabled) and continue
+                    userNotificationsEnabled = true;
+                    Toast.makeText(getContext(), "Could not load notification settings, defaulting to enabled.", Toast.LENGTH_SHORT).show();
+                    if (onSuccess != null) {
+                        onSuccess.run();
+                    }
                 });
     }
 
@@ -297,20 +307,16 @@ public class InboxFragment extends Fragment {
                         updateInboxBadgeFromLists();
                         return;
                     }
-
                     for (DocumentSnapshot regDoc : regSnapshots) {
                         final String eventId = regDoc.getId();
-
                         regDoc.getReference()
                                 .collection("inbox")
                                 .orderBy("createdAt", Query.Direction.DESCENDING)
                                 .addSnapshotListener((snapshots, e) -> {
                                     if (e != null || snapshots == null) return;
                                     if (!isAdded()) return;
-
                                     for (DocumentChange change : snapshots.getDocumentChanges()) {
                                         DocumentSnapshot inboxDoc = change.getDocument();
-
                                         String message = inboxDoc.getString("message");
                                         String type = inboxDoc.getString("type") != null
                                                 ? inboxDoc.getString("type")
@@ -320,6 +326,10 @@ public class InboxFragment extends Fragment {
                                         Boolean archivedFlag = inboxDoc.getBoolean("archived");
                                         boolean archived = archivedFlag != null && archivedFlag;
                                         String docId = inboxDoc.getId();
+
+                                        // NEW: Check user preference here before adding to lists (as per easiest approach)
+                                        // If preference is OFF, force archived = true for display purposes only
+                                        boolean displayAsArchived = archived || !userNotificationsEnabled;
 
                                         // for time: get createdAt and format it
                                         Timestamp ts = inboxDoc.getTimestamp("createdAt");
@@ -331,8 +341,6 @@ public class InboxFragment extends Fragment {
                                                     new SimpleDateFormat("MMM d, h:mm a", Locale.getDefault());
                                             timeString = sdf.format(date);
                                         }
-
-
                                         if (message != null) {
                                             NotificationModel notification = new NotificationModel(
                                                     eventId,
@@ -344,8 +352,7 @@ public class InboxFragment extends Fragment {
                                                     getString(R.string.see_details),
                                                     type
                                             );
-
-                                            if (archived) {
+                                            if (displayAsArchived) {
                                                 if (!archivedList.contains(notification)) {
                                                     archivedList.add(notification);
                                                 }
@@ -356,7 +363,6 @@ public class InboxFragment extends Fragment {
                                             }
                                         }
                                     }
-
                                     adapter.updateList(getCurrentList(), showingArchived);
                                     updateInboxBadgeFromLists();
                                 });
@@ -369,13 +375,6 @@ public class InboxFragment extends Fragment {
                 );
     }
 
-
-    /**
-     * Marks all non-archived notifications as read locally.
-     *
-     * <p>Firestore storage is updated lazily when individual notifications
-     * are opened. This method updates the UI and badge count immediately.</p>
-     */
     private void markAllRead() {
         for (NotificationModel n : notificationList) n.setRead(true);
         adapter.updateList(getCurrentList(), showingArchived);
@@ -394,11 +393,9 @@ public class InboxFragment extends Fragment {
      */
     private void markNotificationAsRead(@NonNull NotificationModel notification) {
         if (userId == null || userId.isEmpty()) return;
-
         String eventId = notification.getEventId();
         String docId   = notification.getFirestoreDocId();
         if (eventId == null || docId == null) return;
-
         // Firestore: mark as read in user inbox path
         DocumentReference userInboxRef = db.collection("users")
                 .document(userId)
@@ -406,69 +403,60 @@ public class InboxFragment extends Fragment {
                 .document(eventId)
                 .collection("inbox")
                 .document(docId);
-
         userInboxRef.update("read", true);
 
         // Local model: mark as read so UI + badge update instantly
         notification.setRead(true); // make sure NotificationModel has setRead(boolean)
-
         adapter.updateList(getCurrentList(), showingArchived);
         updateInboxBadgeFromLists();   //  update  red indicator
     }
 
-
-    /**
-     * Toggles between showing all notifications and showing only unread ones.
-     *
-     * <p>Updates the adapter list and updates the button text accordingly.</p>
-     */
     private void toggleUnreadFilter() {
         showOnlyUnread = !showOnlyUnread;
-        adapter.updateList(getCurrentList(), showingArchived);
+        adapter.updateList(getCurrentList(), showingArchived); // Update list with filter applied to current view
         btnFilterUnread.setText(showOnlyUnread ? R.string.show_all : R.string.show_unread);
     }
 
-    /**
-     * Switches the view between:
-     * <ul>
-     *     <li>Inbox (non-archived notifications)</li>
-     *     <li>Archived notifications</li>
-     * </ul>
-     *
-     * <p>Updates the adapter and toggles button text.</p>
-     */
-    private void toggleArchiveView() {
-        showingArchived = !showingArchived;
-        adapter.updateList(getCurrentList(), showingArchived);
-        btnViewArchived.setText(showingArchived ? R.string.show_inbox : R.string.view_archived);
+    // NEW: Switch to Inbox view
+    private void switchToInboxView() {
+        showingArchived = false; // Show the notificationList
+        adapter.updateList(getCurrentList(), showingArchived); // Update adapter with Inbox list
+        // Update button states (optional visual feedback)
+        btnInboxView.setEnabled(false);
+        btnArchiveView.setEnabled(true);
+        // Reset filter state when switching views if needed, or keep it - depends on UX preference
+        // For now, keeping the filter state persistent across views
+    }
+
+    // NEW: Switch to Archive view
+    private void switchToArchiveView() {
+        showingArchived = true; // Show the archivedList
+        adapter.updateList(getCurrentList(), showingArchived); // Update adapter with Archive list
+        // Update button states (optional visual feedback)
+        btnInboxView.setEnabled(true);
+        btnArchiveView.setEnabled(false);
+        // Reset filter state when switching views if needed, or keep it - depends on UX preference
+        // For now, keeping the filter state persistent across views
     }
 
     private List<NotificationModel> getCurrentList() {
         List<NotificationModel> sourceList = showingArchived ? archivedList : notificationList;
         List<NotificationModel> filteredList = new ArrayList<>();
         for (NotificationModel n : sourceList) {
-            if (showOnlyUnread && n.isRead()) continue;
+            if (showOnlyUnread && n.isRead()) continue; // Apply filter based on current flag
             filteredList.add(n);
         }
         return filteredList;
     }
 
-
-
-    /**
-     * Computes the number of unread, non-archived notifications and sends the
-     * result to {@link MainActivity} so the bottom navigation badge is updated.
-     */
     private void updateInboxBadgeFromLists() {
         int unreadCount = 0;
-        // Only count non-archived notifications
+        // Only count non-archived notifications (as determined by the display logic)
         for (NotificationModel n : notificationList) {
             if (!n.isRead()) unreadCount++;
         }
-
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).updateInboxBadge(unreadCount);
         }
     }
-
 }

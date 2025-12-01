@@ -105,6 +105,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database:20.3.3")
+    implementation("com.google.firebase:firebase-firestore:24.9.1")
+// or latest version
 
     implementation("io.github.g00fy2.quickie:quickie-bundled:1.7.0")
     // Image loading library - Glide

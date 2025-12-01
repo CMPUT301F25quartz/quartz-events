@@ -27,6 +27,10 @@ package com.example.ajilore.code.ui.inbox;
  * <p>Firestore requires a public no-arg constructor for deserialization.</p>
  */
 
+
+
+
+
 public class NotificationModel {
     private String eventId;          // Event this notification belongs to
     private String firestoreDocId;   // Firestore document ID of this inbox notification
@@ -40,29 +44,20 @@ public class NotificationModel {
 
 
 
-    /**
-     * Default no-argument constructor required by Firestore.
-     *
-     * <p>Firestore automatically populates fields via reflection, so this must remain public
-     * and empty.</p>
-     */
+
+
+
+
     public NotificationModel() {} // Firestore requirement
 
 
 
 
-    /**
-     * Creates a fully populated notification model.
-     *
-     * @param eventId         ID of the event this notification relates to.
-     * @param firestoreDocId  Firestore document ID under the inbox subcollection.
-     * @param message         Message text sent by the organizer.
-     * @param time            User-friendly timestamp string (e.g., "Nov 27, 5:23 PM").
-     * @param imageUrl        URL of sender profile image (may be empty).
-     * @param isRead          Whether the user has opened/read the notification.
-     * @param actionText      Label used for the action button (e.g., "See Details").
-     * @param type            Notification category ("general", "chosen", "selected", etc.).
-     */
+
+
+
+
+    // Full constructor
     public NotificationModel(String eventId, String firestoreDocId, String message, String time, String imageUrl,
                              boolean isRead, String actionText, String type) {
         this.eventId = eventId;
@@ -75,17 +70,14 @@ public class NotificationModel {
         this.type = type;
     }
 
-    /**
-     * Creates a simplified notification model when only basic fields are known.
-     *
-     * <p>Used for lightweight Firestore mappings where timestamp or images are added later.</p>
-     *
-     * @param eventId        Related event ID.
-     * @param firestoreDocId Firestore inbox document ID.
-     * @param message        Notification message text.
-     * @param isRead         Read/unread flag.
-     * @param type           Notification type category.
-     */
+
+
+
+
+
+
+
+    // Short constructor
     public NotificationModel(String eventId, String firestoreDocId, String message, boolean isRead, String type) {
         this.eventId = eventId;
         this.firestoreDocId = firestoreDocId;
@@ -100,6 +92,10 @@ public class NotificationModel {
 
 
 
+
+
+
+
     // --- Getters & Setters ---
     public String getEventId() { return eventId; }
     public String getFirestoreDocId() { return firestoreDocId; }
@@ -109,8 +105,14 @@ public class NotificationModel {
     public boolean isRead() { return isRead; }
 
 
+
+
     public String getActionText() { return actionText; }
     public String getType() { return type; }
+
+
+
+
 
 
 
@@ -125,15 +127,12 @@ public class NotificationModel {
     public void setType(String type) { this.type = type; }
 
 
-    /**
-     * Two notifications are considered equal if they share the same
-     * Firestore inbox document ID. This allows RecyclerView logic to
-     * detect duplicates and prevents re-adding existing notifications
-     * when Firestore snapshot listeners refresh.
-     *
-     * @param obj Another object to compare.
-     * @return true if both represent the same Firestore inbox document.
-     */
+
+
+
+
+
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof NotificationModel)) return false;
@@ -142,13 +141,12 @@ public class NotificationModel {
     }
 
 
-    /**
-     * HashCode is based solely on the Firestore document ID so the model
-     * works correctly with collections such as HashSet or when RecyclerView
-     * checks for item uniqueness.
-     *
-     * @return Hash based on Firestore document ID.
-     */
+
+
+
+
+
+
     @Override
     public int hashCode() {
         return firestoreDocId != null ? firestoreDocId.hashCode() : 0;

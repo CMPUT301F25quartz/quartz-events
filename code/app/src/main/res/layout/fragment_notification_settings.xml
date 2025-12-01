@@ -7,6 +7,7 @@
     android:padding="24dp"
     android:gravity="top">
 
+
     <!-- Back Button -->
     <ImageButton
         android:id="@+id/btnBack"
@@ -16,6 +17,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Go back"
         android:layout_marginBottom="16dp" />
+
 
     <!-- Switch -->
     <Switch
@@ -27,6 +29,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp" />
 
+
     <!-- Optional explanation text -->
     <TextView
         android:id="@+id/textNotifDescription"
@@ -35,5 +38,6 @@
         android:text="Toggle to opt out of receiving  notifications."
         android:textSize="14sp"
         android:layout_marginTop="12dp" />
+
 
 </LinearLayout>

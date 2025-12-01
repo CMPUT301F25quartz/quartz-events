@@ -7,11 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import com.example.ajilore.code.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -40,7 +38,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * <p>This fragment is opened from {@link com.example.ajilore.code.ui.inbox.InboxFragment}.</p>
  */
 public class NotificationSettingsFragment extends Fragment {
-
     private Switch switchNotifications;
     private ImageButton btnBack;
     private FirebaseFirestore db;
@@ -69,11 +66,8 @@ public class NotificationSettingsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_notification_settings, container, false);
-
         btnBack = view.findViewById(R.id.btnBack);
-
         switchNotifications = view.findViewById(R.id.switchNotifications);
         db = FirebaseFirestore.getInstance();
 
@@ -122,7 +116,6 @@ public class NotificationSettingsFragment extends Fragment {
                     .set(
                             java.util.Collections.singletonMap("enabled", isChecked)
                     );
-
             Toast.makeText(
                     getContext(),
                     isChecked ? "Pop-up notifications enabled" : "Pop-up notifications disabled",
