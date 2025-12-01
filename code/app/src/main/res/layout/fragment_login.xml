@@ -39,6 +39,13 @@
             android:text="Log in"
             android:layout_marginTop="16dp" />
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share my location"
+            android:layout_marginTop="12dp"/>
+
         <!-- SIGN UP GROUP (hidden by default) -->
         <LinearLayout
             android:id="@+id/groupSignup"
@@ -97,13 +104,6 @@
                     android:hint="Phone (optional)"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switchLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Share my location"
-                android:layout_marginTop="12dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSignup"
