@@ -65,6 +65,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
+<li><a href="#%3Cinit%3E(com.google.firebase.firestore.FirebaseFirestore,com.google.firebase.storage.FirebaseStorage)" tabindex="0">AdminController(FirebaseFirestore, FirebaseStorage)</a></li>
 <li><a href="#%3Cinit%3E()" tabindex="0">AdminController()</a></li>
 </ol>
 </li>
@@ -74,6 +75,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#fetchAllUsers(com.example.ajilore.code.controllers.AdminController.DataCallback)" tabindex="0">fetchAllUsers(AdminController.DataCallback)</a></li>
 <li><a href="#removeEvent(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" tabindex="0">removeEvent(String, AdminController.OperationCallback)</a></li>
 <li><a href="#removeUser(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" tabindex="0">removeUser(String, AdminController.OperationCallback)</a></li>
+<li><a href="#removeOrganizer(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" tabindex="0">removeOrganizer(String, AdminController.OperationCallback)</a></li>
+<li><a href="#getOrganizerEvents(java.lang.String,com.example.ajilore.code.controllers.AdminController.DataCallback)" tabindex="0">getOrganizerEvents(String, AdminController.DataCallback)</a></li>
+<li><a href="#fetchAllImages(com.example.ajilore.code.controllers.AdminController.DataCallback)" tabindex="0">fetchAllImages(AdminController.DataCallback)</a></li>
+<li><a href="#removeImage(com.example.ajilore.code.models.ImageItem,com.example.ajilore.code.controllers.AdminController.OperationCallback)" tabindex="0">removeImage(ImageItem, AdminController.OperationCallback)</a></li>
+<li><a href="#fetchNotificationLogs(com.example.ajilore.code.controllers.AdminController.DataCallback)" tabindex="0">fetchNotificationLogs(AdminController.DataCallback)</a></li>
 </ol>
 </li>
 </ol>
@@ -91,10 +97,36 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">AdminController</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">AdminController handles all administrative operations.
- Provides methods for browsing and removing events, users, and images.
- Implements US 03.04.01 (Browse Events), US 03.05.01 (Browse Users),
- and US 03.01.01 (Remove Events).</div>
+<div class="block">Controller responsible for all administrative operations within the application.
+
+ <p>This class acts as the bridge between the Admin UI and the Firebase backend (Firestore and Storage).
+ It implements the logic for browsing, filtering, and removing domain entities (Events, Users, Images)
+ and ensures data consistency (e.g., removing associated images when an event is deleted).</p>
+
+ <h3 id="supported-user-stories--heading">Supported User Stories:</h3>
+ <ul>
+ <li><b>US 03.04.01:</b> Browse Events (<a href="#fetchAllEvents(com.example.ajilore.code.controllers.AdminController.DataCallback)"><code>fetchAllEvents(com.example.ajilore.code.controllers.AdminController.DataCallback&lt;java.util.List&lt;com.example.ajilore.code.ui.events.model.Event&gt;&gt;)</code></a>)</li>
+ <li><b>US 03.05.01:</b> Browse Profiles (<a href="#fetchAllUsers(com.example.ajilore.code.controllers.AdminController.DataCallback)"><code>fetchAllUsers(com.example.ajilore.code.controllers.AdminController.DataCallback&lt;java.util.List&lt;com.example.ajilore.code.models.User&gt;&gt;)</code></a>)</li>
+ <li><b>US 03.06.01:</b> Browse Images (<a href="#fetchAllImages(com.example.ajilore.code.controllers.AdminController.DataCallback)"><code>fetchAllImages(com.example.ajilore.code.controllers.AdminController.DataCallback&lt;java.util.List&lt;com.example.ajilore.code.models.ImageItem&gt;&gt;)</code></a>)</li>
+ <li><b>US 03.01.01:</b> Remove Events (<a href="#removeEvent(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)"><code>removeEvent(java.lang.String, com.example.ajilore.code.controllers.AdminController.OperationCallback)</code></a>)</li>
+ <li><b>US 03.02.01:</b> Remove Profiles (<a href="#removeUser(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)"><code>removeUser(java.lang.String, com.example.ajilore.code.controllers.AdminController.OperationCallback)</code></a>)</li>
+ <li><b>US 03.03.01:</b> Remove Images (<a href="#removeImage(com.example.ajilore.code.models.ImageItem,com.example.ajilore.code.controllers.AdminController.OperationCallback)"><code>removeImage(com.example.ajilore.code.models.ImageItem, com.example.ajilore.code.controllers.AdminController.OperationCallback)</code></a>)</li>
+ <li><b>US 03.07.01:</b> Remove Organizers (<a href="#removeOrganizer(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)"><code>removeOrganizer(java.lang.String, com.example.ajilore.code.controllers.AdminController.OperationCallback)</code></a>)</li>
+ <li><b>US 03.08.01:</b> Review Notification Logs (<a href="#fetchNotificationLogs(com.example.ajilore.code.controllers.AdminController.DataCallback)"><code>fetchNotificationLogs(com.example.ajilore.code.controllers.AdminController.DataCallback&lt;java.util.List&lt;com.example.ajilore.code.models.NotificationLog&gt;&gt;)</code></a>)</li>
+ </ul></div>
+<dl class="notes">
+<dt>Version:</dt>
+<dd>2.0</dd>
+<dt>Author:</dt>
+<dd>Dinma (Team Quartz)</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../models/User.html" title="class in com.example.ajilore.code.models"><code>User</code></a></li>
+<li><a href="../ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model"><code>Event</code></a></li>
+</ul>
+</dd>
+</dl>
 </div>
 </section>
 <section class="summary">
@@ -111,12 +143,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
 <div class="col-second even-row-color"><code><a href="AdminController.DataCallback.html" class="type-name-link" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="AdminController.DataCallback.html#type-param-T" title="type parameter in AdminController.DataCallback">T</a>&gt;</code></div>
 <div class="col-last even-row-color">
-<div class="block">Generic data fetch callback with type and error reporting.</div>
+<div class="block">Generic callback interface for data retrieval operations.</div>
 </div>
 <div class="col-first odd-row-color"><code>static interface&nbsp;</code></div>
 <div class="col-second odd-row-color"><code><a href="AdminController.OperationCallback.html" class="type-name-link" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a></code></div>
 <div class="col-last odd-row-color">
-<div class="block">Generic operation callback for CRUD/remove operations.</div>
+<div class="block">Generic callback interface for void operations (Create/Update/Delete).</div>
 </div>
 </div>
 </section>
@@ -130,8 +162,11 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E()" class="member-name-link">AdminController</a>()</code></div>
-<div class="col-last even-row-color">
-<div class="block">Constructs an AdminController and connects to Firestore and Storage.</div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(com.google.firebase.firestore.FirebaseFirestore,com.google.firebase.storage.FirebaseStorage)" class="member-name-link">AdminController</a><wbr>(com.google.firebase.firestore.FirebaseFirestore&nbsp;db,
+ com.google.firebase.storage.FirebaseStorage&nbsp;storage)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Initializes the AdminController with default Firebase instances.</div>
 </div>
 </div>
 </section>
@@ -148,25 +183,53 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchAllEvents(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchAllEvents</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/Event.html" title="class in com.example.ajilore.code.models">Event</a>&gt;&gt;&nbsp;callback)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchAllEvents(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchAllEvents</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a>&gt;&gt;&nbsp;callback)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Fetches all event documents from Firestore.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchAllUsers(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchAllUsers</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&gt;&gt;&nbsp;callback)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchAllImages(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchAllImages</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&gt;&gt;&nbsp;callback)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Fetches all user profiles from Firestore.</div>
+<div class="block">Fetches all images (event posters AND profile pictures) from Firestore.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeEvent(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeEvent</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
- <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchAllUsers(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchAllUsers</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&gt;&gt;&nbsp;callback)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Removes an event and corresponding poster image from Firestore and Storage.</div>
+<div class="block">Fetches all user profiles from Firestore and converts to User model.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeUser(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeUser</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;userId,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fetchNotificationLogs(com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">fetchNotificationLogs</a><wbr>(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a>&gt;&gt;&nbsp;callback)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Fetches notification logs for administrative review.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getOrganizerEvents(java.lang.String,com.example.ajilore.code.controllers.AdminController.DataCallback)" class="member-name-link">getOrganizerEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;organizerId,
+ <a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a>&gt;&gt;&nbsp;callback)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Fetches all events created by a specific organizer.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeEvent(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeEvent</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
  <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Removes an event and corresponding poster image from Firestore and Storage.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeImage(com.example.ajilore.code.models.ImageItem,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeImage</a><wbr>(<a href="../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem,
+ <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Removes an image (event poster OR profile picture) from Storage and Firestore.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeOrganizer(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeOrganizer</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;organizerId,
+ <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Atomically removes an organizer, bans them, and flags all their events.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeUser(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)" class="member-name-link">removeUser</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;userId,
+ <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Removes a user profile from Firestore.</div>
 </div>
 </div>
@@ -187,11 +250,20 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="&lt;init&gt;(com.google.firebase.firestore.FirebaseFirestore,com.google.firebase.storage.FirebaseStorage)">
+<h3>AdminController</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AdminController</span><wbr><span class="parameters">(com.google.firebase.firestore.FirebaseFirestore&nbsp;db,
+ com.google.firebase.storage.FirebaseStorage&nbsp;storage)</span></div>
+<div class="block">Initializes the AdminController with default Firebase instances.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="&lt;init&gt;()">
 <h3>AdminController</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AdminController</span>()</div>
-<div class="block">Constructs an AdminController and connects to Firestore and Storage.</div>
 </div>
 </section>
 </li>
@@ -207,10 +279,9 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="fetchAllEvents(com.example.ajilore.code.controllers.AdminController.DataCallback)">
 <h3>fetchAllEvents</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">fetchAllEvents</span><wbr><span class="parameters">(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/Event.html" title="class in com.example.ajilore.code.models">Event</a>&gt;&gt;&nbsp;callback)</span></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">fetchAllEvents</span><wbr><span class="parameters">(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a>&gt;&gt;&nbsp;callback)</span></div>
 <div class="block">Fetches all event documents from Firestore.
- <p>User Story:</p>
- <ul><li>US 03.04.01 - Browse Events</li></ul></div>
+ User Story: US 03.04.01 - Browse Events</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>callback</code> - DataCallback returning list of events or an error.</dd>
@@ -223,9 +294,8 @@ loadScripts(document, 'script');</script>
 <h3>fetchAllUsers</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">fetchAllUsers</span><wbr><span class="parameters">(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&gt;&gt;&nbsp;callback)</span></div>
-<div class="block">Fetches all user profiles from Firestore.
- <p>User Story:</p>
- <ul><li>US 03.05.01 - Browse Users/Profiles</li></ul></div>
+<div class="block">Fetches all user profiles from Firestore and converts to User model.
+ User Story: US 03.05.01 - Browse Users/Profiles</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>callback</code> - DataCallback returning the user list or error.</dd>
@@ -240,8 +310,7 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">removeEvent</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
  <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</span></div>
 <div class="block">Removes an event and corresponding poster image from Firestore and Storage.
- <p>User Story:</p>
- <ul><li>US 03.01.01 - Remove Events</li></ul></div>
+ User Story: US 03.01.01 - Remove Events</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>eventId</code> - Event document id to delete.</dd>
@@ -257,11 +326,103 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">removeUser</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;userId,
  <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</span></div>
 <div class="block">Removes a user profile from Firestore.
- Extend this method to remove user's events, waiting list entries, or extra cleanup as needed.</div>
+ User Story: US 03.02.01 - Remove Profiles
+
+ Note: This permanently deletes the user document.
+ For organizers, use removeOrganizer() instead.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>userId</code> - User's document ID.</dd>
 <dd><code>callback</code> - OperationCallback for success/error.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="removeOrganizer(java.lang.String,com.example.ajilore.code.controllers.AdminController.OperationCallback)">
+<h3>removeOrganizer</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">removeOrganizer</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;organizerId,
+ <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</span></div>
+<div class="block">Atomically removes an organizer, bans them, and flags all their events.
+ This ensures policy violations are enforced strictly.
+
+ <p><b>Actions Performed in Batch:</b></p>
+ <ol>
+ <li>Flags all events created by this organizer (status="flagged").</li>
+ <li>Creates a record in 'banned_users' with the device ID.</li>
+ <li>Deletes the user profile from 'users' collection.</li>
+ </ol></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>organizerId</code> - The Firestore ID (Device ID) of the organizer.</dd>
+<dd><code>callback</code> - Callback for success/error.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getOrganizerEvents(java.lang.String,com.example.ajilore.code.controllers.AdminController.DataCallback)">
+<h3>getOrganizerEvents</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">getOrganizerEvents</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;organizerId,
+ <a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a>&gt;&gt;&nbsp;callback)</span></div>
+<div class="block">Fetches all events created by a specific organizer.
+ User Story: US 03.07.01 - Remove organizers that violate app policy
+
+ This can be used to display organizer event activity before deactivation.
+
+ NOTE: Uses "createdByUid" field to match your Event model!</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>organizerId</code> - The organizer's user ID</dd>
+<dd><code>callback</code> - DataCallback returning list of events or error</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="fetchAllImages(com.example.ajilore.code.controllers.AdminController.DataCallback)">
+<h3>fetchAllImages</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">fetchAllImages</span><wbr><span class="parameters">(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&gt;&gt;&nbsp;callback)</span></div>
+<div class="block">Fetches all images (event posters AND profile pictures) from Firestore.
+ User Story: US 03.06.01 - Browse Images</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>callback</code> - DataCallback returning list of ImageItems or an error.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="removeImage(com.example.ajilore.code.models.ImageItem,com.example.ajilore.code.controllers.AdminController.OperationCallback)">
+<h3>removeImage</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">removeImage</span><wbr><span class="parameters">(<a href="../models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a>&nbsp;imageItem,
+ <a href="AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a>&nbsp;callback)</span></div>
+<div class="block">Removes an image (event poster OR profile picture) from Storage and Firestore.
+ User Story: US 03.03.01 - Remove Images</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>imageItem</code> - The ImageItem containing the image URL, ID, and type</dd>
+<dd><code>callback</code> - OperationCallback for success/error handling.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="fetchNotificationLogs(com.example.ajilore.code.controllers.AdminController.DataCallback)">
+<h3>fetchNotificationLogs</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">fetchNotificationLogs</span><wbr><span class="parameters">(<a href="AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a>&gt;&gt;&nbsp;callback)</span></div>
+<div class="block">Fetches notification logs for administrative review.
+
+ <p><b>Implements US 03.08.01:</b> Queries the `admin_notification_logs` collection,
+ ordered by timestamp descending (newest first).</p></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>callback</code> - Callback returning a list of <a href="../models/NotificationLog.html" title="class in com.example.ajilore.code.models"><code>NotificationLog</code></a> objects.</dd>
 </dl>
 </div>
 </section>

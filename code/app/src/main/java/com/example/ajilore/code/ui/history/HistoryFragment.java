@@ -1,9 +1,11 @@
 package com.example.ajilore.code.ui.history;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -14,6 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ajilore.code.R;
+import com.example.ajilore.code.ui.events.EventDetailsFragment;
+import com.example.ajilore.code.ui.events.EventsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -24,37 +28,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@code HistoryFragment} displays a list of all events that the currently
- * signed-in user has registered for.
- * <p>
- * This feature supports the user story:
- * <b>US 01.02.03:</b> “As an entrant, I want to have a history of events
- * I have registered for, whether I was selected or not.”
- * </p>
+ * {@code HistoryFragment} displays a list of all events that the current
+ * device user has registered for.
  *
- * <p><b>Responsibilities:</b></p>
+ * <h3>Responsibilities</h3>
  * <ul>
- *     <li>Fetches registration history from Firestore under
- *         {@code users/{uid}/registrations}</li>
- *     <li>Displays the events in reverse chronological order</li>
- *     <li>Shows a loading indicator while fetching data</li>
- *     <li>Handles empty states and load failures gracefully</li>
+ *     <li>Fetch the registration history from Firestore under
+ *         {@code users/{deviceId}/registrations}</li>
+ *     <li>Provide navigation to an event’s details when clicked</li>
  * </ul>
  *
- * <p><b>Firestore structure used:</b></p>
- * <pre>
- * users (collection)
- *  └── {uid} (document)
- *       └── registrations (subcollection)
- *            ├── {eventId} (document)
- *            │    ├── eventTitle: String
- *            │    ├── eventId: String
- *            │    ├── registeredAt: Timestamp
- * </pre>
+ * <p>The fragment uses a {@link RecyclerView} backed by a
+ * {@link HistoryAdapter} to present event entries.</p>
  *
  * @author
- * Temi Akindele
+ *     Temi Akindele
  */
+
 public class HistoryFragment extends Fragment {
 
     //UI components
@@ -65,14 +55,15 @@ public class HistoryFragment extends Fragment {
     private List<Map<String, Object>> historyList = new ArrayList<>();
     //firebase
     private FirebaseFirestore db;
-    private String uid;
+    private String deviceId;
+
     /**
-            * Inflates the layout for the history screen.
+     * Inflates the layout for the History screen.
      *
-             * @param inflater  LayoutInflater used to inflate the fragment layout.
-            * @param container Parent container that holds this fragment’s view.
-            * @param savedInstanceState Previously saved instance state (if any).
-            * @return The root view for the history fragment.
+     * @param inflater  LayoutInflater used to inflate the XML for this fragment
+     * @param container Parent view the fragment will be attached to
+     * @param savedInstanceState Previously saved state, if any
+     * @return The root view for the History Fragment
      */
     @Nullable
     @Override
@@ -82,11 +73,14 @@ public class HistoryFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_history, container, false);
     }
     /**
-     * Called when the view is created. Sets up the RecyclerView, adapter,
-     * and begins loading the user’s registration history from Firestore.
+     * Initializes UI components, sets up the RecyclerView and adapter,
+     * retrieves the device ID, and begins loading registration history.
      *
-     * @param v The root view of the fragment.
-     * @param savedInstanceState Saved state bundle, if any.
+     * <p>Clicking an event item navigates the user to
+     * {@link EventDetailsFragment} using the event ID and title.</p>
+     *
+     * @param v The root view returned by {@link #onCreateView}
+     * @param savedInstanceState If the fragment is being re-created from a previous state
      */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
@@ -94,31 +88,57 @@ public class HistoryFragment extends Fragment {
 
         recyclerView = v.findViewById(R.id.recyclerHistory);
         progressBar = v.findViewById(R.id.progressHistory);
+        ImageButton btnBack = v.findViewById(R.id.btnBack);
+
+        //Added in a back button
+        if (btnBack != null){
+            btnBack.setOnClickListener(view -> {
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, new EventsFragment())
+                        .commit();
+            });
+        }
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new HistoryAdapter(historyList);
-        recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        adapter = new HistoryAdapter(historyList, item -> {
+            String eventId = (String) item.get("eventId");
+            String title   = (String) item.get("eventTitle");
+
+            if (eventId != null) {
+                EventDetailsFragment f = EventDetailsFragment.newInstance(eventId, title);
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.nav_host_fragment, f)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+        recyclerView.setAdapter(adapter);
 
         loadHistory();
     }
     /**
-     * Loads the user's registration history from Firestore.
-     * <p>
-     * Documents are retrieved from the {@code users/{uid}/registrations}
-     * subcollection and ordered by {@code registeredAt} in descending order.
-     * Results are displayed in a RecyclerView using {@link HistoryAdapter}.
-     * </p>
+     * Loads the user's event registration history from Firestore.
      *
-     * <p>Displays a progress bar during data loading and shows an error
-     * message if the request fails.</p>
+     * <p>Data is retrieved from the subcollection:
+     * {@code users/{deviceId}/registrations}, ordered by
+     * {@code registeredAt} descending so the most recent registrations appear first.</p>
+     *
+     * <p>Shows a progress bar while loading, updates the adapter when complete,
+     * and displays an error message on failure.</p>
      */
     private void loadHistory() {
         progressBar.setVisibility(View.VISIBLE);
         db.collection("users")
-                .document(uid)
+                .document(deviceId)
                 .collection("registrations")
                 .orderBy("registeredAt", Query.Direction.DESCENDING)
                 .get()

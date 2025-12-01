@@ -102,7 +102,7 @@ loadScripts(document, 'script');</script>
      It allows users to:
      <ul>
          <li>View their profile information including name, email and phone number</li>
-         <li>Edit their profile information</li>
+         <li>Edit their profile information including generating a profile picture</li>
          <li>Delete their account</li>
          <li>switch to organizer or admin mode if allowed</li>
          <li>sign out of their account</li>
@@ -110,11 +110,7 @@ loadScripts(document, 'script');</script>
  </p>
  <p>
      The fragment also interacts with Firebase Authentication and Firestore to handle user identity and data persistence.
- </p><b>Outstanding issues:</b>
- <ul>
-     <li> There are no profile pictures for the users</li>
-     <li> When you go to the profile page as an existing user, your profile information is not displayed properly</li>
- </ul></div>
+ </p></div>
 <dl class="notes">
 <dt>Author:</dt>
 <dd>Temi Akindele</dd>
@@ -177,13 +173,13 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onResume()" class="member-name-link">onResume</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Refreshes profile information whenever the fragment becomes visible again.</div>
+<div class="block">Refreshes user profile information every time the fragment becomes visible.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Initializes Firebase, binds UI elements, and loads user profile information.</div>
+<div class="block">Called after layout inflation.</div>
 </div>
 </div>
 </div>
@@ -255,13 +251,15 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Initializes Firebase, binds UI elements, and loads user profile information.</div>
+<div class="block">Called after layout inflation. Binds UI views, retrieves the user device ID,
+ sets up toolbar interactions, attaches listeners, initializes Firestore,
+ and loads current user profile information.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>v</code> - Root view after layout inflation</dd>
-<dd><code>savedInstanceState</code> - Previously saved state (if any)</dd>
+<dd><code>v</code> - Root view returned by <a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)"><code>onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)</code></a></dd>
+<dd><code>savedInstanceState</code> - Previously saved state</dd>
 </dl>
 </div>
 </section>
@@ -271,7 +269,10 @@ loadScripts(document, 'script');</script>
 <h3>onResume</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onResume</span>()</div>
-<div class="block">Refreshes profile information whenever the fragment becomes visible again.</div>
+<div class="block">Refreshes user profile information every time the fragment becomes visible.
+
+ <p>This ensures edited profile data appears immediately after returning
+ from <a href="EditProfileFragment.html" title="class in com.example.ajilore.code.ui.profile"><code>EditProfileFragment</code></a>.</p></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onResume</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>

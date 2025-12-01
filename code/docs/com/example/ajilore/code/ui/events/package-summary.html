@@ -94,7 +94,8 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color class-summary class-summary-tab2"><a href="CreateEventFragment.html" title="class in com.example.ajilore.code.ui.events">CreateEventFragment</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">A <code>Fragment</code> that provides a user interface for creating a new event.</div>
+<div class="block"><code>CreateEventFragment</code> provides a full form interface allowing organizers
+ to create or edit an event within the application.</div>
 </div>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="EntrantEventsFragment.html" title="class in com.example.ajilore.code.ui.events">EntrantEventsFragment</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
@@ -114,7 +115,7 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">EventNotifier
 
- Purpose: A class that sends the organizer broadcasts.</div>
+ Purpose: A class that sends the organizer broadcasts with admin audit logging.</div>
 </div>
 <div class="col-first even-row-color class-summary class-summary-tab1"><a href="EventNotifier.Callback.html" title="interface in com.example.ajilore.code.ui.events">EventNotifier.Callback</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab1">
@@ -122,30 +123,60 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">Base fragment displaying a list of events.</div>
+<div class="block">US 01.01.04: Fragment for displaying and filtering events
+ Events are fetched live from Firestore and can be filtered by:
+ - Date range
+ - Location
+ - Category
+ - Availability
+
+ Also provides sorting by status (Open -&gt; Published -&gt; Closed)</div>
 </div>
 <div class="col-first even-row-color class-summary class-summary-tab2"><a href="EventsScreenFragment.html" title="class in com.example.ajilore.code.ui.events">EventsScreenFragment</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">&nbsp;</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="GeneralEventsFragment.html" title="class in com.example.ajilore.code.ui.events">GeneralEventsFragment</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block"><code>EventsScreenFragment</code> is a minimal concrete fragment that simply inflates
+ the <code>fragment_events</code> layout.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="EventStatusUpdater.html" title="class in com.example.ajilore.code.ui.events">EventStatusUpdater</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">&nbsp;</div>
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="EventStatusUpdater.OnUpdateCompleteListener.html" title="interface in com.example.ajilore.code.ui.events">EventStatusUpdater.OnUpdateCompleteListener</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">&nbsp;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="FilterEventsDialogFragment.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block">DialogFragment that provides filtering controls for the Events list.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="FilterEventsDialogFragment.EventFilters.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.EventFilters</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block">POJO-style data class representing a full set of event filter criteria.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="FilterEventsDialogFragment.OnFiltersAppliedListener.html" title="interface in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.OnFiltersAppliedListener</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">&nbsp;</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="GeneralEventsFragment.html" title="class in com.example.ajilore.code.ui.events">GeneralEventsFragment</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Fragment for the main "Events" tab.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ManageEventQRFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventQRFragment</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">Fragment that generates, displays, shares and saves a deep link QR code for an event.</div>
-</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="ManageEventsFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventsFragment</a></div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="ManageEventQRFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventQRFragment</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block"><code>ManageEventQRFragment</code> generates, displays, shares, and saves a QR code
+ that deep-links to a specific event inside the Quartz Events app.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ManageEventsFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventsFragment</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">ManageEventsFragment
 
  Purpose: Lets organizers manage a single event: choose an audience
  (waiting/chosen/selected/cancelled), type a message, and send it.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="OrganizerEventsFragment.html" title="class in com.example.ajilore.code.ui.events">OrganizerEventsFragment</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="OrganizerEventsFragment.html" title="class in com.example.ajilore.code.ui.events">OrganizerEventsFragment</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">OrganizerEventsFragment
 
  Purpose: Shows the organizer’s events in a scrollable list.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ScanQrFragment.html" title="class in com.example.ajilore.code.ui.events">ScanQrFragment</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block"><code>ScanQrFragment</code> launches the ZXing QR scanner and handles QR-based
+ navigation inside the Quartz Events app.</div>
 </div>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SelectEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events">SelectEntrantsFragment</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
@@ -155,8 +186,10 @@ loadScripts(document, 'script');</script>
  and their responses, and (2) run a random draw that moves N users from
  WAITING → CHOSEN (responded=pending).</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="WaitingListFragment.html" title="class in com.example.ajilore.code.ui.events">WaitingListFragment</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SelectEntrantsFragment.OnCancelClick.html" title="interface in com.example.ajilore.code.ui.events">SelectEntrantsFragment.OnCancelClick</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">&nbsp;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="WaitingListFragment.html" title="class in com.example.ajilore.code.ui.events">WaitingListFragment</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Fragment displaying the waiting list for an event.</div>
 </div>
 </div>

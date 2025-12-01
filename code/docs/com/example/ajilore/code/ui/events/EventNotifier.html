@@ -85,10 +85,11 @@ loadScripts(document, 'script');</script>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
 <div class="block">EventNotifier
 
- Purpose: A class that sends the organizer broadcasts.
+ Purpose: A class that sends the organizer broadcasts with admin audit logging.
  It writes an audit record under /org_events/{eventId}/broadcasts and
  fans out inbox items under /org_events/{eventId}/entrants/{uid}/inbox.
 
+ UPDATED: Now logs all broadcasts to admin_notification_logs for US 03.08.01
  Pattern: Stateless helper with a simple callback interface.</div>
 </div>
 </section>
@@ -184,11 +185,12 @@ loadScripts(document, 'script');</script>
  @NonNull
  <a href="EventNotifier.Callback.html" title="interface in com.example.ajilore.code.ui.events">EventNotifier.Callback</a>&nbsp;cb)</span></div>
 <div class="block">Broadcast a message to a whole audience bucket for an event.
+ NOW INCLUDES: Automatic logging to admin_notification_logs
  <p>
  Steps:
  1) Create an audit doc in /org_events/{eventId}/broadcasts.
  2) Fan out an inbox message to entrants under
-    /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
+ /org_events/{eventId}/entrants/{uid}/inbox based on status rules.
  </p>
 
  Status filter rules:
@@ -232,6 +234,7 @@ loadScripts(document, 'script');</script>
  @NonNull
  <a href="EventNotifier.Callback.html" title="interface in com.example.ajilore.code.ui.events">EventNotifier.Callback</a>&nbsp;cb)</span></div>
 <div class="block">Send a broadcast and a single inbox message to one entrant.
+ INCLUDES: Automatic logging to admin_notification_logs
  <p>
  Useful for follow-ups like per-user accept/decline messaging.
  Writes an audit under broadcasts and one inbox doc under

@@ -92,10 +92,8 @@ loadScripts(document, 'script');</script>
  <p>Implementing classes can respond to user deletion and viewing actions
  initiated from the adapter's list items.</p></div>
 <dl class="notes">
-<dt>Since:</dt>
-<dd>2025-11-01</dd>
 <dt>Version:</dt>
-<dd>1.0</dd>
+<dd>1.2</dd>
 <dt>Author:</dt>
 <dd>Dinma (Team Quartz)</dd>
 </dl>
@@ -117,12 +115,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#onDeleteClick(com.example.ajilore.code.models.User)" class="member-name-link">onDeleteClick</a><wbr>(<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Called when the delete action is triggered for a user.</div>
+<div class="block">Triggered when the "Delete" button is clicked on a user row.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#onUserClick(com.example.ajilore.code.models.User)" class="member-name-link">onUserClick</a><wbr>(<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Called when a user item is clicked to view details.</div>
+<div class="block">Triggered when a user row is clicked (usually to view details).</div>
 </div>
 </div>
 </div>
@@ -143,10 +141,10 @@ loadScripts(document, 'script');</script>
 <h3>onDeleteClick</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="return-type">void</span>&nbsp;<span class="element-name">onDeleteClick</span><wbr><span class="parameters">(<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</span></div>
-<div class="block">Called when the delete action is triggered for a user.</div>
+<div class="block">Triggered when the "Delete" button is clicked on a user row.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>user</code> - The user object to be deleted</dd>
+<dd><code>user</code> - The user targeted for deletion.</dd>
 </dl>
 </div>
 </section>
@@ -156,10 +154,10 @@ loadScripts(document, 'script');</script>
 <h3>onUserClick</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="return-type">void</span>&nbsp;<span class="element-name">onUserClick</span><wbr><span class="parameters">(<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</span></div>
-<div class="block">Called when a user item is clicked to view details.</div>
+<div class="block">Triggered when a user row is clicked (usually to view details).</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>user</code> - The user object whose details should be displayed</dd>
+<dd><code>user</code> - The selected user.</dd>
 </dl>
 </div>
 </section>

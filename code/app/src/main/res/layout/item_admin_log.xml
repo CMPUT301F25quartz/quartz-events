@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:layout_marginBottom="8dp"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header: Date + Audience Badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_log_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Nov 25, 2025 • 8:25 PM"
+                android:textSize="12sp"
+                android:textColor="#757575" />
+
+            <TextView
+                android:id="@+id/tv_log_audience"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WAITING"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="@drawable/bg_status_badge"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+        <!-- Sender Info -->
+        <TextView
+            android:id="@+id/tv_log_sender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sent by: organizer"
+            android:textSize="11sp"
+            android:textStyle="italic"
+            android:textColor="#616161"
+            android:layout_marginTop="4dp"/>
+
+        <!-- Event Title (replaces Event ID) -->
+        <TextView
+            android:id="@+id/tv_log_event"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event Title"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:textColor="#212121"/>
+
+        <!-- Optional: Small event ID reference below title -->
+        <TextView
+            android:id="@+id/tv_log_event_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID: eventId123"
+            android:textSize="10sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginTop="2dp"
+            android:visibility="gone"/>
+
+        <!-- Message Content -->
+        <TextView
+            android:id="@+id/tv_log_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Message content..."
+            android:layout_marginTop="12dp"
+            android:padding="12dp"
+            android:background="#F5F5F5"
+            android:textStyle="italic"
+            android:textSize="14sp"
+            android:textColor="#424242"/>
+
+        <!-- Recipient Count (if available) -->
+        <TextView
+            android:id="@+id/tv_recipient_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sent to 4 entrants"
+            android:textSize="12sp"
+            android:textColor="#5669FF"
+            android:layout_marginTop="8dp"
+            android:drawableStart="@drawable/ic_profile_notifications"
+            android:drawablePadding="4dp"
+            android:visibility="gone"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

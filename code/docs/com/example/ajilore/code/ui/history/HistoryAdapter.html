@@ -65,7 +65,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(java.util.List)" tabindex="0">HistoryAdapter(List)</a></li>
+<li><a href="#%3Cinit%3E(java.util.List,com.example.ajilore.code.ui.history.HistoryAdapter.OnHistoryClickListener)" tabindex="0">HistoryAdapter(List, HistoryAdapter.OnHistoryClickListener)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -92,7 +92,29 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">HistoryAdapter</span>
 <span class="extends-implements">extends androidx.recyclerview.widget.RecyclerView.Adapter&lt;com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&gt;</span></div>
-<div class="block">Simple RecyclerView adapter for displaying event history.</div>
+<div class="block"><code>HistoryAdapter</code> binds a user's event registration history to a
+ <code>RecyclerView</code>, displaying each registered event with its title,
+ date, location, and poster image.
+
+ <h3 id="displayed-fields-heading">Displayed Fields</h3>
+ <ul>
+     <li><b>eventTitle</b> – title of the event</li>
+     <li><b>location</b> – event location string</li>
+     <li><b>startsAt</b> – event timestamp (formatted for display)</li>
+     <li><b>posterUrl</b> – image URL for the event poster</li>
+ </ul>
+
+ <p>The adapter accepts a list of Firestore document maps, each representing
+ a single registration entry from <code>users/{deviceId}/registrations</code>.</p>
+
+ <h3 id="click-handling-heading">Click Handling</h3>
+ A callback interface <a href="HistoryAdapter.OnHistoryClickListener.html" title="interface in com.example.ajilore.code.ui.history"><code>HistoryAdapter.OnHistoryClickListener</code></a> is provided to notify
+ the parent fragment when an item is selected. This allows navigation to
+ <a href="../events/EventDetailsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>EventDetailsFragment</code></a>.</div>
+<dl class="notes">
+<dt>Author:</dt>
+<dd>Temi Akindele</dd>
+</dl>
 </div>
 </section>
 <section class="summary">
@@ -101,6 +123,15 @@ loadScripts(document, 'script');</script>
 <li>
 <section class="nested-class-summary" id="nested-class-summary">
 <h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="HistoryAdapter.OnHistoryClickListener.html" class="type-name-link" title="interface in com.example.ajilore.code.ui.history">HistoryAdapter.OnHistoryClickListener</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+</div>
 <div class="inherited-list">
 <h3 id="nested-classes-inherited-from-class-androidx.recyclerview.widget.RecyclerView.Adapter">Nested classes/interfaces inherited from class&nbsp;androidx.recyclerview.widget.RecyclerView.Adapter</h3>
 <code>androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy</code></div>
@@ -114,8 +145,11 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.util.List)" class="member-name-link">HistoryAdapter</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;&nbsp;items)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.util.List,com.example.ajilore.code.ui.history.HistoryAdapter.OnHistoryClickListener)" class="member-name-link">HistoryAdapter</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;&nbsp;items,
+ <a href="HistoryAdapter.OnHistoryClickListener.html" title="interface in com.example.ajilore.code.ui.history">HistoryAdapter.OnHistoryClickListener</a>&nbsp;listener)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates a new adapter to display history items.</div>
+</div>
 </div>
 </section>
 </li>
@@ -132,15 +166,21 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getItemCount()" class="member-name-link">getItemCount</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the number of history entries available.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onBindViewHolder(com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder,int)" class="member-name-link">onBindViewHolder</a><wbr>(com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&nbsp;holder,
  int&nbsp;position)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Binds event registration data to an item in the RecyclerView.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateViewHolder(android.view.ViewGroup,int)" class="member-name-link">onCreateViewHolder</a><wbr>(android.view.ViewGroup&nbsp;parent,
  int&nbsp;viewType)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Inflates the history item layout and creates a new <code>HistoryAdapter.ViewHolder</code>.</div>
+</div>
 </div>
 </div>
 </div>
@@ -162,10 +202,17 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.util.List)">
+<section class="detail" id="&lt;init&gt;(java.util.List,com.example.ajilore.code.ui.history.HistoryAdapter.OnHistoryClickListener)">
 <h3>HistoryAdapter</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">HistoryAdapter</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;&nbsp;items)</span></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">HistoryAdapter</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;&nbsp;items,
+ <a href="HistoryAdapter.OnHistoryClickListener.html" title="interface in com.example.ajilore.code.ui.history">HistoryAdapter.OnHistoryClickListener</a>&nbsp;listener)</span></div>
+<div class="block">Creates a new adapter to display history items.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>items</code> - A list of maps representing event registration documents.</dd>
+<dd><code>listener</code> - Callback invoked when a history entry is clicked.</dd>
+</dl>
 </div>
 </section>
 </li>
@@ -185,9 +232,15 @@ loadScripts(document, 'script');</script>
 </span><span class="modifiers">public</span>&nbsp;<span class="return-type">com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder</span>&nbsp;<span class="element-name">onCreateViewHolder</span><wbr><span class="parameters">(@NonNull
  android.view.ViewGroup&nbsp;parent,
  int&nbsp;viewType)</span></div>
+<div class="block">Inflates the history item layout and creates a new <code>HistoryAdapter.ViewHolder</code>.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>onCreateViewHolder</code>&nbsp;in class&nbsp;<code>androidx.recyclerview.widget.RecyclerView.Adapter&lt;com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>parent</code> - The parent RecyclerView</dd>
+<dd><code>viewType</code> - The type of view (unused—only one type exists)</dd>
+<dt>Returns:</dt>
+<dd>The created ViewHolder instance</dd>
 </dl>
 </div>
 </section>
@@ -199,9 +252,21 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onBindViewHolder</span><wbr><span class="parameters">(@NonNull
  com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&nbsp;holder,
  int&nbsp;position)</span></div>
+<div class="block">Binds event registration data to an item in the RecyclerView.
+
+ <p>This includes:</p>
+ <ul>
+     <li>Formatting and displaying the event date</li>
+     <li>Loading the event poster image using Glide</li>
+     <li>Setting title and location text</li>
+     <li>Adding a click listener to notify the parent fragment</li>
+ </ul></div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>onBindViewHolder</code>&nbsp;in class&nbsp;<code>androidx.recyclerview.widget.RecyclerView.Adapter&lt;com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>holder</code> - The ViewHolder to bind data into</dd>
+<dd><code>position</code> - The item index within the dataset</dd>
 </dl>
 </div>
 </section>
@@ -211,9 +276,12 @@ loadScripts(document, 'script');</script>
 <h3>getItemCount</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getItemCount</span>()</div>
+<div class="block">Returns the number of history entries available.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>getItemCount</code>&nbsp;in class&nbsp;<code>androidx.recyclerview.widget.RecyclerView.Adapter&lt;com.example.ajilore.code.ui.history.HistoryAdapter.ViewHolder&gt;</code></dd>
+<dt>Returns:</dt>
+<dd>The total count of displayed items</dd>
 </dl>
 </div>
 </section>

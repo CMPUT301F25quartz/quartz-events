@@ -96,33 +96,18 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">HistoryFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block"><code>HistoryFragment</code> displays a list of all events that the currently
- signed-in user has registered for.
- <p>
- This feature supports the user story:
- <b>US 01.02.03:</b> “As an entrant, I want to have a history of events
- I have registered for, whether I was selected or not.”
- </p>
+<div class="block"><code>HistoryFragment</code> displays a list of all events that the current
+ device user has registered for.
 
- <p><b>Responsibilities:</b></p>
+ <h3 id="responsibilities-heading">Responsibilities</h3>
  <ul>
-     <li>Fetches registration history from Firestore under
-         <code>users/{uid}/registrations</code></li>
-     <li>Displays the events in reverse chronological order</li>
-     <li>Shows a loading indicator while fetching data</li>
-     <li>Handles empty states and load failures gracefully</li>
+     <li>Fetch the registration history from Firestore under
+         <code>users/{deviceId}/registrations</code></li>
+     <li>Provide navigation to an event’s details when clicked</li>
  </ul>
 
- <p><b>Firestore structure used:</b></p>
- <pre>
- users (collection)
-  └── {uid} (document)
-       └── registrations (subcollection)
-            ├── {eventId} (document)
-            │    ├── eventTitle: String
-            │    ├── eventId: String
-            │    ├── registeredAt: Timestamp
- </pre></div>
+ <p>The fragment uses a <code>RecyclerView</code> backed by a
+ <a href="HistoryAdapter.html" title="class in com.example.ajilore.code.ui.history"><code>HistoryAdapter</code></a> to present event entries.</p></div>
 <dl class="notes">
 <dt>Author:</dt>
 <dd>Temi Akindele</dd>
@@ -178,13 +163,14 @@ loadScripts(document, 'script');</script>
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Inflates the layout for the history screen.</div>
+<div class="block">Inflates the layout for the History screen.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Called when the view is created.</div>
+<div class="block">Initializes UI components, sets up the RecyclerView and adapter,
+ retrieves the device ID, and begins loading registration history.</div>
 </div>
 </div>
 </div>
@@ -233,16 +219,16 @@ loadScripts(document, 'script');</script>
  android.view.ViewGroup&nbsp;container,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Inflates the layout for the history screen.</div>
+<div class="block">Inflates the layout for the History screen.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>inflater</code> - LayoutInflater used to inflate the fragment layout.</dd>
-<dd><code>container</code> - Parent container that holds this fragment’s view.</dd>
-<dd><code>savedInstanceState</code> - Previously saved instance state (if any).</dd>
+<dd><code>inflater</code> - LayoutInflater used to inflate the XML for this fragment</dd>
+<dd><code>container</code> - Parent view the fragment will be attached to</dd>
+<dd><code>savedInstanceState</code> - Previously saved state, if any</dd>
 <dt>Returns:</dt>
-<dd>The root view for the history fragment.</dd>
+<dd>The root view for the History Fragment</dd>
 </dl>
 </div>
 </section>
@@ -255,14 +241,17 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Called when the view is created. Sets up the RecyclerView, adapter,
- and begins loading the user’s registration history from Firestore.</div>
+<div class="block">Initializes UI components, sets up the RecyclerView and adapter,
+ retrieves the device ID, and begins loading registration history.
+
+ <p>Clicking an event item navigates the user to
+ <a href="../events/EventDetailsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>EventDetailsFragment</code></a> using the event ID and title.</p></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>v</code> - The root view of the fragment.</dd>
-<dd><code>savedInstanceState</code> - Saved state bundle, if any.</dd>
+<dd><code>v</code> - The root view returned by <a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)"><code>onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)</code></a></dd>
+<dd><code>savedInstanceState</code> - If the fragment is being re-created from a previous state</dd>
 </dl>
 </div>
 </section>

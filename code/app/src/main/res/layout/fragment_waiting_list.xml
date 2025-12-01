@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/backgroundColor">
 
     <!-- Top bar with back button and title -->
     <LinearLayout
@@ -18,7 +19,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackground"
-            android:src="@android:drawable/ic_media_previous"
+            android:src="@drawable/ic_back"
             android:contentDescription="Back"
             />
 
@@ -85,16 +86,46 @@
         android:layout_width="match_parent"
         android:layout_height="8dp" />
 
-    <!-- Search Bar -->
-    <EditText
-        android:id="@+id/etSearch"
+    <!-- Search Bar with Filter Icon -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search entrants..."
-        android:inputType="text"
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:padding="10dp"
-        android:background="@drawable/bg_card_round" />
+        android:orientation="horizontal">
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search entrants..."
+            android:inputType="text"
+            android:drawableStart="@drawable/search"
+            android:padding="10dp"
+            android:background="@drawable/bg_card_round" />
+
+        <ImageButton
+            android:id="@+id/btn_export_csv"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_export_csv"
+            android:contentDescription="Export CSV"
+            android:visibility="gone" />
+
+        <!-- NEW: Filter Icon -->
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackground"
+            android:src="@drawable/ic_filter"
+            android:contentDescription="Filter"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
 
     <!-- Spacing -->
     <View

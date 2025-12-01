@@ -16,6 +16,8 @@ import com.example.ajilore.code.ui.events.data.Entrant;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 /**
  * RecyclerView.Adapter for displaying a waiting list of Entrants in a RecyclerView.
@@ -24,6 +26,7 @@ import java.util.List;
 public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.VH> {
     private final List<Entrant> items;
     private final Context context;
+
 
     /**
      * Constructs a new WaitingListAdapter.
@@ -110,19 +113,47 @@ public class WaitingListAdapter extends RecyclerView.Adapter<WaitingListAdapter.
             switch (e.displayStatus.toLowerCase()) {
                 case "accepted":
                     tvStatus.setText("Accepted");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_accepted));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_accepted));
                     break;
+
                 case "declined":
                     tvStatus.setText("Declined");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_declined));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_declined));
                     break;
+
+                case "waiting":
+                    tvStatus.setText("Waiting");
+                    // use the same color as pending or create a separate one if you like
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_pending));
+                    break;
+
+                case "pending":
                 default:
                     tvStatus.setText("Pending");
-                    tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.status_pending));
+                    tvStatus.setBackgroundTintList(
+                            ContextCompat.getColorStateList(context, R.color.status_pending));
                     break;
             }
 
-            ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+            if(e.profilePictureUrl != null && !e.profilePictureUrl.isEmpty()){
+                Glide.with(context)
+                        .load(e.profilePictureUrl)
+                        .placeholder(R.drawable.ic_avatar_placeholder)
+                        .error(R.drawable.ic_avatar_placeholder)
+                        .circleCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivAvatar);
+
+            }else{
+                ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+            }
+
+
+
+
         }
     }
 }

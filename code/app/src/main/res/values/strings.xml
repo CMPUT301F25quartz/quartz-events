@@ -11,7 +11,7 @@
     <string name="a_virtual_evening_of_smooth_jazz">A virtual evening of smooth jazz</string>
     <string name="location">Location</string>
     <string name="delete_event">Delete Event?</string>
-    <string name="delete_confirmation_message">Are you sure you want to remove event "%1$s"? This will remove this event from the list. This action cannot be undone</string>
+    <string name="delete_confirmation_message">Are you sure you want to remove "%1$s"? This will remove it from the list. This action cannot be undone</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -27,6 +27,9 @@
     <string name="add">+</string>
     <string name="add_poster_photo">Add Poster Photo</string>
     <string name="create_new_event">Create New Event</string>
+    <string name="my_map_api_key">AIzaSyCAF-TQpmlxFSAyuj5Ge-OsXw-q1Bn1FwU</string>
+    <string name="inbox">Inbox</string>
+    <string name="archive">Archive</string>
 
     <string-array name="event_types">
         <item>Concert</item>
@@ -36,6 +39,11 @@
     </string-array>
 
     <string-array name="event_capacities">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
         <item>10</item>
         <item>20</item>
         <item>30</item>
@@ -76,8 +84,16 @@
     <string name="mark_all_read">Mark All Read</string>
     <string name="show_unread">Show Unread</string>
     <string name="show_all">Show All</string>
-    <string name="view_archived">View Archived</string>
-    <string name="show_inbox">Show Inbox</string>
+    <string name="view_archived">Archive</string>
+    <string name="show_inbox">Inbox</string>
     <string name="dismiss">Dismiss</string>
+    <string name="settings">Settings</string>
+
+    <string name="action_icon_description">Action Icon</string>
+    <string name="event_accepted_message">You have accepted to attend this event</string>
+    <string name="event_declined_message">You have declined this invite and will be removed from the waitlist</string>
+    <string name="event_just_now">Just now</string>
+    <string name="ok">OK</string>
+    <string name="see_events">See Events</string>
 
 </resources>

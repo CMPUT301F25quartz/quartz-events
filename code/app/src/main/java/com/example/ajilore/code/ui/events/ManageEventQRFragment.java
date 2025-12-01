@@ -44,17 +44,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Fragment that generates, displays, shares and saves a deep link QR code for an event.
- * Use the {@link #newInstance(String, String)} factory method to configure for a specific event.
+ * {@code ManageEventQRFragment} generates, displays, shares, and saves a QR code
+ * that deep-links to a specific event inside the Quartz Events app.
+ *
+ * <p>This fragment is used by organizers to distribute event access quickly.
+ * It performs the following tasks:</p>
+ *
+ * <ul>
+ *     <li>Builds a dynamic deep link for an event</li>
+ *     <li>Generates a QR code bitmap using ZXing</li>
+ *     <li>Displays the QR code with event title and subtitle</li>
+ *     <li>Allows sharing the QR image via Android Sharesheet</li>
+ *     <li>Allows saving the QR image into the device's Pictures folder</li>
+ * </ul>
+ *
+ * <p><b>Usage:</b></p>
+ * <p>Use {@link #newInstance(String, String)} to create a properly configured
+ * fragment, passing the event ID and event title:</p>
+ *
+ * <pre>
+ * ManageEventQRFragment f =
+ *     ManageEventQRFragment.newInstance(eventId, eventTitle);
+ * </pre>
+ *
  */
 public class ManageEventQRFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_EVENT_ID = "eventId";
     private static final String ARG_EVENT_TITLE = "eventTitle";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -73,7 +92,6 @@ public class ManageEventQRFragment extends Fragment {
      * @param eventTitle The title of the event for display.
      * @return A new instance of ManageEventQRFragment with arguments set.
      */
-    // TODO: Rename and change types and number of parameters
     public static ManageEventQRFragment newInstance(String eventId, String eventTitle) {
         ManageEventQRFragment fragment = new ManageEventQRFragment();
         Bundle args = new Bundle();
@@ -128,7 +146,7 @@ public class ManageEventQRFragment extends Fragment {
         ivQR = view.findViewById(R.id.ivQR);
 
         tvTitle.setText(eventTitle);
-        tvSub.setText("Scan to view event • opens in app or web");
+        tvSub.setText("Scan to view event");
 
         //Wait until ImageView has a real size and then draw a QR
         ivQR.post(() -> {
@@ -151,6 +169,7 @@ public class ManageEventQRFragment extends Fragment {
      * @return Event deep link URL for QR encoding.
      */
     private String buildDeepLink() {
+
         return "https://quartz-events.page.link/event/" + eventId;
     }
 
@@ -217,7 +236,8 @@ public class ManageEventQRFragment extends Fragment {
             share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(share, "Share QR"));
         }catch (Exception e){
-            Toast.makeText(requireContext(), "Failed to share QR: " + e.getMessage(), Toast.LENGTH_LONG);
+            Toast.makeText(requireContext(), "Failed to share QR: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
         }
 
         }

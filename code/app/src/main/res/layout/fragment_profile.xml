@@ -50,12 +50,14 @@
                 android:text="Hi User"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="#120D26"
                 android:layout_marginBottom="12dp" />
 
             <TextView
                 android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="#120D26"
                 android:text="Name: —"
                 android:layout_marginTop="4dp" />
 
@@ -63,6 +65,7 @@
                 android:id="@+id/tvEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="#120D26"
                 android:text="Email: —"
                 android:layout_marginTop="4dp" />
 
@@ -70,6 +73,7 @@
                 android:id="@+id/tvPhone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="#120D26"
                 android:text="Phone: —"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="20dp" />
@@ -79,6 +83,7 @@
                 android:id="@+id/btnEditProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#5669FF"
                 android:text="Edit Profile" />
 
             <!-- Delete Profile button -->
@@ -86,6 +91,7 @@
                 android:id="@+id/btnDeleteProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#F2583E"
                 android:text="Delete Profile"
                 android:layout_marginTop="12dp" />
 

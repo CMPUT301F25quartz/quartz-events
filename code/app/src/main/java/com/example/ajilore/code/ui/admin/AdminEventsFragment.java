@@ -23,7 +23,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.adapters.AdminEventsAdapter;
 import com.example.ajilore.code.controllers.AdminController;
-import com.example.ajilore.code.models.Event;
+import com.example.ajilore.code.ui.events.model.Event;
+import com.example.ajilore.code.utils.DeleteDialogHelper;
 
 import java.util.List;
 
@@ -40,13 +41,6 @@ import java.util.List;
  * <ul>
  *   <li>US 03.04.01 - As an administrator, I want to be able to browse events</li>
  *   <li>US 03.01.01 - As an administrator, I want to be able to remove events</li>
- * </ul>
- *
- * <p>Outstanding Issues:</p>
- * <ul>
- *   <li>Add confirmation dialog with event details before deletion</li>
- *   <li>Implement event status filters (Active/Closed/Upcoming)</li>
- *   <li>Add export functionality for event reports</li>
  * </ul>
  *
  * @author Dinma (Team Quartz)
@@ -191,7 +185,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
     @Override
     public void onEventClick(Event event) {
         Toast.makeText(requireContext(),
-                event.getTitle() + "\n$" + event.getPrice(),
+                event.title + "\nCapacity: " + event.capacity,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -202,7 +196,13 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
      */
     @Override
     public void onDeleteClick(Event event) {
-        showDeleteDialog(event);
+        // Usage: Context, Type, Specific Name, The Action
+        DeleteDialogHelper.showDeleteDialog(
+                requireContext(),
+                "Event",
+                event.title,
+                () -> deleteEvent(event) // This is the Runnable/Action
+        );
     }
 
 
@@ -220,7 +220,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
         TextView messageText = dialogView.findViewById(R.id.tv_dialog_message);
         String confirmationMessage = requireContext().getString(
                 R.string.delete_confirmation_message, // The string resource ID
-                event.getTitle() // The argument to replace %1$s
+                event.title // The argument to replace %1$s - use public field
         );
         messageText.setText(confirmationMessage);
 
@@ -244,7 +244,7 @@ public class AdminEventsFragment extends Fragment implements AdminEventsAdapter.
      * @param event Event to delete.
      */
     private void deleteEvent(Event event) {
-        adminController.removeEvent(event.getEventId(), new AdminController.OperationCallback() {
+        adminController.removeEvent(event.id, new AdminController.OperationCallback() {  // Use public 'id' field
             @Override
             public void onSuccess() {
                 if (isAdded()) {

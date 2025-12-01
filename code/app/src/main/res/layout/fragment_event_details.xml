@@ -171,7 +171,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layoutWaitingListInfo"
-                tools:text="Lottery Selection Process:\n\n• After registration closes, participants will be randomly selected\n• Selected participants will receive a notification\n• You must accept the invitation within the given timeframe\n• If someone declines, another participant will be drawn\n• Everyone on the waiting list has an equal chance of being selected" />
+                tools:text="Lottery Selection Process:\n\n• Participants will be randomly selected\n• Selected participants will receive a notification\n• You must accept the invitation within the given timeframe\n• If someone declines, another participant will be drawn\n• Everyone on the waiting list has an equal chance of being selected" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -211,31 +211,53 @@
             app:cornerRadius="8dp"
             app:elevation="4dp" />
 
-        <!-- Placeholder for Accept Spot Button (visible if selected; toggle in Java based on Firestore) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAcceptSpot"
+        <!-- Horizontal Container for Accept/Decline Buttons -->
+        <LinearLayout
+            android:id="@+id/layoutInvitationActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Accept Spot"
-            android:textColor="#FFFFFF"
-            android:visibility="gone"
-            app:backgroundTint="#1976D2"
-            app:cornerRadius="8dp"
-            app:elevation="4dp"
-            tools:visibility="visible" />
+            android:orientation="horizontal"
+            android:gravity="center">
 
-        <!-- Placeholder for Decline Button (visible if selected; toggle in Java based on Firestore) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDecline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Decline"
-            android:textColor="#FFFFFF"
-            android:visibility="gone"
-            app:backgroundTint="#FF6B6B"
-            app:cornerRadius="8dp"
-            app:elevation="4dp" />
+            <!-- Accept Spot Button (teal with icon) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAcceptSpot"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="ACCEPT SPOT"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:backgroundTint="#17C172"
+                app:cornerRadius="28dp"
+                app:elevation="4dp"
+                app:icon="@android:drawable/ic_menu_send"
+                app:iconGravity="end"
+                app:iconTint="#FFFFFF"
+                tools:visibility="visible" />
+
+            <!-- Decline Button (white with purple border) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDecline"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:layout_marginStart="8dp"
+                android:text="DECLINE"
+                android:textColor="#9C27B0"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                app:backgroundTint="#FFFFFF"
+                app:cornerRadius="28dp"
+                app:elevation="4dp"
+                app:strokeColor="#9C27B0"
+                app:strokeWidth="2dp"
+                tools:visibility="visible" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

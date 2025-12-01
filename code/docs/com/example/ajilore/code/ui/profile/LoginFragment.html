@@ -73,6 +73,7 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" tabindex="0">onCreateView(LayoutInflater, ViewGroup, Bundle)</a></li>
 <li><a href="#onViewCreated(android.view.View,android.os.Bundle)" tabindex="0">onViewCreated(View, Bundle)</a></li>
+<li><a href="#onRequestPermissionsResult(int,java.lang.String%5B%5D,int%5B%5D)" tabindex="0">onRequestPermissionsResult(int, String[], int[])</a></li>
 </ol>
 </li>
 </ol>
@@ -96,23 +97,21 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">LoginFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block"><code>LoginFragment</code> handles both the login and signup process for users.
- <p>
- It allows users to:
- <ul>
-     <li>Log in using a name (verified in Firestore)</li>
-     <li>Sign up with a name, email, and optional phone number</li>
-     <li>Automatically authenticate anonymously using FirebaseAuth</li>
-     <li>Navigate to the main events screen once authenticated</li>
- </ul>
+<div class="block"><code>LoginFragment</code> manages the login and signup flow for users in the app.
 
- <p>The fragment connects to Firestore to check or create user records and
- ensures that names are unique across the system using the
- <code>usersByName</code> collection.</p>
+ <p>This fragment uses the device's <code>ANDROID_ID</code> as the unique identifier,
+ meaning each physical device corresponds to one account in Firestore
+ (no username/password system is used).</p>
 
- <p><b>Outstanding issues:</b>
+ <h3 id="features-heading">Features</h3>
  <ul>
-     <li>The sign up button does not do anything</li>
+     <li><b>Login</b> — If the device already has a Firestore user record, the user is logged in immediately.</li>
+     <li><b>Signup</b> — If the device is not recognized, the user may create a new account with name, email, and optional phone number.</li>
+     <li><b>Location Preference Toggle</b> — Users can enable/disable location collection.
+         This preference is saved to Firestore and used when registering for events.</li>
+     <li><b>Permission Handling</b> — If the user enables location, the fragment checks runtime
+         permissions and requests them when required.</li>
+     <li><b>Navigation</b> — Upon login or signup, users are sent to <a href="../events/GeneralEventsFragment.html" title="class in com.example.ajilore.code.ui.events"><code>GeneralEventsFragment</code></a>.</li>
  </ul></div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -172,17 +171,26 @@ loadScripts(document, 'script');</script>
 <div class="block">Inflates the layout for this fragment.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
- android.os.Bundle&nbsp;savedInstanceState)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onRequestPermissionsResult(int,java.lang.String%5B%5D,int%5B%5D)" class="member-name-link">onRequestPermissionsResult</a><wbr>(int&nbsp;requestCode,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]&nbsp;permissions,
+ int[]&nbsp;grantResults)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Called after the view has been created.</div>
+<div class="block">Handles the result of the runtime location permission request.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
+ android.os.Bundle&nbsp;savedInstanceState)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Initializes UI components, loads saved user data (including location preference),
+ sets up listeners for login and signup, hides the bottom navigation,
+ and configures Firestore and device identity.</div>
 </div>
 </div>
 </div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-androidx.fragment.app.Fragment">Methods inherited from class&nbsp;androidx.fragment.app.Fragment</h3>
-<code>dump, equals, getActivity, getAllowEnterTransitionOverlap, getAllowReturnTransitionOverlap, getArguments, getChildFragmentManager, getContext, getDefaultViewModelCreationExtras, getDefaultViewModelProviderFactory, getEnterTransition, getExitTransition, getFragmentManager, getHost, getId, getLayoutInflater, getLayoutInflater, getLifecycle, getLoaderManager, getParentFragment, getParentFragmentManager, getReenterTransition, getResources, getRetainInstance, getReturnTransition, getSavedStateRegistry, getSharedElementEnterTransition, getSharedElementReturnTransition, getString, getString, getTag, getTargetFragment, getTargetRequestCode, getText, getUserVisibleHint, getView, getViewLifecycleOwner, getViewLifecycleOwnerLiveData, getViewModelStore, hashCode, hasOptionsMenu, instantiate, instantiate, isAdded, isDetached, isHidden, isInLayout, isMenuVisible, isRemoving, isResumed, isStateSaved, isVisible, onActivityCreated, onActivityResult, onAttach, onAttach, onAttachFragment, onConfigurationChanged, onContextItemSelected, onCreate, onCreateAnimation, onCreateAnimator, onCreateContextMenu, onCreateOptionsMenu, onDestroy, onDestroyOptionsMenu, onDestroyView, onDetach, onGetLayoutInflater, onHiddenChanged, onInflate, onInflate, onLowMemory, onMultiWindowModeChanged, onOptionsItemSelected, onOptionsMenuClosed, onPause, onPictureInPictureModeChanged, onPrepareOptionsMenu, onPrimaryNavigationFragmentChanged, onRequestPermissionsResult, onResume, onSaveInstanceState, onStart, onStop, onViewStateRestored, postponeEnterTransition, postponeEnterTransition, registerForActivityResult, registerForActivityResult, registerForContextMenu, requestPermissions, requireActivity, requireArguments, requireContext, requireFragmentManager, requireHost, requireParentFragment, requireView, setAllowEnterTransitionOverlap, setAllowReturnTransitionOverlap, setArguments, setEnterSharedElementCallback, setEnterTransition, setExitSharedElementCallback, setExitTransition, setHasOptionsMenu, setInitialSavedState, setMenuVisibility, setReenterTransition, setRetainInstance, setReturnTransition, setSharedElementEnterTransition, setSharedElementReturnTransition, setTargetFragment, setUserVisibleHint, shouldShowRequestPermissionRationale, startActivity, startActivity, startActivityForResult, startActivityForResult, startIntentSenderForResult, startPostponedEnterTransition, toString, unregisterForContextMenu</code></div>
+<code>dump, equals, getActivity, getAllowEnterTransitionOverlap, getAllowReturnTransitionOverlap, getArguments, getChildFragmentManager, getContext, getDefaultViewModelCreationExtras, getDefaultViewModelProviderFactory, getEnterTransition, getExitTransition, getFragmentManager, getHost, getId, getLayoutInflater, getLayoutInflater, getLifecycle, getLoaderManager, getParentFragment, getParentFragmentManager, getReenterTransition, getResources, getRetainInstance, getReturnTransition, getSavedStateRegistry, getSharedElementEnterTransition, getSharedElementReturnTransition, getString, getString, getTag, getTargetFragment, getTargetRequestCode, getText, getUserVisibleHint, getView, getViewLifecycleOwner, getViewLifecycleOwnerLiveData, getViewModelStore, hashCode, hasOptionsMenu, instantiate, instantiate, isAdded, isDetached, isHidden, isInLayout, isMenuVisible, isRemoving, isResumed, isStateSaved, isVisible, onActivityCreated, onActivityResult, onAttach, onAttach, onAttachFragment, onConfigurationChanged, onContextItemSelected, onCreate, onCreateAnimation, onCreateAnimator, onCreateContextMenu, onCreateOptionsMenu, onDestroy, onDestroyOptionsMenu, onDestroyView, onDetach, onGetLayoutInflater, onHiddenChanged, onInflate, onInflate, onLowMemory, onMultiWindowModeChanged, onOptionsItemSelected, onOptionsMenuClosed, onPause, onPictureInPictureModeChanged, onPrepareOptionsMenu, onPrimaryNavigationFragmentChanged, onResume, onSaveInstanceState, onStart, onStop, onViewStateRestored, postponeEnterTransition, postponeEnterTransition, registerForActivityResult, registerForActivityResult, registerForContextMenu, requestPermissions, requireActivity, requireArguments, requireContext, requireFragmentManager, requireHost, requireParentFragment, requireView, setAllowEnterTransitionOverlap, setAllowReturnTransitionOverlap, setArguments, setEnterSharedElementCallback, setEnterTransition, setExitSharedElementCallback, setExitTransition, setHasOptionsMenu, setInitialSavedState, setMenuVisibility, setReenterTransition, setRetainInstance, setReturnTransition, setSharedElementEnterTransition, setSharedElementReturnTransition, setTargetFragment, setUserVisibleHint, shouldShowRequestPermissionRationale, startActivity, startActivity, startActivityForResult, startActivityForResult, startIntentSenderForResult, startPostponedEnterTransition, toString, unregisterForContextMenu</code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -246,14 +254,39 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Called after the view has been created. Initializes Firebase authentication,
- sets up validation listeners, and handles both login and signup button logic.</div>
+<div class="block">Initializes UI components, loads saved user data (including location preference),
+ sets up listeners for login and signup, hides the bottom navigation,
+ and configures Firestore and device identity.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>v</code> - The fragment’s root view.</dd>
-<dd><code>savedInstanceState</code> - Saved state if available.</dd>
+<dd><code>v</code> - Root view returned from <a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)"><code>onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)</code></a></dd>
+<dd><code>savedInstanceState</code> - Previously saved state (unused)</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="onRequestPermissionsResult(int,java.lang.String[],int[])">
+<h3>onRequestPermissionsResult</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onRequestPermissionsResult</span><wbr><span class="parameters">(int&nbsp;requestCode,
+ @NonNull
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]&nbsp;permissions,
+ @NonNull
+ int[]&nbsp;grantResults)</span></div>
+<div class="block">Handles the result of the runtime location permission request.
+
+ <p>If the permission is granted, the user's Firestore preference is updated
+ to reflect that location collection is enabled.</p></div>
+<dl class="notes">
+<dt>Overrides:</dt>
+<dd><code>onRequestPermissionsResult</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
+<dt>Parameters:</dt>
+<dd><code>requestCode</code> - Unique code associated with the permission request</dd>
+<dd><code>permissions</code> - The permission(s) being requested</dd>
+<dd><code>grantResults</code> - Results of the user's response</dd>
 </dl>
 </div>
 </section>

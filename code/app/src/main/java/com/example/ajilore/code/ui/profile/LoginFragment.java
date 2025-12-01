@@ -1,5 +1,7 @@
 package com.example.ajilore.code.ui.profile;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
@@ -9,17 +11,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.GeneralEventsFragment;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,42 +38,41 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 /**
- * {@code LoginFragment} handles both the login and signup process for users.
- * <p>
- * It allows users to:
- * <ul>
- *     <li>Log in using a name (verified in Firestore)</li>
- *     <li>Sign up with a name, email, and optional phone number</li>
- *     <li>Automatically authenticate anonymously using FirebaseAuth</li>
- *     <li>Navigate to the main events screen once authenticated</li>
- * </ul>
+ * {@code LoginFragment} manages the login and signup flow for users in the app.
  *
- * <p>The fragment connects to Firestore to check or create user records and
- * ensures that names are unique across the system using the
- * {@code usersByName} collection.</p>
+ * <p>This fragment uses the device's {@code ANDROID_ID} as the unique identifier,
+ * meaning each physical device corresponds to one account in Firestore
+ * (no username/password system is used).</p>
  *
- * <p><b>Outstanding issues:</b>
+ * <h3>Features</h3>
  * <ul>
- *     <li>The sign up button does not do anything</li>
+ *     <li><b>Login</b> — If the device already has a Firestore user record, the user is logged in immediately.</li>
+ *     <li><b>Signup</b> — If the device is not recognized, the user may create a new account with name, email, and optional phone number.</li>
+ *     <li><b>Location Preference Toggle</b> — Users can enable/disable location collection.
+ *         This preference is saved to Firestore and used when registering for events.</li>
+ *     <li><b>Permission Handling</b> — If the user enables location, the fragment checks runtime
+ *         permissions and requests them when required.</li>
+ *     <li><b>Navigation</b> — Upon login or signup, users are sent to {@link GeneralEventsFragment}.</li>
  * </ul>
  *
  * @author
  *     Temi Akindele
  */
+
 public class LoginFragment extends Fragment {
 
     // Views
-    private TextInputLayout tilNameLogin, tilEmailSignup, tilPhoneSignup;
-    private TextInputEditText etNameLogin, etEmailSignup, etPhoneSignup;
+    private TextInputLayout tilNameSignup, tilEmailSignup, tilPhoneSignup;
+    private TextInputEditText etNameSignup, etEmailSignup, etPhoneSignup;
     private MaterialButton btnContinueLogin, btnSignup;
     private LinearLayout groupSignup;
 
-    // Firestore
-    private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String uid;
-    private boolean authReady = false;
-    private BottomNavigationView bottomNavigationView;
+    // Location
+    private String deviceId;
+    private static final int LOCATION_REQUEST_CODE = 101;
+    private MaterialSwitch switchLocation;
+
 
     /**
      * Inflates the layout for this fragment.
@@ -84,20 +91,34 @@ public class LoginFragment extends Fragment {
     }
 
     /**
-     * Called after the view has been created. Initializes Firebase authentication,
-     * sets up validation listeners, and handles both login and signup button logic.
+     * Initializes UI components, loads saved user data (including location preference),
+     * sets up listeners for login and signup, hides the bottom navigation,
+     * and configures Firestore and device identity.
      *
-     * @param v The fragment’s root view.
-     * @param savedInstanceState Saved state if available.
+     * @param v Root view returned from {@link #onCreateView}
+     * @param savedInstanceState Previously saved state (unused)
      */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
+        //Firebase initialization
+        db = FirebaseFirestore.getInstance();
+
+
+        // Get stable device ID
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+        Log.d("DEVICE_ID", "Using device ID: " + deviceId);
+
         // Bind views
-        tilNameLogin   = v.findViewById(R.id.tilNameLogin);
-        etNameLogin    = v.findViewById(R.id.etNameLogin);
+        tilNameSignup   = v.findViewById(R.id.tilNameSignup);
+        etNameSignup    = v.findViewById(R.id.etNameSignup);
         btnContinueLogin = v.findViewById(R.id.btnContinueLogin);
+
 
         groupSignup    = v.findViewById(R.id.groupSignup);
         tilEmailSignup = v.findViewById(R.id.tilEmailSignup);
@@ -106,162 +127,185 @@ public class LoginFragment extends Fragment {
         etPhoneSignup  = v.findViewById(R.id.etPhoneSignup);
         btnSignup      = v.findViewById(R.id.btnSignup);
 
+        switchLocation = v.findViewById(R.id.switchLocation);
+        // Load saved preference so toggle shows correct state
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Boolean pref = doc.getBoolean("locationPreference");
+                        if (pref != null) switchLocation.setChecked(pref);
+                    }
+                });
+
+
+
         // Hide signup section initially
         groupSignup.setVisibility(View.GONE);
 
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
 
+
+        //Hide bottom nav during login
         ((MainActivity) requireActivity()).hideBottomNav();
 
 
-        // Disable interactions until auth is ready
-        setUiEnabled(false);
+        //enable sign up only when fields are valid
+        TextWatcher signupWatcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Ensure we have a UID
-        if (auth.getCurrentUser() == null) {
-            Log.d("AuthTest", "Starting anonymous sign-in…");
-            auth.signInAnonymously().addOnSuccessListener(res -> {
-                uid = res.getUser().getUid();
-                authReady = true;
-                Log.d("AuthTest", "Anonymous sign-in success. UID=" + uid);
-                setUiEnabled(true);
-            }).addOnFailureListener(e -> {
-                authReady = false;
-                Log.e("AuthTest", "Anonymous sign-in FAILED: " + e.getMessage(), e);
-                Toast.makeText(getContext(), "Auth failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            });
-        } else {
-            uid = auth.getCurrentUser().getUid();
-            authReady = true;
-            Log.d("AuthTest", "Already signed in. UID=" + uid);
-            setUiEnabled(true);
-        }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String name = getText(etNameSignup);
+                String email = getText(etEmailSignup);
+                btnSignup.setEnabled(isNonBlank(name) && isEmailOk(email));
+            }
 
-        // Live validation for login name
-        etNameLogin.addTextChangedListener(simpleWatcher(s -> {
-            boolean ok = isNonBlank(getText(etNameLogin));
-            tilNameLogin.setError(ok ? null : "Name required");
-            btnContinueLogin.setEnabled(authReady && ok);
-        }));
+            @Override public void afterTextChanged(Editable s) {}
+        };
 
-        // Live validation for signup (email required, phone optional)
-        TextWatcher signupWatcher = simpleWatcher(s -> {
-            boolean okEmail = isEmailOk(getText(etEmailSignup));
-            tilEmailSignup.setError(okEmail ? null : "Must contain @");
-            btnSignup.setEnabled(okEmail && isNonBlank(getText(etNameLogin)));
-        });
+        etNameSignup.addTextChangedListener(signupWatcher);
         etEmailSignup.addTextChangedListener(signupWatcher);
-        etPhoneSignup.addTextChangedListener(signupWatcher);
 
-        // LOGIN: check if user exists by nameLower; if yes -> navigate; if no -> show signup
+        // LOGIN
         btnContinueLogin.setOnClickListener(view -> {
-            if (!authReady) {
-                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String name = getText(etNameLogin);
-            if (!isNonBlank(name)) {
-                tilNameLogin.setError("Name required");
-                return;
-            }
-            String nameLower = name.toLowerCase(Locale.ROOT).trim();
+                    //checking if the device id already exists in firestore
+                    db.collection("users").document(deviceId).get().addOnSuccessListener(doc -> {
+                                if (doc.exists()) {
+                                    boolean enabled = switchLocation.isChecked();
 
-            db.collection("usersByName").document(nameLower)
-                    .get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists()) {
-                            Toast.makeText(getContext(), "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
-                            //dsiplaying the nav bar
-                            //((MainActivity) requireActivity()).findViewById(R.id.menu_bottom_nav).setVisibility(View.VISIBLE);
-                            //bottomNavigationView.setVisibility(View.VISIBLE);
-                           // bottomNavigationView.setSelectedItemId(R.id.generalEventsFragment);
-                            ((MainActivity) requireActivity()).showBottomNav();
-                            navigateToEvents();
-                        } else {
-                            Toast.makeText(getContext(), "No account found. Please sign up.", Toast.LENGTH_SHORT).show();
-                            groupSignup.setVisibility(View.VISIBLE);
-                        }
-                    })
-                    .addOnFailureListener(err ->
-                            Toast.makeText(getContext(), "Login check failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
+                                    // update preference on every login
+                                    db.collection("users")
+                                            .document(deviceId)
+                                            .update("locationPreference", enabled);
+                                    //device already exists
+                                    groupSignup.setVisibility(View.GONE);
+                                    Toast.makeText(getContext(), "Welcome back!", Toast.LENGTH_SHORT).show();
+                                    ((MainActivity) requireActivity()).showBottomNav();
+                                    navigateToEvents();
+                                } else {
+                                    //device not recognized
+                                    Toast.makeText(getContext(), "New device. Please sign up.", Toast.LENGTH_SHORT).show();
+                                    groupSignup.setVisibility(View.VISIBLE);
+                                }
+                            })
+                            .addOnFailureListener(err ->
+                                    Toast.makeText(getContext(), "Error" + err.getMessage(), Toast.LENGTH_LONG).show()
+                            );
+                });
+
+        switchLocation.setOnCheckedChangeListener((button, checked) -> {
+            if (checked) {
+                if (ActivityCompat.checkSelfPermission(requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    requestPermissions(
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            LOCATION_REQUEST_CODE
                     );
-        });
-
-        // SIGNUP: create user doc then navigate
-        btnSignup.setOnClickListener(view -> {
-            if (!authReady) {
-                Toast.makeText(getContext(), "Setting up… try again", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String name  = getText(etNameLogin);
-            String email = getText(etEmailSignup);
-            String phone = getText(etPhoneSignup);
-
-            if (!isNonBlank(name)) {
-                tilNameLogin.setError("Name required");
-                return;
-            }
-            if (!isEmailOk(email)) {
-                tilEmailSignup.setError("Must contain @");
-                return;
-            }
-
-            String nameLower = name.toLowerCase(Locale.ROOT).trim();
-            String deviceId  = getDeviceId();
-
-            Map<String, Object> user = new HashMap<>();
-            user.put("name", name.trim());
-            user.put("nameLower", nameLower);
-            user.put("email", email.trim());
-            user.put("phone", phone.trim());
-            user.put("role", "entrant");
-            user.put("createdAt", FieldValue.serverTimestamp());
-
-
-            db.runTransaction(trx -> {
-                // Ensure name not taken (second layer of safety)
-                var nameDocRef = db.collection("usersByName").document(nameLower);
-                var nameDoc = trx.get(nameDocRef);
-                if (nameDoc.exists()) {
-                    throw new RuntimeException("That name is already taken.");
+                } else {
+                    saveLocationPreference(true);
                 }
-                // Write profile
-                trx.set(db.collection("users").document(uid), user);
-                // Reserve name
-                Map<String,Object> idx = new HashMap<>();
-                idx.put("uid", uid);
-                idx.put("createdAt", FieldValue.serverTimestamp());
-                trx.set(nameDocRef, idx);
-                return null;
-            }).addOnSuccessListener(x -> {
-                Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
-                ((MainActivity) requireActivity()).showBottomNav();
-                navigateToEvents();
-            }).addOnFailureListener(err ->
-                    Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
-            );
+            } else {
+                saveLocationPreference(false);
+                Toast.makeText(getContext(), "Location disabled", Toast.LENGTH_SHORT).show();
+            }
         });
+
+
+            // SIGNUP: create user doc then navigate
+            btnSignup.setOnClickListener(view -> {
+                String name = getText(etNameSignup);
+                String email = getText(etEmailSignup);
+                String phone = getText(etPhoneSignup);
+
+                if (!isNonBlank(name)) {
+                    tilNameSignup.setError("Name required");
+                    return;
+                }
+                if (!isEmailOk(email)) {
+                    tilEmailSignup.setError("Invalid email address");
+                    return;
+                }
+
+                // Check for ban before creation
+                // Use the initialized 'deviceId' variable
+                db.collection("banned_users").document(deviceId).get()
+                        .addOnSuccessListener(banDoc -> {
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("name", name);
+                            user.put("email", email);
+                            user.put("phone", phone);
+                            user.put("createdAt", FieldValue.serverTimestamp());
+                            user.put("preferences", "yes");
+                            user.put("profilepicture", null);
+                            user.put("locationPreference", switchLocation.isChecked());
+
+                            // --- CRITICAL SECURITY CHECK ---
+                            if (banDoc.exists()) {
+                                //  USER IS BANNED
+                                // Force them to be an entrant and REVOKE creating privileges
+                                user.put("role", "entrant");
+                                user.put("canCreateEvent", false);
+
+                                // Notify them nicely but firmly
+                                Toast.makeText(getContext(),
+                                        "Note: Your account is restricted due to a previous ban.",
+                                        Toast.LENGTH_LONG).show();
+                            } else {
+                                //  USER IS CLEAN
+                                user.put("role", "entrant"); // Default role
+                                user.put("canCreateEvent", true); // Grant standard privileges
+                            }
+
+                                saveUserToFirestore(user);
+                        });
+            });
     }
+
     /**
-     * Enables or disables all input fields and buttons based on authentication readiness.
+     * Saves the user's location-sharing preference to Firestore.
      *
-     * @param enabled true to enable UI interaction, false to disable it.
+     * <p>This is triggered when the user toggles the location switch,
+     * or after granting location permission.</p>
+     *
+     * @param enabled {@code true} if the user allows location collection, else {@code false}
      */
-    private void setUiEnabled(boolean enabled) {
-        if (btnContinueLogin != null) btnContinueLogin.setEnabled(enabled && isNonBlank(getText(etNameLogin)));
-        if (btnSignup != null)       btnSignup.setEnabled(enabled && isEmailOk(getText(etEmailSignup)) && isNonBlank(getText(etNameLogin)));
-        if (etNameLogin != null)     etNameLogin.setEnabled(true); // allow typing anytime
-        if (etEmailSignup != null)   etEmailSignup.setEnabled(enabled);
-        if (etPhoneSignup != null)   etPhoneSignup.setEnabled(enabled);
+
+    private void saveLocationPreference(boolean enabled) {
+        db.collection("users")
+                .document(deviceId)
+                .update("locationPreference", enabled)
+                .addOnSuccessListener(x -> Log.d("Login", "Location preference updated"))
+                .addOnFailureListener(e -> Log.e("Login", "Failed to update location preference", e));
+    }
+
+    /**
+     * Creates or overwrites a user document in Firestore using the device ID.
+     *
+     * <p>Called only during signup. After saving, the user is navigated to
+     * {@link GeneralEventsFragment} and the bottom navigation is shown.</p>
+     *
+     * @param user A map of all profile fields to store under {@code users/{deviceId}}
+     */
+
+    private void saveUserToFirestore(Map<String, Object> user) {
+        db.collection("users")
+                .document(deviceId)
+                .set(user)
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(getContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                    ((MainActivity) requireActivity()).showBottomNav();
+                    navigateToEvents();
+                })
+                .addOnFailureListener(err ->
+                        Toast.makeText(getContext(), "Signup failed: " + err.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 
 
-    // ---------- navigation ----------
-
     /**
-     * Navigates to the general events fragment after successful log in or sign up
+     * Navigates to the {@link GeneralEventsFragment} after a successful login or signup.
      */
+
     private void navigateToEvents() {
         requireActivity()
                 .getSupportFragmentManager()
@@ -270,35 +314,63 @@ public class LoginFragment extends Fragment {
                 .commit();
     }
 
-    // ---------- helpers ----------
 
-    /** Returns trimmed text from an EditText, or an empty string if null. */
+    /**
+     * Returns the trimmed string contents of a {@link TextInputEditText},
+     * or an empty string if the field is null.
+     *
+     * @param et The EditText field
+     * @return Trimmed text or empty string
+     */
+
     private String getText(TextInputEditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
-    /** Checks if a string is not null or empty. */
+
+    /**
+     * Checks whether a string is non-null and contains at least one non-space character.
+     *
+     * @param s The string to check
+     * @return {@code true} if non-blank, otherwise {@code false}
+     */
     private boolean isNonBlank(String s) {
         return s != null && s.trim().length() > 0;
     }
-    /** Basic validation to ensure email contains '@'. */
+
+    /**
+     * Performs basic email validation by checking if the string contains '@'.
+     *
+     * <p>This is not a full regex validation—just a lightweight check for UI enabling.</p>
+     *
+     * @param s Email string to validate
+     * @return {@code true} if it contains '@', else {@code false}
+     */
     private boolean isEmailOk(String s) {
         return s != null && s.contains("@");
     }
-    /** Creates a simplified TextWatcher for live validation. */
-    private TextWatcher simpleWatcher(OnChange cb) {
-        return new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { cb.run(String.valueOf(s)); }
-            @Override public void afterTextChanged(Editable s) {}
-        };
+
+    /**
+     * Handles the result of the runtime location permission request.
+     *
+     * <p>If the permission is granted, the user's Firestore preference is updated
+     * to reflect that location collection is enabled.</p>
+     *
+     * @param requestCode Unique code associated with the permission request
+     * @param permissions The permission(s) being requested
+     * @param grantResults Results of the user's response
+     */
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_REQUEST_CODE &&
+                grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            Toast.makeText(getContext(), "Location permission granted", Toast.LENGTH_SHORT).show();
+
+            saveLocationPreference(true);
+        }
     }
-    /** Returns a unique device ID used as a backup identifier for anonymous users. */
-    private String getDeviceId() {
-        return Settings.Secure.getString(
-                requireContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID
-        );
-    }
-    /** Functional interface used by {@link #simpleWatcher(OnChange)} for text change callbacks. */
-    private interface OnChange { void run(String s); }
 }

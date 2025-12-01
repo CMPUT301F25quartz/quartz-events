@@ -2,7 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@color/backgroundColor">
 
     <LinearLayout
         android:orientation="vertical"
@@ -19,7 +19,7 @@
 
             <ImageButton
                 android:id="@+id/btnBack"
-                android:src="@android:drawable/ic_media_previous"
+                android:src="@drawable/ic_back"
                 android:background="@android:color/transparent"
                 android:contentDescription="Back"
                 android:layout_width="32dp"
@@ -99,7 +99,7 @@
             <!-- Row 2 -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:weightSum="2"
+                android:weightSum="3"
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -125,10 +125,25 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
                     android:minWidth="0dp"
                     android:paddingHorizontal="12dp"
                     android:backgroundTint="#BDBDBD"
                     android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnMap"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#BDBDBD"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="Map"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white" />
+
+
             </LinearLayout>
         </LinearLayout>
 
@@ -160,6 +175,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Waiting List"
                     android:textOff="Waiting List"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -173,6 +189,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Chosen"
                     android:textOff="Chosen"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -191,8 +208,9 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_pill_grey"
-                    android:textOn="Selected"
-                    android:textOff="Selected"
+                    android:textOn="Accepted"
+                    android:textOff="Accepted"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -204,8 +222,9 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:background="@drawable/bg_pill_grey"
-                    android:textOn="Cancelled"
-                    android:textOff="Cancelled"
+                    android:textOn="Declined"
+                    android:textOff="Declined"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />

@@ -19,33 +19,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adapter for displaying users in admin browse view.
+ * RecyclerView Adapter for rendering the list of User Profiles in the Admin Dashboard.
  *
- * <p>This RecyclerView adapter is responsible for binding user profile data to list items
- * in the administrator's user browsing interface. It displays user information and provides
- * interaction callbacks for administrative actions such as viewing details or removing users.</p>
- *
- * <p>Design Pattern: This class implements the Adapter pattern (part of RecyclerView pattern)
- * and uses the ViewHolder pattern for efficient view recycling.</p>
- *
- * <p>User Story: US 03.05.01 - As an administrator, I want to be able to browse profiles.</p>
- *
- * <p>Outstanding Issues:</p>
- * <ul>
- *   <li>Consider implementing pagination for large user lists</li>
- *   <li>Add search/filter functionality for better user experience</li>
- * </ul>
+ * <p><b>Implements US 03.05.01 (Browse Profiles):</b>
+ * Displays a list of users including their avatar, name, and role.
+ * Includes search filtering capabilities by name and role filtering (Entrant vs Organizer).</p>
  *
  * @author Dinma (Team Quartz)
- * @version 1.0
- * @since 2025-11-01
+ * @version 1.2
  */
 public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.UserViewHolder> {
 
-    private Context context;
-    private List<User> userList;
-    private List<User> userListFull;  // For filtering/searching
-    private OnUserActionListener listener;
+    private final Context context;
+    private List<User> userList;        // The currently displayed (filtered) list
+    private final List<User> userListFull; // The complete dataset (unfiltered)
+    private final OnUserActionListener listener;
 
     /**
      * Interface for handling user action callbacks.
@@ -55,15 +43,13 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
      */
     public interface OnUserActionListener {
         /**
-         * Called when the delete action is triggered for a user.
-         *
-         * @param user The user object to be deleted
+         * Triggered when the "Delete" button is clicked on a user row.
+         * @param user The user targeted for deletion.
          */
         void onDeleteClick(User user);
         /**
-         * Called when a user item is clicked to view details.
-         *
-         * @param user The user object whose details should be displayed
+         * Triggered when a user row is clicked (usually to view details).
+         * @param user The selected user.
          */
         void onUserClick(User user);
     }
@@ -82,35 +68,62 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     }
 
     /**
-     * Updates/sets the user list for the adapter.
-     * @param users The full set of User profiles to display
+     * Updates the underlying data set and refreshes the view.
+     * Creates a copy of the data for the 'Full' list to enable client-side filtering.
+     *
+     * @param users List of User objects to display.
      */
     public void setUsers(List<User> users) {
         this.userList = new ArrayList<>(users);
-        this.userListFull = new ArrayList<>(users);
+        this.userListFull.clear();
+        this.userListFull.addAll(users);
         notifyDataSetChanged();
     }
 
     /**
-     * Filters user profiles based on query string (by name or email).
-     * @param query Filter string, case-insensitive
+     * Filters the displayed list based on search text and role selection.
+     *
+     * @param query      Search string to match against Name or Email (case-insensitive).
+     * @param roleFilter Role criteria: "All", "Organizers", or "Entrants".
      */
-    public void filter(String query) {
+
+    public void filter(String query, String roleFilter) {
         userList.clear();
-        if (query.isEmpty()) {
-            userList.addAll(userListFull);
-        } else {
-            String lowerCaseQuery = query.toLowerCase();
-            for (User user : userListFull) {
-                if (user.getName() != null && user.getName().toLowerCase().contains(lowerCaseQuery) ||
-                        user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerCaseQuery)) {
-                    userList.add(user);
+
+        // Normalize query
+        String lowerCaseQuery = query.toLowerCase();
+
+        for (User user : userListFull) {
+            boolean matchesSearch = false;
+            boolean matchesRole = false;
+
+            // 1. Text Search Logic
+            if (query.isEmpty()) {
+                matchesSearch = true;
+            } else {
+                if ((user.getName() != null && user.getName().toLowerCase().contains(lowerCaseQuery)) ||
+                        (user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerCaseQuery))) {
+                    matchesSearch = true;
                 }
+            }
+
+            // 2. Role Filter Logic
+            // Note: Firebase stores role as "organiser" (British spelling)
+            if (roleFilter.equals("All")) {
+                matchesRole = true;
+            } else if (roleFilter.equals("Organizers") && "organiser".equalsIgnoreCase(user.getRole())) {
+                matchesRole = true;
+            } else if (roleFilter.equals("Entrants") && !"organiser".equalsIgnoreCase(user.getRole())) {
+                matchesRole = true;
+            }
+
+            // 3. Add if BOTH match
+            if (matchesSearch && matchesRole) {
+                userList.add(user);
             }
         }
         notifyDataSetChanged();
     }
-
     /**
      * Inflates a view and ViewHolder for a user row.
      * @param parent   Parent ViewGroup
@@ -134,25 +147,38 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
 
+        // Bind Name
         holder.tvUserName.setText(user.getName() != null ? user.getName() : "Unknown User");
 
-        // Load profile image
-        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+        // Bind Role Badge (Color coding helps Admins quickly distinguish roles)
+        holder.tvRoleBadge.setVisibility(View.VISIBLE);
+
+        if ("organiser".equalsIgnoreCase(user.getRole())) {
+            holder.tvRoleBadge.setText("Organiser");
+            holder.tvRoleBadge.setBackgroundResource(R.drawable.badge_organizer);
+            holder.tvRoleBadge.setTextColor(android.graphics.Color.parseColor("#E65100")); // Dark Orange text
+        } else {
+            holder.tvRoleBadge.setText("Entrant");
+            holder.tvRoleBadge.setBackgroundResource(R.drawable.badge_entrant);
+            holder.tvRoleBadge.setTextColor(android.graphics.Color.parseColor("#1565C0")); // Dark Blue text
+        }
+
+// Bind Image
+        String imgUrl = user.getProfileImageUrl();
+        if (imgUrl != null && !imgUrl.isEmpty()) {
             Glide.with(context)
-                    .load(user.getProfileImageUrl())
-                    .placeholder(android.R.drawable.ic_menu_myplaces)
-                    .error(android.R.drawable.ic_menu_myplaces)
+                    .load(imgUrl)
+                    .placeholder(R.drawable.ic_default_profile)
                     .circleCrop()
                     .into(holder.ivUserImage);
         } else {
-            holder.ivUserImage.setImageResource(android.R.drawable.ic_menu_myplaces);
+            holder.ivUserImage.setImageResource(R.drawable.ic_default_profile);
         }
 
-        // Click listeners
+        // Bind Actions
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onUserClick(user);
         });
-
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) listener.onDeleteClick(user);
         });
@@ -168,24 +194,24 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     }
 
     /**
-     * ViewHolder for user list items.
-     *
-     * <p>Holds references to views within each user list item for efficient recycling.</p>
+     * ViewHolder pattern to minimize expensive findViewById calls.
      */
     static class UserViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivUserImage;
-        TextView tvUserName;
-        ImageButton btnDelete;
+        final ImageView ivUserImage;
+        final TextView tvUserName;
+        final ImageButton btnDelete;
+        final TextView tvRoleBadge;
 
         /**
          * Binds row view references.
          * @param itemView The user row's root view
          */
-        public UserViewHolder(@NonNull View itemView) {
+        UserViewHolder(@NonNull View itemView) {
             super(itemView);
             ivUserImage = itemView.findViewById(R.id.iv_user_image);
             tvUserName = itemView.findViewById(R.id.tv_user_name);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            tvRoleBadge = itemView.findViewById(R.id.tv_role_badge);
         }
     }
 }

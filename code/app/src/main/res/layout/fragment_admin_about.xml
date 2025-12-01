@@ -37,6 +37,16 @@
                 android:textStyle="bold"
                 android:textColor="#1F2937" />
 
+            <ImageButton
+                android:id="@+id/btn_options_menu"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_more_vert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Options" />
+
         </RelativeLayout>
 
         <!-- Profile Section -->
@@ -111,19 +121,20 @@
                 android:gravity="center">
 
                 <!-- Events Button -->
+
+                <!-- Profiles Button -->
                 <Button
                     android:id="@+id/btn_events"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#5669FF"
                     android:text="Events"
+                    android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:background="@drawable/button_action"
-                    android:textAllCaps="false" />
+                    android:textSize="14sp" />
 
-                <!-- Profiles Button -->
                 <Button
                     android:id="@+id/btn_profiles"
                     android:layout_width="0dp"
@@ -132,9 +143,9 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp"
                     android:text="Profiles"
+                    android:backgroundTint="#5669FF"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
-                    android:background="@drawable/button_action"
                     android:textAllCaps="false" />
 
                 <!-- Images Button -->
@@ -147,7 +158,7 @@
                     android:text="Images"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
-                    android:background="@drawable/button_action"
+                    android:backgroundTint="#5669FF"
                     android:textAllCaps="false" />
 
             </LinearLayout>

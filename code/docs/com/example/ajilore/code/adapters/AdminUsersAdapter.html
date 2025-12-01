@@ -71,7 +71,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#setUsers(java.util.List)" tabindex="0">setUsers(List)</a></li>
-<li><a href="#filter(java.lang.String)" tabindex="0">filter(String)</a></li>
+<li><a href="#filter(java.lang.String,java.lang.String)" tabindex="0">filter(String, String)</a></li>
 <li><a href="#onCreateViewHolder(android.view.ViewGroup,int)" tabindex="0">onCreateViewHolder(ViewGroup, int)</a></li>
 <li><a href="#onBindViewHolder(com.example.ajilore.code.adapters.AdminUsersAdapter.UserViewHolder,int)" tabindex="0">onBindViewHolder(AdminUsersAdapter.UserViewHolder, int)</a></li>
 <li><a href="#getItemCount()" tabindex="0">getItemCount()</a></li>
@@ -94,27 +94,14 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">AdminUsersAdapter</span>
 <span class="extends-implements">extends androidx.recyclerview.widget.RecyclerView.Adapter&lt;com.example.ajilore.code.adapters.AdminUsersAdapter.UserViewHolder&gt;</span></div>
-<div class="block">Adapter for displaying users in admin browse view.
+<div class="block">RecyclerView Adapter for rendering the list of User Profiles in the Admin Dashboard.
 
- <p>This RecyclerView adapter is responsible for binding user profile data to list items
- in the administrator's user browsing interface. It displays user information and provides
- interaction callbacks for administrative actions such as viewing details or removing users.</p>
-
- <p>Design Pattern: This class implements the Adapter pattern (part of RecyclerView pattern)
- and uses the ViewHolder pattern for efficient view recycling.</p>
-
- <p>User Story: US 03.05.01 - As an administrator, I want to be able to browse profiles.</p>
-
- <p>Outstanding Issues:</p>
- <ul>
-   <li>Consider implementing pagination for large user lists</li>
-   <li>Add search/filter functionality for better user experience</li>
- </ul></div>
+ <p><b>Implements US 03.05.01 (Browse Profiles):</b>
+ Displays a list of users including their avatar, name, and role.
+ Includes search filtering capabilities by name and role filtering (Entrant vs Organizer).</p></div>
 <dl class="notes">
-<dt>Since:</dt>
-<dd>2025-11-01</dd>
 <dt>Version:</dt>
-<dd>1.0</dd>
+<dd>1.2</dd>
 <dt>Author:</dt>
 <dd>Dinma (Team Quartz)</dd>
 </dl>
@@ -170,9 +157,10 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#filter(java.lang.String)" class="member-name-link">filter</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;query)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#filter(java.lang.String,java.lang.String)" class="member-name-link">filter</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;query,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;roleFilter)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Filters user profiles based on query string (by name or email).</div>
+<div class="block">Filters the displayed list based on search text and role selection.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getItemCount()" class="member-name-link">getItemCount</a>()</code></div>
@@ -192,7 +180,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setUsers(java.util.List)" class="member-name-link">setUsers</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&gt;&nbsp;users)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Updates/sets the user list for the adapter.</div>
+<div class="block">Updates the underlying data set and refreshes the view.</div>
 </div>
 </div>
 </div>
@@ -242,23 +230,26 @@ loadScripts(document, 'script');</script>
 <h3>setUsers</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setUsers</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../models/User.html" title="class in com.example.ajilore.code.models">User</a>&gt;&nbsp;users)</span></div>
-<div class="block">Updates/sets the user list for the adapter.</div>
+<div class="block">Updates the underlying data set and refreshes the view.
+ Creates a copy of the data for the 'Full' list to enable client-side filtering.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>users</code> - The full set of User profiles to display</dd>
+<dd><code>users</code> - List of User objects to display.</dd>
 </dl>
 </div>
 </section>
 </li>
 <li>
-<section class="detail" id="filter(java.lang.String)">
+<section class="detail" id="filter(java.lang.String,java.lang.String)">
 <h3>filter</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">filter</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;query)</span></div>
-<div class="block">Filters user profiles based on query string (by name or email).</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">filter</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;query,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;roleFilter)</span></div>
+<div class="block">Filters the displayed list based on search text and role selection.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>query</code> - Filter string, case-insensitive</dd>
+<dd><code>query</code> - Search string to match against Name or Email (case-insensitive).</dd>
+<dd><code>roleFilter</code> - Role criteria: "All", "Organizers", or "Entrants".</dd>
 </dl>
 </div>
 </section>

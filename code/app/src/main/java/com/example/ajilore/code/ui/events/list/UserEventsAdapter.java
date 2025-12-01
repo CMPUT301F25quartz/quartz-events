@@ -87,6 +87,7 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.bind(items.get(position), onClick);
+
     }
 
     /**
@@ -100,13 +101,16 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
     static class VH extends RecyclerView.ViewHolder {
         private final ImageView ivPoster;
         private final TextView tvDate;
-        private final TextView tvEventTitle;       // ribbon over image
-        private final TextView tvRegClosesBanner;  // red banner (optional)
+        //private final TextView tvEventTitle;       // ribbon over image
+        //private final TextView tvRegClosesBanner;  // red banner (optional)
         private final TextView tvTitle;            // bold title in content
         private final TextView tvWaitlist;         // optional; we’ll hide by default
         private final TextView chipStatus;         // optional status chip
         private final TextView tvLocation;
         private final Button btnViewDetails;
+        private final TextView tvDay;
+        private final TextView tvMonth;
+
 
         /**
          * Wires up view references from the item layout.
@@ -116,13 +120,15 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
             super(itemView);
             ivPoster          = itemView.findViewById(R.id.ivPoster);
             tvDate            = itemView.findViewById(R.id.tvDate);
-            tvEventTitle      = itemView.findViewById(R.id.tvEventTitle);
-            tvRegClosesBanner = itemView.findViewById(R.id.tvRegClosesBanner);
+            //tvEventTitle      = itemView.findViewById(R.id.tvEventTitle);
+            //tvRegClosesBanner = itemView.findViewById(R.id.tvRegClosesBanner);
             tvTitle           = itemView.findViewById(R.id.tvTitle);
             tvWaitlist        = itemView.findViewById(R.id.tvWaitlist);
             chipStatus        = itemView.findViewById(R.id.chipStatus);
             tvLocation        = itemView.findViewById(R.id.tvLocation);
             btnViewDetails    = itemView.findViewById(R.id.btnViewDetails);
+            tvDay = itemView.findViewById(R.id.tvDay);
+            tvMonth = itemView.findViewById(R.id.tvMonth);
         }
 
         /**
@@ -131,7 +137,7 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
          * @param onClick Callback for row or CTA button tap.
          */
         void bind(@NonNull EventRow row, @NonNull OnEventClick onClick) {
-            // 1) Poster image
+            //  Poster image
             //ivPoster.setImageResource(row.posterRes);
             if(row.posterUrl != null && row.posterUrl.startsWith("http")){
                 //This means that its a cloudinary image
@@ -144,24 +150,31 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
             }
                 //This means that its a cloudinary image
 
-            // 2) Title binding:
+            //  Title binding:
             //    - tvEventTitle = white ribbon on the banner (visual flare)
             //    - tvTitle      = main title text in content area
-            tvEventTitle.setText(row.title);
+            //tvEventTitle.setText(row.title);
             tvTitle.setText(row.title);
 
-            // 3) Date badge text (your EventsFragment already formats row.dateText)
-            tvDate.setText(row.dateText);
+            // Date badge text (EventsFragment already formats row.dateText)
+            //tvDate.setText(row.dateText);
+            if(tvDay != null && tvMonth != null){
+                tvDay.setText(row.dayLabel != null ? row.dayLabel : "");
+                tvMonth.setText(row.monthLabel != null ? row.monthLabel : "");
+            }else if (tvDay != null) {
+                tvDate.setText(row.dateText);
 
-            // 4) Location line
+            }
+
+            // Location line
             tvLocation.setText(row.location);
 
-            // 5) Optional waitlist (we don’t have a count in EventRow yet -> hide)
+            // 5Optional waitlist (if theres no count in EventRow yet -> hide)
             if (tvWaitlist != null) {
                 tvWaitlist.setVisibility(View.GONE);
             }
 
-            // 6) Optional status chip (show if non-empty; color is basic)
+            // Optional status chip (show if non-empty; color is basic)
             if (chipStatus != null) {
                 if (row.status == null || row.status.trim().isEmpty()) {
                     chipStatus.setVisibility(View.GONE);
@@ -179,12 +192,10 @@ public class UserEventsAdapter extends RecyclerView.Adapter<UserEventsAdapter.VH
                 }
             }
 
-            // 7) Optional red registration banner — hide for now unless you later pass text
-            if (tvRegClosesBanner != null) {
-                tvRegClosesBanner.setVisibility(View.GONE);
-            }
 
-            // 8) Clicks: both the whole card and the CTA button route to onClick(row)
+
+
+            // Clicks so that both the whole card and the CTA button route to onClick(row)
             itemView.setOnClickListener(v -> onClick.onClick(row));
             if (btnViewDetails != null) {
                 btnViewDetails.setOnClickListener(v -> onClick.onClick(row));

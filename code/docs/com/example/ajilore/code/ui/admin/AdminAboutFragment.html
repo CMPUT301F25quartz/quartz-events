@@ -95,18 +95,30 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">AdminAboutFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">Fragment displaying the admin dashboard with navigation options.
+<div class="block">AdminAboutFragment
 
- <p>This fragment serves as the main landing page for administrators,
- displaying admin profile information and providing navigation buttons
- to access different administrative functions (Events, Profiles, Images).</p>
+ <p>Displays the administrator dashboard landing page. This fragment shows the
+ administrator’s profile information (name + profile image) and provides
+ navigation entry points to all admin-controlled areas of the app such as:</p>
 
- <p>Design Pattern: Fragment pattern serving as a navigation hub.</p></div>
+ <ul>
+     <li>Admin Events Management</li>
+     <li>Admin User Profiles</li>
+     <li>Admin Image Storage</li>
+     <li>Notification Logs (via options menu)</li>
+ </ul>
+
+ <p>The admin profile is loaded from Firestore using the device ID as the
+ document identifier in the <code>users</code> collection. This fragment also
+ supports Glide loading of profile images and provides fallback UI when no
+ image is available.</p>
+
+ <p><b>Design Pattern:</b> Navigation hub fragment for admin-privileged screens.</p></div>
 <dl class="notes">
 <dt>Since:</dt>
-<dd>2025-11-01</dd>
+<dd>2025-11-25</dd>
 <dt>Version:</dt>
-<dd>1.0</dd>
+<dd>1.1</dd>
 <dt>Author:</dt>
 <dd>Dinma (Team Quartz)</dd>
 </dl>

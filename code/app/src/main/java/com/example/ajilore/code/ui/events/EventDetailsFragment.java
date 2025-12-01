@@ -1,6 +1,9 @@
 package com.example.ajilore.code.ui.events;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +17,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.ajilore.code.MainActivity;
 import com.example.ajilore.code.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -68,12 +77,16 @@ public class EventDetailsFragment extends Fragment {
     private TextView tvWaitingListCount;
     private TextView tvRegistrationWindow;
     private TextView tvLotteryInfo;
-    private Button btnJoinLeave;
+    private MaterialButton btnJoinLeave;
+    private MaterialButton btnAcceptSpot;
+    private MaterialButton btnDecline;
     private ProgressBar progressBar;
     private View layoutWaitingListInfo;
     private ListenerRegistration eventListener;
     private ListenerRegistration waitingListStatusListener;
     private ListenerRegistration waitingListCountListener;
+    private static final String ARG_FILTERS = "filters";
+
 
     // US 01.01.01 & 01.01.02: Track waiting list status
     private boolean isOnWaitingList = false;
@@ -81,12 +94,13 @@ public class EventDetailsFragment extends Fragment {
     private boolean isSelectedForLottery = false;
     private int waitingListCount = 0;
     private int capacity = 0;
+    private boolean isCapacityFull = false;
 
     /**
      * Factory for creating a new instance of this fragment for a specific event and user.
      *
-     * @param eventId   The unique event document ID.
-     * @param title     The event title (for display).
+     * @param eventId The unique event document ID.
+     * @param title   The event title (for display).
      * @return Configured EventDetailsFragment instance.
      */
     public static EventDetailsFragment newInstance(String eventId, String title) {
@@ -94,10 +108,10 @@ public class EventDetailsFragment extends Fragment {
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
         args.putString(ARG_EVENT_TITLE, title);
-//        args.putString(ARG_USER_ID, userId);
         fragment.setArguments(args);
         return fragment;
     }
+
     /**
      * Inflate the event details layout.
      */
@@ -117,14 +131,26 @@ public class EventDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
-        // Get authenticated user's ID
-        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
+        //TEMI ADDED (REMOVED FIREBASE AUTH AND REPLACED IT WITH DEVICE ID)
+        userId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
+
+        if (userId == null || userId.isEmpty()) {
             Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
-            requireActivity().onBackPressed();
+            requireActivity().getSupportFragmentManager().popBackStack();
             return;
         }
-        userId = currentUser.getUid(); // Use authenticated user's ID
+
+//        // Get authenticated user's ID
+//        var currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        if (currentUser == null) {
+//            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+//            requireActivity().onBackPressed();
+//            return;
+//        }
+//        userId = currentUser.getUid(); // Use authenticated user's ID
         // Get arguments
         Bundle args = getArguments();
         if (args != null) {
@@ -148,6 +174,17 @@ public class EventDetailsFragment extends Fragment {
         btnJoinLeave = view.findViewById(R.id.btnJoinLeaveWaitingList);
         progressBar = view.findViewById(R.id.progressBar);
         layoutWaitingListInfo = view.findViewById(R.id.layoutWaitingListInfo);
+//to handle accept and decline buttons
+        btnAcceptSpot = view.findViewById(R.id.btnAcceptSpot);
+        btnDecline    = view.findViewById(R.id.btnDecline);
+        btnAcceptSpot.setOnClickListener(v -> handleRespondToInvite(true));
+        btnDecline.setOnClickListener(v -> handleRespondToInvite(false));
+
+
+        //Adding this to see if i can fix the bug by using an initial default state
+        isRegistrationOpen = false;
+        isOnWaitingList = false;
+        updateJoinLeaveButton();
 
         // Back button navigation
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
@@ -194,6 +231,22 @@ public class EventDetailsFragment extends Fragment {
                         Timestamp startsAt = doc.getTimestamp("startsAt");
                         Timestamp regStartTime = doc.getTimestamp("regOpens");
                         Timestamp regEndTime = doc.getTimestamp("regCloses");
+
+                        //geolocation
+                        Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                        Button btnViewMap = getView().findViewById(R.id.btnMap);
+
+                        if (btnViewMap != null) {
+                            if (geoRequired != null && !geoRequired) {
+                                // Geolocation disabled → hide button
+                                btnViewMap.setVisibility(View.GONE);
+                            } else {
+                                // Geolocation enabled → show button
+                                btnViewMap.setVisibility(View.VISIBLE);
+                            }
+                        }
+
 
                         // Update UI
                         tvTitle.setText(title != null ? title : "Untitled Event");
@@ -260,14 +313,35 @@ public class EventDetailsFragment extends Fragment {
                         return;
                     }
 
-                    isOnWaitingList = (doc != null && doc.exists());
-                    // isSelectedForLottery = "chosen".equals(doc.getString("status"));  for accept/decline
+                    if (doc != null && doc.exists()) {
+                        String status    = doc.getString("status");
+                        String responded = doc.getString("responded");
+
+                        // Treat cancelled / declined as NOT on the waiting list
+                        boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                || "declined".equalsIgnoreCase(responded);
+
+                        isOnWaitingList = !cancelled;
+
+                        // 🔹 chosen + not yet accepted/declined → show Accept/Decline
+                        boolean chosenPending =
+                                "chosen".equalsIgnoreCase(status)
+                                        && !"accepted".equalsIgnoreCase(responded)
+                                        && !"declined".equalsIgnoreCase(responded);
+
+                        isSelectedForLottery = chosenPending;
+                    } else {
+                        isOnWaitingList = false;
+                        isSelectedForLottery = false;
+                    }
+
                     if (eventListener != null) {
                         updateJoinLeaveButton();
                     }
                 });
-
     }
+
+
 
     /**
      * Loads and updates the displayed waiting list count.
@@ -287,10 +361,31 @@ public class EventDetailsFragment extends Fragment {
                     }
 
                     if (snapshot != null) {
-                        waitingListCount = snapshot.size();
-                        tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
+                        int count = 0;
+                        for (DocumentSnapshot d : snapshot.getDocuments()) {
+                            String status    = d.getString("status");
+                            String responded = d.getString("responded");
+
+                            boolean cancelled = "cancelled".equalsIgnoreCase(status)
+                                    || "declined".equalsIgnoreCase(responded);
+
+                            if (!cancelled) {
+                                count++;
+                            }
+                        }
+
+                        waitingListCount = count;
+
+                        isCapacityFull = (capacity > 0 && waitingListCount >= capacity);
+                        if(capacity > 0){
+                            tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
+                        }else{
+                            tvWaitingListCount.setText("Waiting List: " + waitingListCount);
+                        }
+                        //tvWaitingListCount.setText("Waiting List: " + waitingListCount + "/" + capacity);
                         layoutWaitingListInfo.setVisibility(View.VISIBLE);
                     }
+
                 });
     }
 
@@ -333,78 +428,161 @@ public class EventDetailsFragment extends Fragment {
      * Writes the current user to the event's waiting list in Firestore.
      */
     private void joinWaitingList() {
-        DocumentReference waitingListRef = db.collection("org_events")
-                .document(eventId)
-                .collection("waiting_list")
-                .document(userId);
 
-        Map<String, Object> entrant = new HashMap<>();
-        entrant.put("userId", userId);
-        entrant.put("joinedAt", FieldValue.serverTimestamp());
-        entrant.put("status", "waiting");
+        // Check user's location preference from Firestore
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(userDoc -> {
 
-        // Log the registration to the history collection
-        logRegistrationToHistory(userId, eventId, eventTitle);
-
-
-        waitingListRef.set(entrant)
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Successfully joined waiting list!",
-                                Toast.LENGTH_SHORT).show();
+                    boolean allowLocation = false;
+                    if (userDoc.exists()) {
+                        Boolean pref = userDoc.getBoolean("locationPreference");
+                        allowLocation = pref != null && pref;
                     }
-                    btnJoinLeave.setEnabled(true);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to join: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+
+                    if (!allowLocation) {
+                        saveWaitingListEntryWithoutLocation();
+                        return;
                     }
-                    btnJoinLeave.setEnabled(true);
+
+                    if (ActivityCompat.checkSelfPermission(requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+                        requestPermissions(
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                2010
+                        );
+                        return;
+                    }
+
+                    FusedLocationProviderClient fused =
+                            LocationServices.getFusedLocationProviderClient(requireContext());
+
+                    fused.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                            .addOnSuccessListener(location -> {
+
+                                double lat = 0.0;
+                                double lng = 0.0;
+
+                                if (location != null) {
+                                    lat = location.getLatitude();
+                                    lng = location.getLongitude();
+                                }
+
+                                saveWaitingListEntryWithLocation(lat, lng);
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(),
+                                        "Failed to get location. Joining without location.",
+                                        Toast.LENGTH_SHORT).show();
+
+                                saveWaitingListEntryWithoutLocation();
+                            });
                 });
     }
+
+
 
     /**
      * Removes the current user from the event's waiting list in Firestore.
      */
     private void leaveWaitingList() {
-        db.collection("org_events")
+        DocumentReference ref = db.collection("org_events")
                 .document(eventId)
                 .collection("waiting_list")
-                .document(userId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Successfully left waiting list",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    btnJoinLeave.setEnabled(true);
-                })
-                .addOnFailureListener(e -> {
-                    if (isAdded()) {
-                        Toast.makeText(requireContext(),
-                                "Failed to leave: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
-                    btnJoinLeave.setEnabled(true);
-                });
+                .document(userId);
+
+        // First see if this user currently has a spot (chosen/selected)
+        ref.get().addOnSuccessListener(doc -> {
+            String status    = doc != null ? doc.getString("status") : null;
+            String responded = doc != null ? doc.getString("responded") : null;
+
+            boolean hadSpot = "chosen".equalsIgnoreCase(status)
+                    || ("selected".equalsIgnoreCase(status)
+                    && "accepted".equalsIgnoreCase(responded));
+
+            ref.delete()
+                    .addOnSuccessListener(aVoid -> {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Successfully left waiting list",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
+                        //  Only draw a replacement if they actually had a spot
+                        if (hadSpot) {
+                            SelectEntrantsFragment.drawReplacementsFromWaitingList(
+                                    db,
+                                    requireContext(),
+                                    eventId,
+                                    eventTitle,
+                                    1
+                            );
+                        }
+
+                        btnJoinLeave.setEnabled(true);
+                    })
+                    .addOnFailureListener(e -> {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(),
+                                    "Failed to leave: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                        btnJoinLeave.setEnabled(true);
+                    });
+
+        }).addOnFailureListener(e -> {
+            if (isAdded()) {
+                Toast.makeText(requireContext(),
+                        "Failed to check waiting list: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+            btnJoinLeave.setEnabled(true);
+        });
     }
+
 
     /**
      * Updates the join/leave button text and enabled state based on user registration and waiting list status.
      */
     private void updateJoinLeaveButton() {
 
+        // Default: hide accept/decline, enable them
+        btnAcceptSpot.setVisibility(View.GONE);
+        btnDecline.setVisibility(View.GONE);
+        btnAcceptSpot.setEnabled(true);
+        btnDecline.setEnabled(true);
+
+        // If this user has been chosen and hasn't responded yet,
+        // hide Join/Leave and show Accept/Decline instead.
+        if (isSelectedForLottery) {
+            btnJoinLeave.setVisibility(View.GONE);
+            btnAcceptSpot.setVisibility(View.VISIBLE);
+            btnDecline.setVisibility(View.VISIBLE);
+            return; // don't let the rest of the logic override this state
+        }
+
+        // Normal behaviour: show Join/Leave, hide Accept/Decline
+        btnJoinLeave.setVisibility(View.VISIBLE);
+
         if (!isRegistrationOpen) {
             btnJoinLeave.setText("Registration Closed");
             btnJoinLeave.setEnabled(false);
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
-            btnJoinLeave.setVisibility(View.VISIBLE);
             return;
         }
+
+        //Capacity Full: user can leave but not join
+        if(isCapacityFull && !isOnWaitingList){
+            btnJoinLeave.setText("Event Full");
+            btnJoinLeave.setEnabled(false);
+            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.grey));
+            return;
+        }
+
+        //)
         if (isOnWaitingList) {
             btnJoinLeave.setText("Leave ->");
             btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
@@ -414,14 +592,8 @@ public class EventDetailsFragment extends Fragment {
         }
 
         btnJoinLeave.setEnabled(true);
-
-        // Hide button if selected for lottery (prepare for accept/decline buttons)
-        if (isSelectedForLottery) {
-            btnJoinLeave.setVisibility(View.GONE);
-        } else {
-            btnJoinLeave.setVisibility(View.VISIBLE);
-        }
     }
+
 
     /**
      * Updates registration window message and color based on status and timing.
@@ -447,9 +619,22 @@ public class EventDetailsFragment extends Fragment {
             tvRegistrationWindow.setTextColor(0xFFFF6B6B); // Red
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideBottomNav();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showBottomNav();
+        }
 
         // Remove all Firestore listeners to prevent memory leaks
         if (eventListener != null) {
@@ -498,7 +683,6 @@ public class EventDetailsFragment extends Fragment {
     }
 
 
-
     // FUTURE IMPLEMENTATION - NOT PART OF CURRENT USER STORIES
     // Commented out for later sprints
 
@@ -514,27 +698,171 @@ public class EventDetailsFragment extends Fragment {
     private void handleDeclineSpot() {
         // Will be implemented when lottery system is ready
     }
+
     */
+
+    // response to invite
+    /**
+     * Handles the user's response to a waiting list invite.
+     * <p>
+     * Updates the waiting_list document for this user with their response
+     * (accepted or declined), sets a server timestamp, and updates the status.
+     * If the user declines, a replacement entrant is drawn from the waiting list.
+     *
+     * @param accepted {@code true} if the user accepts the spot, {@code false} if they decline
+     */
+    private void handleRespondToInvite(boolean accepted) {
+        if (eventId == null || userId == null) return;
+
+        btnAcceptSpot.setEnabled(false);
+        btnDecline.setEnabled(false);
+
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("responded", accepted ? "accepted" : "declined");
+        updates.put("responseAt", FieldValue.serverTimestamp());
+        updates.put("status", accepted ? "selected" : "cancelled");
+
+        ref.set(updates, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    if (!isAdded()) return;
+
+                    Toast.makeText(
+                            requireContext(),
+                            accepted ? "You accepted your spot 🎉" : "You declined this spot",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    // If they declined, free the spot and draw 1 replacement
+                    if (!accepted) {
+                        SelectEntrantsFragment.drawReplacementsFromWaitingList(
+                                db,
+                                requireContext(),
+                                eventId,
+                                eventTitle,
+                                1
+                        );
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!isAdded()) return;
+
+                    btnAcceptSpot.setEnabled(true);
+                    btnDecline.setEnabled(true);
+
+                    Toast.makeText(
+                            requireContext(),
+                            "Failed to update response: " + e.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+
+
     //method to log the history of the events that the user has registered for in registrations collection
+
+    /**
+     * Logs a user's registration for an event into their registration history.
+     * <p>
+     * Fetches event details from the {@code org_events} collection, builds a history
+     * record, and stores it under {@code users/{userId}/registrations/{eventId}}.
+     *
+     * @param userId     the ID of the user whose history is being updated
+     * @param eventId    the ID of the event the user registered for
+     * @param eventTitle the title of the event (fallback if needed)
+     */
+
     private void logRegistrationToHistory(@NonNull String userId,
                                           @NonNull String eventId,
                                           @NonNull String eventTitle) {
-        Map<String, Object> reg = new HashMap<>();
-        reg.put("userId", userId);
-        reg.put("eventId", eventId);
-        reg.put("eventTitle", eventTitle);
-        reg.put("registeredAt", FieldValue.serverTimestamp());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(userId)
-                .collection("registrations")
-                .document(eventId)
-                .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+        db.collection("org_events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+                    if (!eventDoc.exists()) return;
+
+                    Map<String, Object> reg = new HashMap<>();
+                    reg.put("userId", userId);
+                    reg.put("eventId", eventId);
+                    reg.put("eventTitle", eventDoc.getString("title"));
+                    reg.put("posterUrl", eventDoc.getString("posterUrl"));
+                    reg.put("location", eventDoc.getString("location"));
+                    reg.put("startsAt", eventDoc.getTimestamp("startsAt"));
+                    reg.put("registeredAt", FieldValue.serverTimestamp());
+
+
+                    db.collection("users")
+                            .document(userId)
+                            .collection("registrations")
+                            .document(eventId)
+                            .set(reg, SetOptions.merge()) // merge ensures no duplicate errors
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Failed to save registration history: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show());
+                })
                 .addOnFailureListener(e ->
                         Toast.makeText(requireContext(),
-                                "Failed to save registration history: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show()
-                );
+                                "Failed to fetch event info: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
     }
+
+    /**
+     * Saves a waiting list entry for the current user including their location.
+     * <p>
+     * Creates or updates the document under
+     * {@code org_events/{eventId}/waiting_list/{userId}} with join time,
+     * waiting status, and latitude/longitude, and logs the registration to history.
+     *
+     * @param lat latitude of the user's location at join time
+     * @param lng longitude of the user's location at join time
+     */
+    private void saveWaitingListEntryWithLocation(double lat, double lng) {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+        entrant.put("latitude", lat);
+        entrant.put("longitude", lng);
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+
+    /**
+     * Saves a waiting list entry for the current user without any location data.
+     * <p>
+     * Creates or updates the document under
+     * {@code org_events/{eventId}/waiting_list/{userId}} with join time
+     * and waiting status only, and logs the registration to history.
+     */
+    private void saveWaitingListEntryWithoutLocation() {
+        DocumentReference ref = db.collection("org_events")
+                .document(eventId)
+                .collection("waiting_list")
+                .document(userId);
+
+        Map<String, Object> entrant = new HashMap<>();
+        entrant.put("userId", userId);
+        entrant.put("joinedAt", FieldValue.serverTimestamp());
+        entrant.put("status", "waiting");
+
+        logRegistrationToHistory(userId, eventId, eventTitle);
+
+        ref.set(entrant);
+    }
+
+
 }
+

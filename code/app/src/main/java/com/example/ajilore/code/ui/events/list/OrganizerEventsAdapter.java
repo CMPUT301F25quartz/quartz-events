@@ -1,15 +1,18 @@
 package com.example.ajilore.code.ui.events.list;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.ajilore.code.R;
-import com.example.ajilore.code.ui.events.OrganizerEventsFragment;
+import com.example.ajilore.code.activities.OrganizerEntrantsActivity;
 import com.bumptech.glide.Glide;
 
 import java.util.List;
@@ -26,8 +29,10 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
          * @param item The {@link EventItem} instance that was clicked.
          */
         void onClick(EventItem item); }
+
     private final List<EventItem> items;
     private final OnEventClick click;
+    private boolean isOrganizer = false; // NEW: Flag to determine if user is organizer
 
     /**
      * Constructs an OrganizerEventsAdapter.
@@ -36,7 +41,13 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
      * @param click Callback invoked for row or edit icon clicks.
      */
     public OrganizerEventsAdapter(List<EventItem> items, OnEventClick click) {
-        this.items = items; this.click = click;
+        this.items = items;
+        this.click = click;
+    }
+
+    // NEW by Kulnoor: Method to set if user is organizer
+    public void setIsOrganizer(boolean isOrganizer) {
+        this.isOrganizer = isOrganizer;
     }
 
     /**
@@ -60,14 +71,18 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
      * @param h    The ViewHolder instance.
      * @param pos  Index of the event in the adapter.
      */
-    @Override public void onBindViewHolder(@NonNull EventVH h, int pos) { h.bind(items.get(pos), click); }
+    @Override
+    public void onBindViewHolder(@NonNull EventVH h, int pos) {
+        h.bind(items.get(pos), click, isOrganizer);
+    }
 
     /**
      * Returns the number of events currently in the adapter.
      * @return List size.
      */
-    @Override public int getItemCount() { return items.size();
-
+    @Override
+    public int getItemCount() {
+        return items.size();
     }
 
     // ---------- view holder ----------
@@ -78,6 +93,10 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
     public static class EventVH extends RecyclerView.ViewHolder {
         private final TextView tvTitle, tvDate, tvSubtitle;
         private final ImageView ivEdit, ivPoster;
+        // NEW: Add reference to the manage entrants button
+        private final Button btnManageEntrants;
+
+        private final TextView tvStatusBadge;
 
         /**
          * Constructs a ViewHolder for organizer event row.
@@ -91,6 +110,8 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
             tvDate  = itemView.findViewById(R.id.tvDate);
             ivEdit  = itemView.findViewById(R.id.ivEdit);
             ivPoster= itemView.findViewById(R.id.ivPoster);
+            btnManageEntrants = itemView.findViewById(R.id.btnManageEntrants);
+            tvStatusBadge = itemView.findViewById(R.id.tvStatusBadge);
         }
 
         /**
@@ -98,7 +119,7 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
          * @param e     event data to show
          * @param click callback for row/edit icon clicks
          */
-        void bind(EventItem e, OnEventClick click) {
+        void bind(EventItem e, OnEventClick click, boolean isOrganizer) {
             tvTitle.setText(e.title);
             tvDate.setText(e.dateText);
             //ivPoster.setImageResource(e.posterRes);
@@ -112,6 +133,17 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
                 ivPoster.setImageResource(e.posterRes);
             }
             //------------------------
+            // SHOW/HIDE BADGE LOGIC
+            if ("flagged".equalsIgnoreCase(e.status)) {
+                tvStatusBadge.setVisibility(View.VISIBLE);
+                // Optionally disable editing for flagged events
+                ivEdit.setAlpha(0.5f);
+                ivEdit.setEnabled(false);
+            } else {
+                tvStatusBadge.setVisibility(View.GONE);
+                ivEdit.setAlpha(1.0f);
+                ivEdit.setEnabled(true);
+            }
 
             //show/hide subtitle gracefully
             if (e.subtitle != null && !e.subtitle.isEmpty()) {
@@ -123,6 +155,21 @@ public class OrganizerEventsAdapter extends RecyclerView.Adapter<OrganizerEvents
 
             itemView.setOnClickListener(v -> click.onClick(e));
             ivEdit.setOnClickListener(v -> click.onClick(e));
+
+            // NEW by Kulnoor: Handle the manage entrants button
+            if (btnManageEntrants != null) {
+                if (isOrganizer) {
+                    btnManageEntrants.setVisibility(View.VISIBLE);
+                    btnManageEntrants.setOnClickListener(v -> {
+                        Context context = itemView.getContext();
+                        Intent intent = new Intent(context, OrganizerEntrantsActivity.class);
+                        intent.putExtra("event_id", e.eventId); // Use eventId field from EventItem
+                        context.startActivity(intent);
+                    });
+                } else {
+                    btnManageEntrants.setVisibility(View.GONE);
+                }
+            }
         }
     }
 }

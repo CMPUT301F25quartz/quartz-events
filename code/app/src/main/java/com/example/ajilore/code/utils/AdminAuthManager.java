@@ -6,21 +6,22 @@ import android.provider.Settings;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 
 /**
  * Manages device-based authentication to grant administrative privileges.
  *
- * <p>This class authorizes devices based on a set of pre-defined unique device IDs
- * (Android IDs). For production readiness, the hardcoded list must be replaced
- * with a secure, server-side authorization mechanism (e.g., fetching authorized
- * IDs from Firebase Firestore) to prevent client-side tampering and
- * unauthorized access.</p>
+ * <p>This class authorizes devices based on a strictly defined allowlist of unique
+ * Android Device IDs. It serves as the primary access control mechanism for
+ * the Administrator Dashboard, ensuring only designated hardware can access
+ * sensitive administrative features.</p>
  *
- * <p>Note: The {@link #ADMIN_DEVICE_IDS} set is hardcoded for initial development/testing
- * and should be considered highly sensitive.</p> implements aspects of the Strategy pattern for different authentication methods.</p>
+ * <p><b>Implementation Note:</b> The list of authorized devices is statically
+ * defined within this class. This approach ensures that administrative access
+ * is restricted to specific, known devices associated with the project team
+ * without requiring an external authentication service for this prototype phase.</p>
  *
  * @author Dinma (Team Quartz)
  * @version 1.0
@@ -29,16 +30,28 @@ import java.util.Set;
 public class AdminAuthManager {
     private static final String TAG = "AdminAuthManager";
 
-    // TODO: In production, fetch this from Firebase Firestore in an "adminDevices" collection
-    // For now, hardcoded list of admin device IDs
-    private static final Set<String> ADMIN_DEVICE_IDS = new HashSet<>(Arrays.asList(
-            "your_device_id_here",           // Replace with actual device ID
-            "another_admin_device_id",       // Add more as needed
-            "test_admin_device"              // For testing
-    ));
+    /**
+     * A set of hardcoded Android Device IDs authorized for administrative access.
+     * <p>
+     * Implementation Note: These IDs correspond to the specific devices owned by
+     * the development team and authorized stakeholders.
+     * </p>
+     */
+    private static final Set<String> AUTHORIZED_DEVICE_IDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "0da496796da0ac39",
+            "0b5f61e7b8ce395e",
+            "282bb7ff4beb39dc",
+            "d46fd6b7513064fc"
+    )));
 
     /**
-     * Get the unique device ID for this Android device
+     * Retrieves the unique ANDROID_ID for the current device.
+     *
+     * <p>The ANDROID_ID is a 64-bit hex string that is unique to each combination
+     * of app-signing key, user, and device.</p>
+     *
+     * @param context The application context required to access system settings.
+     * @return The unique Android Device ID string.
      */
     @SuppressLint("HardwareIds")
     public static String getDeviceId(Context context) {
@@ -46,27 +59,28 @@ public class AdminAuthManager {
                 context.getContentResolver(),
                 Settings.Secure.ANDROID_ID
         );
-        Log.d(TAG, "Device ID: " + deviceId);
+        Log.d(TAG, "Device ID Retrieval: " + deviceId);
         return deviceId;
     }
 
     /**
-     * Check if the current device has admin privileges
+     * Verifies if the current device is authorized to access Admin features.
+     *
+     * <p>Checks the current device's ID against the {@link #AUTHORIZED_DEVICE_IDS} allowlist.</p>
+     *
+     * @param context The application context.
+     * @return {@code true} if the device is authorized; {@code false} otherwise.
      */
     public static boolean isAdmin(Context context) {
         String deviceId = getDeviceId(context);
-        boolean isAdmin = ADMIN_DEVICE_IDS.contains(deviceId);
-        Log.d(TAG, "Is Admin: " + isAdmin + " (Device: " + deviceId + ")");
-        return isAdmin;
-    }
+        boolean isAuthorized = AUTHORIZED_DEVICE_IDS.contains(deviceId);
 
-    /**
-     * For testing: temporarily grant admin access to current device
-     * Remove this method in production!
-     */
-    public static void addCurrentDeviceAsAdmin(Context context) {
-        String deviceId = getDeviceId(context);
-        ADMIN_DEVICE_IDS.add(deviceId);
-        Log.d(TAG, "⚠️ Added current device as admin (TESTING ONLY): " + deviceId);
+        if (isAuthorized) {
+            Log.i(TAG, "Administrative access granted for device: " + deviceId);
+        } else {
+            Log.i(TAG, "Administrative access denied for device: " + deviceId);
+        }
+
+        return isAuthorized;
     }
 }

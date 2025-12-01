@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -33,6 +34,7 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.example.ajilore.code.R;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -41,6 +43,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.example.ajilore.code.utils.AdminAuthManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -59,18 +62,34 @@ import com.cloudinary.android.callback.UploadCallback;
 import android.net.Uri;
 
 /**
- * A {@link Fragment} that provides a user interface for creating a new event.
- * <p>
- * This fragment contains a form with fields for event details such as title, type,
- * location, capacity, and various dates. It performs validation on user input and,
- * upon successful validation, saves the new event data to the Firebase Firestore
- * "org_events" collection.
+ * {@code CreateEventFragment} provides a full form interface allowing organizers
+ * to create or edit an event within the application.
+ *
+ * <p>This fragment supports:
+ * <ul>
+ *     <li>Creating brand-new events</li>
+ *     <li>Editing existing events when an {@code eventId} argument is provided</li>
+ *     <li>Uploading and previewing an event poster image via Cloudinary</li>
+ *     <li>Selecting dates for the event and registration windows using a Material-styled DatePicker</li>
+ *     <li>Enforcing Firestore permission rules (e.g., user bans, account deactivation)</li>
+ *     <li>Saving validated form data to the {@code org_events} Firestore collection</li>
+ * </ul>
+ * </p>
+ *
+ * <p>When editing an event, all previously saved values (title, dates, poster, etc.)
+ * are preloaded into the form. Otherwise, a blank form is shown for event creation.</p>
+ *
+ * <p><b>Poster Handling:</b> Users may attach an image from storage.
+ * The fragment uploads the image to Cloudinary and stores the resulting
+ * HTTPS URL under {@code posterUrl}.</p>
+ *
+ * @author
+ *      Temi Akindele
  */
 public class CreateEventFragment extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private TextInputEditText etTitle, etLocation, etDate, etRegOpens, etRegCloses;
+    private TextView tvHeader;
     private MaterialAutoCompleteTextView actCapacity, actEventType;
     private Button btnSave, btnCancel;
     private ImageButton btnBack;
@@ -88,6 +107,8 @@ public class CreateEventFragment extends Fragment {
 
     private String eventId = null;
     private String existingPosterUrl = null;
+    private SwitchMaterial geolocationSwitch;
+
 
 
 
@@ -115,8 +136,10 @@ public class CreateEventFragment extends Fragment {
     }
 
     /**
-     * Initializes the fragment, including poster picking launcher and argument parsing.
-     * @param savedInstanceState Saved bundle
+     * Initializes the fragment, sets up the poster picker launcher,
+     * and reads arguments such as {@code eventId} (for editing mode).
+     *
+     * @param savedInstanceState Saved instance state bundle, may be null.
      */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -176,6 +199,8 @@ public class CreateEventFragment extends Fragment {
         btnSave = view.findViewById(R.id.btnSave);
         btnCancel = view.findViewById(R.id.btnCancel);
 
+        //Header
+        tvHeader = view.findViewById(R.id.tvHeader);
 
         etTitle = view.findViewById(R.id.etTitle);
         etLocation = view.findViewById(R.id.etLocation);
@@ -193,6 +218,10 @@ public class CreateEventFragment extends Fragment {
 
         ivPosterPreview = view.findViewById(R.id.ivPosterPreview);
         ivPlusBig = view.findViewById(R.id.ivPlusBig);
+
+        //geolocation toggle
+        geolocationSwitch = view.findViewById(R.id.geolocation);
+
 
         //Adding poster logic
 
@@ -243,6 +272,7 @@ public class CreateEventFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         if(eventId != null) {
+            tvHeader.setText("Edit Event");
             db.collection("org_events").document(eventId).get()
                     .addOnSuccessListener(doc ->{
                         if(doc != null && doc.exists()){
@@ -288,6 +318,13 @@ public class CreateEventFragment extends Fragment {
                                 regCloseCal.setTime(regCloses.toDate());
                                 etRegCloses.setText(DateFormat.getDateInstance().format(regCloseCal.getTime()));
                             }
+
+                            //geolocation
+                            Boolean geo = doc.getBoolean("geolocationRequired");
+                            if (geo != null) {
+                                geolocationSwitch.setChecked(geo);
+                            }
+
                         }
                     });
         }
@@ -329,24 +366,35 @@ public class CreateEventFragment extends Fragment {
      * @param cal The Calendar instance to update with the selected date.
      */
     private void showDateThenTime(TextInputEditText et, Calendar cal) {
-        // This constructor ensures the dialog uses your app's Material theme
         DatePickerDialog dialog = new DatePickerDialog(
                 requireContext(),
-                R.style.ThemeOverlay_App_DatePicker, // <-- ADD THIS THEME
+                R.style.ThemeOverlay_App_DatePicker,
                 (view, year, month, day) -> {
+                    // Set the date part
                     cal.set(Calendar.YEAR, year);
                     cal.set(Calendar.MONTH, month);
                     cal.set(Calendar.DAY_OF_MONTH, day);
 
-                    // Clear time part to avoid timezone issues
-                    cal.set(Calendar.HOUR_OF_DAY, 0);
-                    cal.set(Calendar.MINUTE, 0);
-                    cal.set(Calendar.SECOND, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
+                    // show a time picker
+                    new android.app.TimePickerDialog(
+                            requireContext(),
+                            (timePicker, hour, minute) -> {
+                                cal.set(Calendar.HOUR_OF_DAY, hour);
+                                cal.set(Calendar.MINUTE, minute);
+                                cal.set(Calendar.SECOND, 0);
+                                cal.set(Calendar.MILLISECOND, 0);
 
-                    // Use a consistent format
-                    String format = DateFormat.getDateInstance(DateFormat.MEDIUM).format(cal.getTime());
-                    et.setText(format);
+                                //Format full date+time into the field
+                                String formatted = DateFormat.getDateTimeInstance(
+                                        DateFormat.MEDIUM,
+                                        DateFormat.SHORT
+                                ).format(cal.getTime());
+                                et.setText(formatted);
+                            },
+                            cal.get(Calendar.HOUR_OF_DAY),
+                            cal.get(Calendar.MINUTE),
+                            true  // 24‑hour; use false for 12‑hour
+                    ).show();
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -357,21 +405,25 @@ public class CreateEventFragment extends Fragment {
 
 
     /**
-     * Validates all user input fields and, if valid, saves the event to Firestore.
-     * <p>
-     * This method performs the following steps:
-     * 1. Retrieves all text inputs from the form fields.
-     * 2. Performs null/empty checks on all required fields, setting errors if invalid.
-     * 3. Parses the capacity string into a numeric type.
-     * 4. If all data is valid, it constructs a data map and saves it as a new document
-     *    in the "org_events" Firestore collection.
-     * 5. Navigates back upon successful creation or displays an error on failure.
+     * Validates all form fields, checks Firebase user permissions,
+     * prepares an event object, uploads poster image if needed,
+     * and finally saves or updates the Firestore document.
+     *
+     * <p>Steps performed:</p>
+     * <ol>
+     *     <li>Read and trim all form fields</li>
+     *     <li>Validate required fields</li>
+     *     <li>Parse capacity to a numeric value</li>
+     *     <li>Check whether the organizer has permission to create events</li>
+     *     <li>Handle Cloudinary poster upload when applicable</li>
+     *     <li>Create or update the {@code org_events} Firestore document</li>
+     * </ol>
      */
     private void validateAndSave() {
 
         Log.d("CreateEventFragment", "validateAndSave() called");
 
-        // Step 1: Retrieve all user input as strings
+        //Retrieve all user input as strings
         String title = etTitle.getText().toString().trim();
         String eventType = actEventType.getText().toString().trim();
         String location = etLocation.getText().toString().trim();
@@ -380,7 +432,7 @@ public class CreateEventFragment extends Fragment {
         String regOpensStr = etRegOpens.getText().toString().trim();
         String regClosesStr = etRegCloses.getText().toString().trim();
 
-        // Step 2: Validate input fields and set errors on invalid/empty
+        // Validate input fields and set errors on invalid/empty
         boolean valid = true;
         if (title.isEmpty()) {
             etTitle.setError("Title is required");
@@ -394,10 +446,11 @@ public class CreateEventFragment extends Fragment {
             etLocation.setError("Location is required");
             valid = false;
         }
+        /**
         if (capacityStr.isEmpty()) {
             actCapacity.setError("Capacity is required");
             valid = false;
-        }
+        }**/
         if (dateStr.isEmpty()) {
             etDate.setError("Event date is required");
             valid = false;
@@ -415,34 +468,61 @@ public class CreateEventFragment extends Fragment {
             return;
         }
 
-        // Step 3: Parse capacity to number
-        long capacityVal;
-        try {
-            capacityVal = Long.parseLong(capacityStr);
-        } catch (NumberFormatException e) {
-            actCapacity.setError("Invalid capacity format");
-            Log.e("CreateEventFragment", "Failed to parse capacity: " + capacityStr, e);
-            btnSave.setEnabled(true);
-            return;
+        // Parse capacity to number
+        Long capacityVal = null;
+        if(!capacityStr.isEmpty()) {
+            try {
+                capacityVal = Long.parseLong(capacityStr);
+            } catch (NumberFormatException e) {
+                actCapacity.setError("Invalid capacity format");
+                Log.e("CreateEventFragment", "Failed to parse capacity: " + capacityStr, e);
+                btnSave.setEnabled(true);
+                return;
+            }
         }
 
-        // Step 4: Prepare database event creation logic
+        // Prepare database event creation logic
         btnSave.setEnabled(false);
+
+        String deviceId = AdminAuthManager.getDeviceId(requireContext());
+        // Check Permissions in Firestore before proceeding
+        Long finalCapacityVal = capacityVal;
+        db.collection("users").document(deviceId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                            // 1. Check Policy Violations
+                            if (documentSnapshot.exists()) {
+                                Boolean canCreate = documentSnapshot.getBoolean("canCreateEvents");
+                                String status = documentSnapshot.getString("accountStatus");
+
+                                // If user is deactivated, STOP everything.
+                                if (Boolean.FALSE.equals(canCreate) || "deactivated".equals(status)) {
+                                    Toast.makeText(getContext(), "Account deactivated due to policy violation.", Toast.LENGTH_LONG).show();
+                                    btnSave.setEnabled(true);
+                                    return;
+                                }
+                            }
+         // User is clear, has permissions
+        boolean geoRequired = geolocationSwitch != null &&geolocationSwitch.isChecked();
+
 
         Consumer<String> saveEventWithPosterUrl = (posterUrl) -> {
             Map<String, Object> event = new HashMap<>();
             event.put("title", title);
             event.put("type", eventType);
             event.put("location", location);
-            event.put("capacity", capacityVal);
+            if (finalCapacityVal != null){
+            event.put("capacity", finalCapacityVal);
+            }
             event.put("startsAt", new Timestamp(eventWhen.getTime()));
             event.put("regOpens", new Timestamp(regOpenCal.getTime()));
             event.put("regCloses", new Timestamp(regCloseCal.getTime()));
             event.put("posterUrl", posterUrl);
             event.put("status", "published");
-            event.put("createdByUid", "precious"); // Replace with actual user ID in production
+            event.put("createdByUid", deviceId); // Replace with actual user ID in production
             event.put("createdAt", FieldValue.serverTimestamp());
             event.put("updatedAt", FieldValue.serverTimestamp());
+            event.put("geolocationRequired", geoRequired);
+
 
             if(posterUrl != null){
                 event.put("posterUrl", posterUrl);
@@ -453,9 +533,15 @@ public class CreateEventFragment extends Fragment {
             if(eventId == null){
                 //Create a new event
                 event.put("createdAt", FieldValue.serverTimestamp());
-                event.put("createdByUid","precious");
+                event.put("createdByUid", deviceId);
                 db.collection("org_events").add(event)
                         .addOnSuccessListener(ref -> {
+                            //role change to organiser
+                            db.collection("users")
+                                    .document(deviceId)
+                                    .update("role", "organiser")
+                                    .addOnSuccessListener(v -> Log.d("CreateEvent", "User is now an organiser"))
+                                    .addOnFailureListener(err -> Log.e("CreateEvent", "Failed to update role: " + err.getMessage()));
                             btnSave.setEnabled(true);
                             Toast.makeText(requireContext(), "Event saved!", Toast.LENGTH_SHORT).show();
                             requireActivity().getSupportFragmentManager().popBackStack();
@@ -466,6 +552,8 @@ public class CreateEventFragment extends Fragment {
                         });
 
             }else {
+                //Update the header to say Edit Event not Create Event
+                //tvHeader.setText("Edit Event");
                 // update existing event
                 db.collection("org_events").document(eventId)
                         .update(event)
@@ -490,7 +578,13 @@ public class CreateEventFragment extends Fragment {
             saveEventWithPosterUrl.accept(null);
         }
         Log.d("CreateEventFragment", "Validation passed, starting upload or save");
-
+                })
+                .addOnFailureListener(e -> {
+                    // Handle network error during permission check
+                    Log.e("CreateEventFragment", "Error checking permissions", e);
+                    Toast.makeText(getContext(), "Error verifying permissions. Please try again.", Toast.LENGTH_SHORT).show();
+                    btnSave.setEnabled(true);
+                });
     }
     /**
      * Uploads an image to Cloudinary and calls a consumer with the resulting URL.

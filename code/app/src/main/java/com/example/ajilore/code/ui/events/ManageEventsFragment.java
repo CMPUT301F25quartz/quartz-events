@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ajilore.code.R;
 import com.example.ajilore.code.ui.events.EventNotifier;   // << make sure helper is in this package
+import com.example.ajilore.code.ui.events.model.EntrantMapFragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -127,6 +128,8 @@ public class ManageEventsFragment extends Fragment {
         Button btnQR         = v.findViewById(R.id.btnQR);
         btnNotifyTop         = v.findViewById(R.id.btnNotifyEntrants);
         btnEditEvent    = v.findViewById(R.id.btnEditEvent);
+        Button btnMap = v.findViewById(R.id.btnMap);
+
 
         // audience pills (ensure your XML has these 4 IDs)
         tgWaiting   = v.findViewById(R.id.tgWaiting);
@@ -211,6 +214,34 @@ public class ManageEventsFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+
+        //Map, once clicked navigates to map screen
+        btnMap.setOnClickListener(view -> {
+                    db.collection("org_events")
+                            .document(eventId)
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                Boolean geoRequired = doc.getBoolean("geolocationRequired");
+
+                                // If organizer disbaled geolocation do not open the map
+                                if (geoRequired != null && !geoRequired) {
+                                    Toast.makeText(requireContext(), "Geolocation is disabled for this event.", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                Fragment f = EntrantMapFragment.newInstance(eventId);
+                                requireActivity().getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .replace(R.id.nav_host_fragment, f)
+                                        .addToBackStack(null)
+                                        .commit();
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(),
+                                            "Failed to check geolocation setting.",
+                                            Toast.LENGTH_SHORT).show()
+                            );
+                });
+
 
         //QR Page/Generator
         btnQR.setOnClickListener(x -> {

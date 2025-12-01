@@ -1,15 +1,18 @@
 package com.example.ajilore.code.ui.profile;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.*;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.ajilore.code.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -21,35 +24,38 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 /**
- * {@code EditProfileFragment} allows a signed-in user to update their
- * personal information such as name, email, and phone number.
- * <p>
- * The fragment performs live validation to enable the "Save" button only
- * when at least one field has been modified. Updated data is written to
- * Firestore under the {@code users} collection, merged with the existing document.
- * </p>
+ * {@code EditProfileFragment} allows an authenticated user to update their
+ * personal information stored in Firestore, including name, email, phone
+ * number, and profile image.
  *
- * <p><b>Key features:</b></p>
- * <ul>
- *     <li>Fetches the current Firebase user</li>
- *     <li>Enables dynamic validation using a {@link TextWatcher}</li>
- *     <li>Allows partial profile updates without overwriting unchanged fields</li>
- *     <li>Updates the Firestore user document with {@link SetOptions#merge()}</li>
- * </ul>
+ * <p>This fragment supports partial updates using {@link SetOptions#merge()},
+ * meaning only modified fields are written to Firestore while all other
+ * user data remains untouched.</p>
  *
- * <p><b>Limitations:</b></p>
+ * <h3>Features</h3>
  * <ul>
- *     <li>Does not currently re-validate email format</li>
- *     <li>No profile image editing functionality (future enhancement)</li>
+ *     <li>Fetches the device's unique ID to identify the user document</li>
+ *     <li>Real-time validation using a lightweight {@link TextWatcher}</li>
+ *     <li>Save button becomes enabled only when the user modifies at least one field</li>
+ *     <li>Profile picture updates supported through randomly generated images from Pravatar</li>
+ *     <li>Uses Glide to preview selected profile images</li>
  * </ul>
  *
  * @author
- *  Temi Akindele
+ *     Temi Akindele
  */
+
 public class EditProfileFragment extends Fragment {
 
     private TextInputEditText etName, etEmail, etPhone;
-    private MaterialButton btnSave, btnCancel;
+    private MaterialButton btnSave, btnCancel, btnRandomPhoto;
+    private FirebaseFirestore db;
+    private String deviceId;
+
+    private String chosenImageUrl = null;
+    private ImageView ivProfile;
+
+
     /**
      * Inflates the layout for this fragment.
      *
@@ -66,16 +72,21 @@ public class EditProfileFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_edit_profile, container, false);
     }
     /**
-     * Called once the view has been created.
-     * <p>
-     * Binds UI components, adds text watchers for validation, and defines the
-     * save/cancel button actions. Updates are pushed to Firestore when the user
-     * clicks "Save".
-     * </p>
+     * Called after the view hierarchy has been created.
      *
-     * @param v The root view.
-     * @param savedInstanceState Saved state if available.
+     * <p>This method:</p>
+     * <ul>
+     *     <li>Binds UI components (input fields, buttons, image preview)</li>
+     *     <li>Initializes Firestore</li>
+     *     <li>Retrieves the device's ID to locate the user document</li>
+     *     <li>Configures live validation for input fields to enable the Save button</li>
+     *     <li>Sets up click listeners for Cancel, Save, and Random Photo actions</li>
+     * </ul>
+     *
+     * @param v The root view returned by {@link #onCreateView}
+     * @param savedInstanceState Saved UI state if available
      */
+
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -85,82 +96,116 @@ public class EditProfileFragment extends Fragment {
         etPhone = v.findViewById(R.id.etPhone);
         btnSave = v.findViewById(R.id.btnSave);
         btnCancel = v.findViewById(R.id.btnCancel);
+        ivProfile = v.findViewById(R.id.ivProfile);
+        btnRandomPhoto = v.findViewById(R.id.btnRandomPhoto);
 
+        db = FirebaseFirestore.getInstance();
+
+        deviceId = Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID
+        );
 
 
         TextWatcher watcher = new SimpleWatcher(() -> {
             // Enable save if at least one field has some text
-            boolean any = notEmpty(etName) || notEmpty(etEmail) || notEmpty(etPhone);
+            boolean any = notEmpty(etName) || notEmpty(etEmail) || notEmpty(etPhone) || chosenImageUrl != null;
             btnSave.setEnabled(any);
         });
         etName.addTextChangedListener(watcher);
         etEmail.addTextChangedListener(watcher);
         etPhone.addTextChangedListener(watcher);
 
-        btnCancel.setOnClickListener(v1 -> requireActivity().onBackPressed());
+        btnCancel.setOnClickListener(v1 -> requireActivity()
+                .getSupportFragmentManager()
+                .popBackStack());
+        ;
 
-        btnSave.setOnClickListener(v12 -> {
-            var user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user == null) {
-                Toast.makeText(getContext(), "Not signed in", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String uid = user.getUid();
+        btnSave.setOnClickListener(v1 -> saveChanges());
 
-            Map<String, Object> patch = new HashMap<>();
-            String name  = get(etName);
-            String email = get(etEmail);
-            String phone = get(etPhone);
+        // Random Photo button (Pravatar)
+        btnRandomPhoto.setOnClickListener(v1 -> {
+            int num = (int) (Math.random() * 70) + 1;  // 1–70
+            chosenImageUrl = "https://i.pravatar.cc/150?img=" + num;
 
-            if (!name.isEmpty()) {
-                patch.put("name", name);
-                patch.put("nameLower", name.toLowerCase(Locale.ROOT));
-            }
-            if (!email.isEmpty()) patch.put("email", email);
-            if (!phone.isEmpty()) patch.put("phone", phone);
+            // Show preview
+            Glide.with(this)
+                    .load(chosenImageUrl)
+                    .circleCrop()
+                    .into(ivProfile);
 
-            if (patch.isEmpty()) {
-                Toast.makeText(getContext(), "Nothing to update", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            FirebaseFirestore.getInstance()
-                    .collection("users").document(uid)
-                    .set(patch, SetOptions.merge())
-                    .addOnSuccessListener(x -> {
-                        Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show();
-                        requireActivity().getSupportFragmentManager().popBackStack();
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                    );
+            btnSave.setEnabled(true);
         });
-
         // Initial state
         btnSave.setEnabled(false);
     }
+
     /**
-     * Checks if the given text field contains non-empty input.
+     * Collects all modified fields and writes them to Firestore.
      *
-     * @param et The {@link TextInputEditText} to check.
-     * @return true if not empty, false otherwise.
+     * <p>Only fields with user-modified values are included in the update map.
+     * Firestore writes use {@link SetOptions#merge()} to avoid overwriting other
+     * unrelated profile information.</p>
+     *
+     * <p>If no changes were made, a message is shown and the update is skipped.</p>
+     */
+
+    private void saveChanges() {
+        Map<String, Object> patch = new HashMap<>();
+
+        if (notEmpty(etName)) patch.put("name", get(etName));
+        if (notEmpty(etEmail)) patch.put("email", get(etEmail));
+        if (notEmpty(etPhone)) patch.put("phone", get(etPhone));
+
+        // Only update profile picture if user picked one
+        if (chosenImageUrl != null) {
+            patch.put("profilepicture", chosenImageUrl);
+        }
+
+        if (patch.isEmpty()) {
+            Toast.makeText(getContext(), "Nothing to update", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("users").document(deviceId)
+                .set(patch, SetOptions.merge())
+                .addOnSuccessListener(x -> {
+                    Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show();
+                    requireActivity()
+                            .getSupportFragmentManager()
+                            .popBackStack();
+                    ;
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Update failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show()
+                );
+    }
+    /**
+     * Returns whether the given text field contains non-empty, non-whitespace input.
+     *
+     * @param et The {@link TextInputEditText} to inspect
+     * @return {@code true} if the field contains a value, {@code false} otherwise
      */
     private boolean notEmpty(TextInputEditText et) {
         return et.getText() != null && et.getText().toString().trim().length() > 0;
     }
     /**
-     * Retrieves the trimmed string value from a text field.
+     * Retrieves the trimmed text from a {@link TextInputEditText}.
      *
-     * @param et The {@link TextInputEditText} to read.
-     * @return Trimmed text, or an empty string if null.
+     * @param et The edit text field
+     * @return A trimmed string value, or an empty string if null
      */
     private String get(TextInputEditText et) {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
     /**
-     * Simple {@link TextWatcher} helper class used for real-time validation.
-     * <p>Whenever text changes in any input field, the provided {@link Runnable}
-     * is executed (e.g., to enable or disable the Save button).</p>
+     * A lightweight {@link TextWatcher} implementation that executes a provided
+     * {@link Runnable} whenever text changes in any monitored field.
+     *
+     * <p>Used to dynamically enable or disable the Save button based on whether
+     * the user has modified any profile fields.</p>
      */
     private static class SimpleWatcher implements TextWatcher {
         private final Runnable r;
