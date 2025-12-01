@@ -97,8 +97,28 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">ManageEventQRFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">Fragment that generates, displays, shares and saves a deep link QR code for an event.
- Use the <a href="#newInstance(java.lang.String,java.lang.String)"><code>newInstance(String, String)</code></a> factory method to configure for a specific event.</div>
+<div class="block"><code>ManageEventQRFragment</code> generates, displays, shares, and saves a QR code
+ that deep-links to a specific event inside the Quartz Events app.
+
+ <p>This fragment is used by organizers to distribute event access quickly.
+ It performs the following tasks:</p>
+
+ <ul>
+     <li>Builds a dynamic deep link for an event</li>
+     <li>Generates a QR code bitmap using ZXing</li>
+     <li>Displays the QR code with event title and subtitle</li>
+     <li>Allows sharing the QR image via Android Sharesheet</li>
+     <li>Allows saving the QR image into the device's Pictures folder</li>
+ </ul>
+
+ <p><b>Usage:</b></p>
+ <p>Use <a href="#newInstance(java.lang.String,java.lang.String)"><code>newInstance(String, String)</code></a> to create a properly configured
+ fragment, passing the event ID and event title:</p>
+
+ <pre>
+ ManageEventQRFragment f =
+     ManageEventQRFragment.newInstance(eventId, eventTitle);
+ </pre></div>
 </div>
 </section>
 <section class="summary">

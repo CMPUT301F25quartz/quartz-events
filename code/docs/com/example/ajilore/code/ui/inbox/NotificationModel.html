@@ -106,6 +106,29 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">NotificationModel</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
+<div class="block">Model representing a single inbox notification for an entrant.
+
+ <p>This class mirrors the Firestore structure stored under:</p>
+ <pre>
+ users/{deviceId}/registrations/{eventId}/inbox/{notificationId}
+ </pre>
+
+ <p>Each notification may include:</p>
+ <ul>
+     <li>A reference to the related event</li>
+     <li>A message body written by the organizer</li>
+     <li>A formatted timestamp string</li>
+     <li>An optional sender profile image URL</li>
+     <li>A read/unread state</li>
+     <li>An action label (e.g., “See Details”)</li>
+     <li>A type (“general”, “chosen”, “selected”, etc.)</li>
+ </ul>
+
+ <p>Instances of this model are displayed inside the
+ <a href="NotificationAdapter.html" title="class in com.example.ajilore.code.ui.inbox"><code>NotificationAdapter</code></a> and controlled by
+ <a href="InboxFragment.html" title="class in com.example.ajilore.code.ui.inbox"><code>InboxFragment</code></a>.</p>
+
+ <p>Firestore requires a public no-arg constructor for deserialization.</p></div>
 </div>
 </section>
 <section class="summary">

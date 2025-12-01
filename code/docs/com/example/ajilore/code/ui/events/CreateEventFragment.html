@@ -98,12 +98,30 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">CreateEventFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">A <code>Fragment</code> that provides a user interface for creating a new event.
- <p>
- This fragment contains a form with fields for event details such as title, type,
- location, capacity, and various dates. It performs validation on user input and,
- upon successful validation, saves the new event data to the Firebase Firestore
- "org_events" collection.</div>
+<div class="block"><code>CreateEventFragment</code> provides a full form interface allowing organizers
+ to create or edit an event within the application.
+
+ <p>This fragment supports:
+ <ul>
+     <li>Creating brand-new events</li>
+     <li>Editing existing events when an <code>eventId</code> argument is provided</li>
+     <li>Uploading and previewing an event poster image via Cloudinary</li>
+     <li>Selecting dates for the event and registration windows using a Material-styled DatePicker</li>
+     <li>Enforcing Firestore permission rules (e.g., user bans, account deactivation)</li>
+     <li>Saving validated form data to the <code>org_events</code> Firestore collection</li>
+ </ul>
+ </p>
+
+ <p>When editing an event, all previously saved values (title, dates, poster, etc.)
+ are preloaded into the form. Otherwise, a blank form is shown for event creation.</p>
+
+ <p><b>Poster Handling:</b> Users may attach an image from storage.
+ The fragment uploads the image to Cloudinary and stores the resulting
+ HTTPS URL under <code>posterUrl</code>.</p></div>
+<dl class="notes">
+<dt>Author:</dt>
+<dd>Temi Akindele</dd>
+</dl>
 </div>
 </section>
 <section class="summary">
@@ -160,7 +178,8 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreate(android.os.Bundle)" class="member-name-link">onCreate</a><wbr>(android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Initializes the fragment, including poster picking launcher and argument parsing.</div>
+<div class="block">Initializes the fragment, sets up the poster picker launcher,
+ and reads arguments such as <code>eventId</code> (for editing mode).</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>android.view.View</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
@@ -233,12 +252,13 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onCreate</span><wbr><span class="parameters">(@Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Initializes the fragment, including poster picking launcher and argument parsing.</div>
+<div class="block">Initializes the fragment, sets up the poster picker launcher,
+ and reads arguments such as <code>eventId</code> (for editing mode).</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreate</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>savedInstanceState</code> - Saved bundle</dd>
+<dd><code>savedInstanceState</code> - Saved instance state bundle, may be null.</dd>
 </dl>
 </div>
 </section>

@@ -69,7 +69,8 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">sendNotification(Context, String, String, String, String)</a></li>
+<li><a href="#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">sendNotification(Context, String, String, String, String, String)</a></li>
+<li><a href="#sendBroadcastNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,int)" tabindex="0">sendBroadcastNotification(Context, String, String, String, String, boolean, String, int)</a></li>
 </ol>
 </li>
 </ol>
@@ -116,13 +117,27 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">sendNotification</a><wbr>(android.content.Context&nbsp;context,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#sendBroadcastNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,int)" class="member-name-link">sendBroadcastNotification</a><wbr>(android.content.Context&nbsp;context,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;audience,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;senderId,
+ boolean&nbsp;includePoster,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;linkUrl,
+ int&nbsp;recipientCount)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Sends a broadcast notification to a group (waiting, selected, chosen, cancelled)
+ AND logs it to admin_notification_logs collection.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">sendNotification</a><wbr>(android.content.Context&nbsp;context,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;userId,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
- <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Sends a notification to a chosen entrant.</div>
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;senderId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Sends a notification to a chosen entrant AND logs it for the admin.</div>
 </div>
 </div>
 </div>
@@ -158,22 +173,54 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String)">
+<section class="detail" id="sendNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)">
 <h3>sendNotification</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">sendNotification</span><wbr><span class="parameters">(android.content.Context&nbsp;context,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;userId,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
  <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
- <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</span></div>
-<div class="block">Sends a notification to a chosen entrant.</div>
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;senderId)</span></div>
+<div class="block">Sends a notification to a chosen entrant AND logs it for the admin.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>context</code> - Application or Fragment context for Toast</dd>
-<dd><code>userId</code> - UID of the chosen entrant</dd>
+<dd><code>userId</code> - Device ID of the chosen entrant</dd>
 <dd><code>eventId</code> - Firestore event ID</dd>
 <dd><code>message</code> - Notification message</dd>
 <dd><code>type</code> - Notification type (e.g., "lottery_winner", "general")</dd>
+<dd><code>senderId</code> - Sender ID</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="sendBroadcastNotification(android.content.Context,java.lang.String,java.lang.String,java.lang.String,java.lang.String,boolean,java.lang.String,int)">
+<h3>sendBroadcastNotification</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">sendBroadcastNotification</span><wbr><span class="parameters">(android.content.Context&nbsp;context,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;eventId,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;audience,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;senderId,
+ boolean&nbsp;includePoster,
+ <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;linkUrl,
+ int&nbsp;recipientCount)</span></div>
+<div class="block">Sends a broadcast notification to a group (waiting, selected, chosen, cancelled)
+ AND logs it to admin_notification_logs collection.
+
+ This is called when organizers use the "Notify Entrants" feature.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>context</code> - Application context</dd>
+<dd><code>eventId</code> - Event ID</dd>
+<dd><code>audience</code> - "waiting", "selected", "chosen", or "cancelled"</dd>
+<dd><code>message</code> - Custom message from organizer</dd>
+<dd><code>senderId</code> - Organizer's user ID</dd>
+<dd><code>includePoster</code> - Whether to include poster in notification</dd>
+<dd><code>linkUrl</code> - Optional link URL</dd>
+<dd><code>recipientCount</code> - Number of recipients</dd>
 </dl>
 </div>
 </section>

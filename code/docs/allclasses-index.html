@@ -60,7 +60,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/admin/AdminAboutFragment.html" title="class in com.example.ajilore.code.ui.admin">AdminAboutFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Fragment displaying the admin dashboard with navigation options.</div>
+<div class="block">AdminAboutFragment</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/AdminActivity.html" title="class in com.example.ajilore.code">AdminActivity</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -72,15 +72,15 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/controllers/AdminController.html" title="class in com.example.ajilore.code.controllers">AdminController</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">AdminController handles all administrative operations.</div>
+<div class="block">Controller responsible for all administrative operations within the application.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/controllers/AdminController.DataCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.DataCallback&lt;T&gt;</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab1">
-<div class="block">Generic data fetch callback with type and error reporting.</div>
+<div class="block">Generic callback interface for data retrieval operations.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/controllers/AdminController.OperationCallback.html" title="interface in com.example.ajilore.code.controllers">AdminController.OperationCallback</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
-<div class="block">Generic operation callback for CRUD/remove operations.</div>
+<div class="block">Generic callback interface for void operations (Create/Update/Delete).</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/adapters/AdminEventsAdapter.html" title="class in com.example.ajilore.code.adapters">AdminEventsAdapter</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
@@ -106,50 +106,79 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Fragment for browsing and managing images in the administrative interface.</div>
 </div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/adapters/AdminLogsAdapter.html" title="class in com.example.ajilore.code.adapters">AdminLogsAdapter</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">RecyclerView adapter responsible for displaying admin notification logs.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/admin/AdminNotificationLogsFragment.html" title="class in com.example.ajilore.code.ui.admin">AdminNotificationLogsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">AdminNotificationLogsFragment</div>
+</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/admin/AdminProfilesFragment.html" title="class in com.example.ajilore.code.ui.admin">AdminProfilesFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Fragment for displaying and managing the list of users in the admin interface.</div>
+<div class="block">AdminProfilesFragment</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/adapters/AdminUsersAdapter.html" title="class in com.example.ajilore.code.adapters">AdminUsersAdapter</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Adapter for displaying users in admin browse view.</div>
+<div class="block">RecyclerView Adapter for rendering the list of User Profiles in the Admin Dashboard.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/adapters/AdminUsersAdapter.OnUserActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminUsersAdapter.OnUserActionListener</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Interface for handling user action callbacks.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/CreateEventFragment.html" title="class in com.example.ajilore.code.ui.events">CreateEventFragment</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/CancelledEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events.list">CancelledEntrantsFragment</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">A <code>Fragment</code> that provides a user interface for creating a new event.</div>
+<div class="block">Fragment that displays a real-time list of entrants whose status is "cancelled".</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/utils/DeleteDialogHelper.html" title="class in com.example.ajilore.code.utils">DeleteDialogHelper</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/EditProfileFragment.html" title="class in com.example.ajilore.code.ui.profile">EditProfileFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block"><code>EditProfileFragment</code> allows a signed-in user to update their
- personal information such as name, email, and phone number.</div>
-</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/data/Entrant.html" title="class in com.example.ajilore.code.ui.events.data">Entrant</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/CreateEventFragment.html" title="class in com.example.ajilore.code.ui.events">CreateEventFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>CreateEventFragment</code> provides a full form interface allowing organizers
+ to create or edit an event within the application.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/utils/DeleteDialogHelper.html" title="class in com.example.ajilore.code.utils">DeleteDialogHelper</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/EditProfileFragment.html" title="class in com.example.ajilore.code.ui.profile">EditProfileFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>EditProfileFragment</code> allows an authenticated user to update their
+ personal information stored in Firestore, including name, email, phone
+ number, and profile image.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/EnrolledEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events.list">EnrolledEntrantsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">EnrolledEntrantsFragment</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/Entrant.html" title="class in com.example.ajilore.code.models">Entrant</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/data/Entrant.html" title="class in com.example.ajilore.code.ui.events.data">Entrant</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Lightweight model representing a single entrant row for waitlists or event invites.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/Entrant.html" title="class in com.example.ajilore.code.ui.profile">Entrant</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EntrantEventsFragment.html" title="class in com.example.ajilore.code.ui.events">EntrantEventsFragment</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/Entrant.html" title="class in com.example.ajilore.code.ui.profile">Entrant</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/adapters/EntrantAdapter.html" title="class in com.example.ajilore.code.adapters">EntrantAdapter</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">RecyclerView adapter used to display entrant information for different organizer views
+ (Invited, Cancelled, Enrolled).</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/adapters/EntrantAdapter.OnEntrantClickListener.html" title="interface in com.example.ajilore.code.adapters">EntrantAdapter.OnEntrantClickListener</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EntrantEventsFragment.html" title="class in com.example.ajilore.code.ui.events">EntrantEventsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Fragment for entrants to view all available events in a scrollable list.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/Event.html" title="class in com.example.ajilore.code.models">Event</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Event model class representing an event in the lottery system.</div>
-</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/model/EntrantMapFragment.html" title="class in com.example.ajilore.code.ui.events.model">EntrantMapFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>EntrantMapFragment</code> displays a Google Map containing the geographic
+ locations of all entrants who joined an event’s waiting list and have
+ shared their location.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/model/Event.html" title="class in com.example.ajilore.code.ui.events.model">Event</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Class Event
  Data model for an organizer-created event</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventDetailsFragment.html" title="class in com.example.ajilore.code.ui.events">EventDetailsFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventDetailsFragment.html" title="class in com.example.ajilore.code.ui.events">EventDetailsFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Fragment for displaying event details and managing waiting list membership:
  
    Join/leave waiting list
@@ -158,54 +187,86 @@ loadScripts(document, 'script');</script>
    View lottery selection process
  </div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/EventItem.html" title="class in com.example.ajilore.code.ui.events.list">EventItem</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/EventItem.html" title="class in com.example.ajilore.code.ui.events.list">EventItem</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Lightweight UI model representing a single organizer event row for display in lists.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventNotifier.html" title="class in com.example.ajilore.code.ui.events">EventNotifier</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventNotifier.html" title="class in com.example.ajilore.code.ui.events">EventNotifier</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">EventNotifier
 
- Purpose: A class that sends the organizer broadcasts.</div>
+ Purpose: A class that sends the organizer broadcasts with admin audit logging.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/EventNotifier.Callback.html" title="interface in com.example.ajilore.code.ui.events">EventNotifier.Callback</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/EventNotifier.Callback.html" title="interface in com.example.ajilore.code.ui.events">EventNotifier.Callback</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Callback for notification operations.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/EventRow.html" title="class in com.example.ajilore.code.ui.events.list">EventRow</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Model representing a single event row in the events feed, used by adapters for display.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Base fragment displaying a list of events.</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventsFragment.html" title="class in com.example.ajilore.code.ui.events">EventsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">US 01.01.04: Fragment for displaying and filtering events
+ Events are fetched live from Firestore and can be filtered by:
+ - Date range
+ - Location
+ - Category
+ - Availability
+
+ Also provides sorting by status (Open -&gt; Published -&gt; Closed)</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventsScreenFragment.html" title="class in com.example.ajilore.code.ui.events">EventsScreenFragment</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventsScreenFragment.html" title="class in com.example.ajilore.code.ui.events">EventsScreenFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>EventsScreenFragment</code> is a minimal concrete fragment that simply inflates
+ the <code>fragment_events</code> layout.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/EventStatusUpdater.html" title="class in com.example.ajilore.code.ui.events">EventStatusUpdater</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/EventStatusUpdater.OnUpdateCompleteListener.html" title="interface in com.example.ajilore.code.ui.events">EventStatusUpdater.OnUpdateCompleteListener</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/FilterEventsDialogFragment.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">DialogFragment that provides filtering controls for the Events list.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/FilterEventsDialogFragment.EventFilters.html" title="class in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.EventFilters</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">POJO-style data class representing a full set of event filter criteria.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/FilterEventsDialogFragment.OnFiltersAppliedListener.html" title="interface in com.example.ajilore.code.ui.events">FilterEventsDialogFragment.OnFiltersAppliedListener</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/GeneralEventsFragment.html" title="class in com.example.ajilore.code.ui.events">GeneralEventsFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Fragment for the main "Events" tab.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/history/HistoryAdapter.html" title="class in com.example.ajilore.code.ui.history">HistoryAdapter</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Simple RecyclerView adapter for displaying event history.</div>
+<div class="block"><code>HistoryAdapter</code> binds a user's event registration history to a
+ <code>RecyclerView</code>, displaying each registered event with its title,
+ date, location, and poster image.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/history/HistoryFragment.html" title="class in com.example.ajilore.code.ui.history">HistoryFragment</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block"><code>HistoryFragment</code> displays a list of all events that the currently
- signed-in user has registered for.</div>
-</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/history/HistoryAdapter.OnHistoryClickListener.html" title="interface in com.example.ajilore.code.ui.history">HistoryAdapter.OnHistoryClickListener</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/history/HistoryFragment.html" title="class in com.example.ajilore.code.ui.history">HistoryFragment</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>HistoryFragment</code> displays a list of all events that the current
+ device user has registered for.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/ImageItem.html" title="class in com.example.ajilore.code.models">ImageItem</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Model class representing an image item for admin browsing.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/InboxFragment.html" title="class in com.example.ajilore.code.ui.inbox">InboxFragment</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/InboxFragment.html" title="class in com.example.ajilore.code.ui.inbox">InboxFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">InboxFragment</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/InvitedEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events.list">InvitedEntrantsFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Fragment representing an inbox screen.</div>
+<div class="block">InvitedEntrantsFragment</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/LoginFragment.html" title="class in com.example.ajilore.code.ui.profile">LoginFragment</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block"><code>LoginFragment</code> handles both the login and signup process for users.</div>
+<div class="block"><code>LoginFragment</code> manages the login and signup flow for users in the app.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/MainActivity.html" title="class in com.example.ajilore.code">MainActivity</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
@@ -213,7 +274,8 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/ManageEventQRFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventQRFragment</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Fragment that generates, displays, shares and saves a deep link QR code for an event.</div>
+<div class="block"><code>ManageEventQRFragment</code> generates, displays, shares, and saves a QR code
+ that deep-links to a specific event inside the Quartz Events app.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/ManageEventsFragment.html" title="class in com.example.ajilore.code.ui.events">ManageEventsFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
@@ -228,66 +290,81 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/inbox/NotificationAdapter.OnNotificationActionListener.html" title="interface in com.example.ajilore.code.ui.inbox">NotificationAdapter.OnNotificationActionListener</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/NotificationPreferencesFragment.html" title="class in com.example.ajilore.code.ui.inbox">NotificationPreferencesFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.html" title="class in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/NotificationLog.html" title="class in com.example.ajilore.code.models">NotificationLog</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Model representing an immutable log entry for the Admin.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/NotificationModel.html" title="class in com.example.ajilore.code.ui.inbox">NotificationModel</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Model representing a single inbox notification for an entrant.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/NotificationPreferencesFragment.html" title="class in com.example.ajilore.code.ui.inbox">NotificationPreferencesFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/inbox/NotificationSettingsFragment.html" title="class in com.example.ajilore.code.ui.inbox">NotificationSettingsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Fragment for managing user notification preferences.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/activities/OrganizerEntrantsActivity.html" title="class in com.example.ajilore.code.activities">OrganizerEntrantsActivity</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Activity for organizers to manage entrants of a specific event.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.html" title="class in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">RecyclerView.Adapter that binds <a href="com/example/ajilore/code/ui/events/list/EventItem.html" title="class in com.example.ajilore.code.ui.events.list"><code>EventItem</code></a> objects for the organizer's event list.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.EventVH.html" title="class in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter.EventVH</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.EventVH.html" title="class in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter.EventVH</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">ViewHolder class for binding a single organizer event row.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.OnEventClick.html" title="interface in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter.OnEventClick</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/list/OrganizerEventsAdapter.OnEventClick.html" title="interface in com.example.ajilore.code.ui.events.list">OrganizerEventsAdapter.OnEventClick</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Click handler for an event row.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/OrganizerEventsFragment.html" title="class in com.example.ajilore.code.ui.events">OrganizerEventsFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/OrganizerEventsFragment.html" title="class in com.example.ajilore.code.ui.events">OrganizerEventsFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">OrganizerEventsFragment
 
  Purpose: Shows the organizer’s events in a scrollable list.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/ProfileFragment.html" title="class in com.example.ajilore.code.ui.profile">ProfileFragment</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/profile/ProfileFragment.html" title="class in com.example.ajilore.code.ui.profile">ProfileFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block"><code>ProfileFragment</code> displays and manages a user's profile information</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/ScanQrFragment.html" title="class in com.example.ajilore.code.ui.events">ScanQrFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">A simple <code>Fragment</code> subclass.</div>
-</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/SelectEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events">SelectEntrantsFragment</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/ScanQrFragment.html" title="class in com.example.ajilore.code.ui.events">ScanQrFragment</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block"><code>ScanQrFragment</code> launches the ZXing QR scanner and handles QR-based
+ navigation inside the Quartz Events app.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/SelectEntrantsFragment.html" title="class in com.example.ajilore.code.ui.events">SelectEntrantsFragment</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">SelectEntrantsFragment
 
  Purpose: Organizer screen to (1) watch the current pool of CHOSEN entrants
  and their responses, and (2) run a random draw that moves N users from
  WAITING → CHOSEN (responded=pending).</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/SelectEntrantsFragment.OnCancelClick.html" title="interface in com.example.ajilore.code.ui.events">SelectEntrantsFragment.OnCancelClick</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">User model class representing a user in the system.</div>
-</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/UserEventsAdapter.html" title="class in com.example.ajilore.code.ui.events.list">UserEventsAdapter</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/SelectEntrantsFragment.OnCancelClick.html" title="interface in com.example.ajilore.code.ui.events">SelectEntrantsFragment.OnCancelClick</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/utils/SendNotificationHelper.html" title="class in com.example.ajilore.code.utils">SendNotificationHelper</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/models/User.html" title="class in com.example.ajilore.code.models">User</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Represents a user in the system.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/UserEventsAdapter.html" title="class in com.example.ajilore.code.ui.events.list">UserEventsAdapter</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Adapter for the Events feed that matches the required item_event.xml structure.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/list/UserEventsAdapter.OnEventClick.html" title="interface in com.example.ajilore.code.ui.events.list">UserEventsAdapter.OnEventClick</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="com/example/ajilore/code/ui/events/list/UserEventsAdapter.OnEventClick.html" title="interface in com.example.ajilore.code.ui.events.list">UserEventsAdapter.OnEventClick</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Row click callback.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/WaitingListAdapter.html" title="class in com.example.ajilore.code.ui.events.list">WaitingListAdapter</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/list/WaitingListAdapter.html" title="class in com.example.ajilore.code.ui.events.list">WaitingListAdapter</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">RecyclerView.Adapter for displaying a waiting list of Entrants in a RecyclerView.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/WaitingListFragment.html" title="class in com.example.ajilore.code.ui.events">WaitingListFragment</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="com/example/ajilore/code/ui/events/WaitingListFragment.html" title="class in com.example.ajilore.code.ui.events">WaitingListFragment</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Fragment displaying the waiting list for an event.</div>
 </div>
 </div>

@@ -95,14 +95,29 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">InboxFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block">Fragment representing an inbox screen.
- Use the 
-<details class="invalid-tag">
-<summary>invalid reference</summary>
-<pre><code>#newInstance(String, String)</code></pre>
-</details>
- factory method to
- create an instance with specific parameters.</div>
+<div class="block">InboxFragment
+
+ <p>Displays the authenticated user's notification inbox. Notifications are
+ sourced from the Firestore path:</p>
+
+ <pre>
+ users/{deviceId}/registrations/{eventId}/inbox/{notificationId}
+ </pre>
+
+ <p>Supports the following features:</p>
+ <ul>
+    <li>View notifications grouped by event</li>
+    <li>Mark notifications as read</li>
+    <li>Archive and unarchive notifications</li>
+    <li>Filter unread messages</li>
+    <li>Switch between inbox and archived tabs</li>
+    <li>Open event details directly from a notification</li>
+    <li>Navigate to Notification Settings</li>
+ </ul>
+
+ <p><b>Design Pattern:</b> Fragment as controller, with real-time Firestore
+ listeners. UI state is delegated to <a href="NotificationAdapter.html" title="class in com.example.ajilore.code.ui.inbox"><code>NotificationAdapter</code></a>, while data
+ persistence is handled via Firestore batch updates.</p></div>
 </div>
 </section>
 <section class="summary">

@@ -98,34 +98,39 @@ loadScripts(document, 'script');</script>
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">AdminProfilesFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment
 implements <a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminUsersAdapter.OnUserActionListener</a></span></div>
-<div class="block">Fragment for displaying and managing the list of users in the admin interface.
+<div class="block">AdminProfilesFragment
 
- <p>This fragment displays all user profiles and provides administrative controls
- for user management, including viewing detailed user information and removing users
- who violate application policies. Despite the class name "ProfilesFragment", this
- component manages the user browsing functionality.</p>
+ <p>Fragment responsible for browsing, searching, filtering, and managing user
+ profiles within the Admin Dashboard. This serves as the central hub for User
+ Management, integrating multiple admin flows and enforcing role-based
+ constraints.</p>
 
- <p>Design Pattern: Fragment pattern from Android framework. Works in conjunction with
- AdminUsersAdapter following the Model-View-Adapter pattern.</p>
-
- <p>User Stories:</p>
+ <h3 id="implements-the-following-requirements--heading">Implements the following requirements:</h3>
  <ul>
-   <li>US 03.05.01 - As an administrator, I want to be able to browse profiles</li>
-   <li>US 03.02.01 - As an administrator, I want to be able to remove profiles</li>
+     <li><b>US 03.05.01 – Browse Profiles:</b> Displays all users with search and
+         filter controls.</li>
+     <li><b>US 03.02.01 – Remove Profiles:</b> Admin can delete entrant accounts.</li>
+     <li><b>US 03.07.01 – Remove Organizers:</b> Admin can deactivate organizer
+         accounts and automatically flag their events.</li>
  </ul>
 
- <p>Features:</p>
+ <h3 id="functions-of-this-screen--heading">Functions of this screen:</h3>
  <ul>
-   <li>Search users by name or email</li>
-   <li>Real-time filtering as user types</li>
-   <li>Delete users with confirmation</li>
-   <li>Loading and empty states</li>
- </ul></div>
+     <li>View all users with real-time filtering</li>
+     <li>Search by name, email, or device ID</li>
+     <li>Filter by role (All / Entrants / Organizers)</li>
+     <li>Tap an organizer to view created event history</li>
+     <li>Delete entrant accounts</li>
+     <li>Deactivate organizer accounts (special dialog + event flagging)</li>
+ </ul>
+
+ <p><b>Design Pattern:</b> Fragment as a controller with a thin UI-only role.
+ Business operations and Firestore interaction are delegated to
+ <a href="../../controllers/AdminController.html" title="class in com.example.ajilore.code.controllers"><code>AdminController</code></a>, while <a href="../../adapters/AdminUsersAdapter.html" title="class in com.example.ajilore.code.adapters"><code>AdminUsersAdapter</code></a> handles display +
+ filtering.</p></div>
 <dl class="notes">
-<dt>Since:</dt>
-<dd>2025-11-01</dd>
 <dt>Version:</dt>
-<dd>1.1</dd>
+<dd>2.0</dd>
 <dt>Author:</dt>
 <dd>Dinma (Team Quartz)</dd>
 </dl>
@@ -179,18 +184,16 @@ implements <a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" 
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)" class="member-name-link">onCreateView</a><wbr>(android.view.LayoutInflater&nbsp;inflater,
  android.view.ViewGroup&nbsp;container,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Inflates the admin profiles fragment view and initializes core UI and data elements.</div>
-</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onDeleteClick(com.example.ajilore.code.models.User)" class="member-name-link">onDeleteClick</a><wbr>(<a href="../../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Callback when the delete button for a user is tapped.</div>
+<div class="block">Handles delete-button clicks on user rows.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onUserClick(com.example.ajilore.code.models.User)" class="member-name-link">onUserClick</a><wbr>(<a href="../../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Callback when a user row is tapped to show brief info.</div>
+<div class="block">Handles taps on individual user rows.</div>
 </div>
 </div>
 </div>
@@ -239,16 +242,9 @@ implements <a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" 
  android.view.ViewGroup&nbsp;container,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Inflates the admin profiles fragment view and initializes core UI and data elements.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onCreateView</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
-<dt>Parameters:</dt>
-<dd><code>inflater</code> - The LayoutInflater object for view inflation.</dd>
-<dd><code>container</code> - Parent ViewGroup (if any).</dd>
-<dd><code>savedInstanceState</code> - Saved state from prior instance.</dd>
-<dt>Returns:</dt>
-<dd>The root view for admin profile browsing.</dd>
 </dl>
 </div>
 </section>
@@ -258,12 +254,19 @@ implements <a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" 
 <h3>onUserClick</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onUserClick</span><wbr><span class="parameters">(<a href="../../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</span></div>
-<div class="block">Callback when a user row is tapped to show brief info.</div>
+<div class="block">Handles taps on individual user rows.
+
+ <p>Behavior is role dependent:</p>
+ <ul>
+     <li><b>Organizers:</b> Opens a dialog showing all events they created so the admin can
+     review their activity before deactivation.</li>
+     <li><b>Entrants:</b> Shows a small informational toast (view-only behavior).</li>
+ </ul></div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html#onUserClick(com.example.ajilore.code.models.User)">onUserClick</a></code>&nbsp;in interface&nbsp;<code><a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminUsersAdapter.OnUserActionListener</a></code></dd>
 <dt>Parameters:</dt>
-<dd><code>user</code> - User instance that was tapped.</dd>
+<dd><code>user</code> - The user the admin tapped.</dd>
 </dl>
 </div>
 </section>
@@ -273,12 +276,20 @@ implements <a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" 
 <h3>onDeleteClick</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">onDeleteClick</span><wbr><span class="parameters">(<a href="../../models/User.html" title="class in com.example.ajilore.code.models">User</a>&nbsp;user)</span></div>
-<div class="block">Callback when the delete button for a user is tapped.</div>
+<div class="block">Handles delete-button clicks on user rows.
+
+ <p>Behavior is role dependent:</p>
+ <ul>
+     <li><b>Entrants:</b> Shows a standard delete confirmation dialog using
+         <a href="../../utils/DeleteDialogHelper.html" title="class in com.example.ajilore.code.utils"><code>DeleteDialogHelper</code></a> and removes the account.</li>
+     <li><b>Organizers:</b> Opens the specialized organizer-warning dialog,
+         informing admin that events will also be flagged.</li>
+ </ul></div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html#onDeleteClick(com.example.ajilore.code.models.User)">onDeleteClick</a></code>&nbsp;in interface&nbsp;<code><a href="../../adapters/AdminUsersAdapter.OnUserActionListener.html" title="interface in com.example.ajilore.code.adapters">AdminUsersAdapter.OnUserActionListener</a></code></dd>
 <dt>Parameters:</dt>
-<dd><code>user</code> - User to be deleted.</dd>
+<dd><code>user</code> - The user the admin wants to delete.</dd>
 </dl>
 </div>
 </section>

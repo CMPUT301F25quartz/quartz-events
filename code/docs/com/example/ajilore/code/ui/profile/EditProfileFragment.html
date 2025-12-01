@@ -96,26 +96,21 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">EditProfileFragment</span>
 <span class="extends-implements">extends androidx.fragment.app.Fragment</span></div>
-<div class="block"><code>EditProfileFragment</code> allows a signed-in user to update their
- personal information such as name, email, and phone number.
- <p>
- The fragment performs live validation to enable the "Save" button only
- when at least one field has been modified. Updated data is written to
- Firestore under the <code>users</code> collection, merged with the existing document.
- </p>
+<div class="block"><code>EditProfileFragment</code> allows an authenticated user to update their
+ personal information stored in Firestore, including name, email, phone
+ number, and profile image.
 
- <p><b>Key features:</b></p>
- <ul>
-     <li>Fetches the current Firebase user</li>
-     <li>Enables dynamic validation using a <code>TextWatcher</code></li>
-     <li>Allows partial profile updates without overwriting unchanged fields</li>
-     <li>Updates the Firestore user document with <code>SetOptions.merge()</code></li>
- </ul>
+ <p>This fragment supports partial updates using <code>SetOptions.merge()</code>,
+ meaning only modified fields are written to Firestore while all other
+ user data remains untouched.</p>
 
- <p><b>Limitations:</b></p>
+ <h3 id="features-heading">Features</h3>
  <ul>
-     <li>Does not currently re-validate email format</li>
-     <li>No profile image editing functionality (future enhancement)</li>
+     <li>Fetches the device's unique ID to identify the user document</li>
+     <li>Real-time validation using a lightweight <code>TextWatcher</code></li>
+     <li>Save button becomes enabled only when the user modifies at least one field</li>
+     <li>Profile picture updates supported through randomly generated images from Pravatar</li>
+     <li>Uses Glide to preview selected profile images</li>
  </ul></div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -178,7 +173,7 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onViewCreated(android.view.View,android.os.Bundle)" class="member-name-link">onViewCreated</a><wbr>(android.view.View&nbsp;v,
  android.os.Bundle&nbsp;savedInstanceState)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Called once the view has been created.</div>
+<div class="block">Called after the view hierarchy has been created.</div>
 </div>
 </div>
 </div>
@@ -249,18 +244,22 @@ loadScripts(document, 'script');</script>
  android.view.View&nbsp;v,
  @Nullable
  android.os.Bundle&nbsp;savedInstanceState)</span></div>
-<div class="block">Called once the view has been created.
- <p>
- Binds UI components, adds text watchers for validation, and defines the
- save/cancel button actions. Updates are pushed to Firestore when the user
- clicks "Save".
- </p></div>
+<div class="block">Called after the view hierarchy has been created.
+
+ <p>This method:</p>
+ <ul>
+     <li>Binds UI components (input fields, buttons, image preview)</li>
+     <li>Initializes Firestore</li>
+     <li>Retrieves the device's ID to locate the user document</li>
+     <li>Configures live validation for input fields to enable the Save button</li>
+     <li>Sets up click listeners for Cancel, Save, and Random Photo actions</li>
+ </ul></div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code>onViewCreated</code>&nbsp;in class&nbsp;<code>androidx.fragment.app.Fragment</code></dd>
 <dt>Parameters:</dt>
-<dd><code>v</code> - The root view.</dd>
-<dd><code>savedInstanceState</code> - Saved state if available.</dd>
+<dd><code>v</code> - The root view returned by <a href="#onCreateView(android.view.LayoutInflater,android.view.ViewGroup,android.os.Bundle)"><code>onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)</code></a></dd>
+<dd><code>savedInstanceState</code> - Saved UI state if available</dd>
 </dl>
 </div>
 </section>
