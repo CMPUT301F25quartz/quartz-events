@@ -175,6 +175,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Waiting List"
                     android:textOff="Waiting List"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -188,6 +189,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Chosen"
                     android:textOff="Chosen"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -208,6 +210,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Accepted"
                     android:textOff="Accepted"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />
@@ -221,6 +224,7 @@
                     android:background="@drawable/bg_pill_grey"
                     android:textOn="Declined"
                     android:textOff="Declined"
+                    android:textAllCaps="false"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#333333" />

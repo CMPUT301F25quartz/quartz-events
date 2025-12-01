@@ -128,7 +128,7 @@ public class ManageEventQRFragment extends Fragment {
         ivQR = view.findViewById(R.id.ivQR);
 
         tvTitle.setText(eventTitle);
-        tvSub.setText("Scan to view event • opens in app or web");
+        tvSub.setText("Scan to view event");
 
         //Wait until ImageView has a real size and then draw a QR
         ivQR.post(() -> {
@@ -218,7 +218,8 @@ public class ManageEventQRFragment extends Fragment {
             share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(share, "Share QR"));
         }catch (Exception e){
-            Toast.makeText(requireContext(), "Failed to share QR: " + e.getMessage(), Toast.LENGTH_LONG);
+            Toast.makeText(requireContext(), "Failed to share QR: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
         }
 
         }

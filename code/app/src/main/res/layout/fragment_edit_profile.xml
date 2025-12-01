@@ -30,6 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:backgroundTint="#00B6AA"
         android:text="Generate Photo"
         android:layout_marginBottom="20dp" />
 
@@ -77,6 +78,7 @@
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="#F2583E"
             android:text="Cancel"
             android:layout_marginEnd="12dp"/>
 
@@ -84,6 +86,8 @@
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="#5669FF"
+            android:textColor="@android:color/white"
             android:text="Save"/>
     </LinearLayout>
 
