@@ -3,6 +3,10 @@ package com.example.ajilore.code.ui.inbox;
 
 
 
+
+
+
+
 public class NotificationModel {
     private String eventId;          // Event this notification belongs to
     private String firestoreDocId;   // Firestore document ID of this inbox notification
@@ -16,7 +20,15 @@ public class NotificationModel {
 
 
 
+
+
+
+
     public NotificationModel() {} // Firestore requirement
+
+
+
+
 
 
 
@@ -37,6 +49,10 @@ public class NotificationModel {
 
 
 
+
+
+
+
     // Short constructor
     public NotificationModel(String eventId, String firestoreDocId, String message, boolean isRead, String type) {
         this.eventId = eventId;
@@ -52,6 +68,10 @@ public class NotificationModel {
 
 
 
+
+
+
+
     // --- Getters & Setters ---
     public String getEventId() { return eventId; }
     public String getFirestoreDocId() { return firestoreDocId; }
@@ -61,8 +81,14 @@ public class NotificationModel {
     public boolean isRead() { return isRead; }
 
 
+
+
     public String getActionText() { return actionText; }
     public String getType() { return type; }
+
+
+
+
 
 
 
@@ -79,12 +105,20 @@ public class NotificationModel {
 
 
 
+
+
+
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof NotificationModel)) return false;
         NotificationModel other = (NotificationModel) obj;
         return firestoreDocId != null && firestoreDocId.equals(other.firestoreDocId);
     }
+
+
+
+
 
 
 
