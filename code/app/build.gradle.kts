@@ -43,6 +43,9 @@ android {
     //stuff I added
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        unitTests {
+            isReturnDefaultValues = true
+        }
     }
 
 
@@ -102,6 +105,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database:20.3.3")
 
+    implementation("io.github.g00fy2.quickie:quickie-bundled:1.7.0")
     // Image loading library - Glide
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -111,7 +115,11 @@ dependencies {
 
 
     implementation("com.google.code.gson:gson:2.10.1")
-   // implementation(files("/Users/preciousajilore/Library/Android/sdk/platforms/android-36/android.jar"))
+    // implementation(files("/Users/preciousajilore/Library/Android/sdk/platforms/android-36/android.jar"))
+
+    //for location
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
 
 }
 
@@ -183,7 +191,3 @@ if (existing is Javadoc) {
         configureAndroidJavadocTask()
     }
 }
-
-
-
-
